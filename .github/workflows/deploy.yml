@@ -1,0 +1,48 @@
+name: CI/CD
+
+env:
+  DJANGO_SETTINGS_MODULE: config.settings.production
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    - name: Pull Master Branch
+      run: |
+        cd /var/www/프로젝트폴더위치/ && sudo git pull origin master
+
+    - name: pip Update
+      run: |
+        . /var/www/프로젝트폴더위치/venv/bin/activate && pip install -r /var/www/프로젝트폴더위치/requirements.txt
+    - name: Collectstatic
+      run: |
+        . /var/www/프로젝트폴더위치/venv/bin/activate && python /var/www/프로젝트폴더위치/manage.py collectstatic --noinput
+    - name: Database Update
+      run: |
+        . /var/www/프로젝트폴더위치/venv/bin/activate && python /var/www/프로젝트폴더위치/manage.py migrate --noinput
+    - name: TestCase
+      run: |
+        . /var/www/프로젝트폴더위치/venv/bin/activate && python /var/www/프로젝트폴더위치/manage.py test --noinput
+    - name: cronjob restart
+      run: |
+        cat /var/www/프로젝트폴더위치/command.cron | sudo crontab -
+        sudo /etc/init.d/cron reload
+      continue-on-error: true
+    - name: celery restart
+      run: |
+        sudo /etc/init.d/celeryd restart
+      continue-on-error: true
+    - name: Restart server
+      run: |
+        sudo systemctl restart nginx
+        sudo systemctl restart uwsgi
