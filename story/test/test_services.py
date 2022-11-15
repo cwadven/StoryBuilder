@@ -2,6 +2,7 @@ from django.test import TestCase
 from rest_framework.exceptions import APIException
 
 from account.models import User
+from config.common.exception_codes import StartingSheetDoesNotExists
 from story.models import Story, Sheet
 from story.services import get_running_start_sheet_by_story
 
@@ -42,7 +43,7 @@ class GetSheetStoryTestCase(TestCase):
 
         # When: get_running_start_sheet_by_story 요청
         # Then: Story 조회 실패
-        with self.assertRaises(APIException):
+        with self.assertRaises(StartingSheetDoesNotExists):
             get_running_start_sheet_by_story(self.story.id)
 
     def test_get_running_start_sheet_by_story_should_fail_when_story_is_not_displayable(self):
@@ -52,7 +53,7 @@ class GetSheetStoryTestCase(TestCase):
 
         # When: get_running_start_sheet_by_story 요청
         # Then: Story 조회 실패
-        with self.assertRaises(APIException):
+        with self.assertRaises(StartingSheetDoesNotExists):
             get_running_start_sheet_by_story(self.story.id)
 
     def test_get_running_start_sheet_by_story_should_fail_when_story_not_have_is_start_sheet(self):
@@ -62,7 +63,7 @@ class GetSheetStoryTestCase(TestCase):
 
         # When: get_running_start_sheet_by_story 요청
         # Then: Sheet 조회 실패
-        with self.assertRaises(APIException):
+        with self.assertRaises(StartingSheetDoesNotExists):
             get_running_start_sheet_by_story(self.story.id)
 
     def test_get_running_start_sheet_by_story_should_success_when_story_have_is_start(self):

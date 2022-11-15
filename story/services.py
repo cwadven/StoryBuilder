@@ -1,5 +1,6 @@
 from rest_framework.exceptions import APIException
 
+from config.common.exception_codes import StartingSheetDoesNotExists
 from story.models import Sheet
 
 
@@ -16,4 +17,4 @@ def get_running_start_sheet_by_story(story_id):
             is_deleted=False
         )
     except Sheet.DoesNotExist:
-        raise APIException('스토리를 불러올 수 없습니다.')
+        raise StartingSheetDoesNotExists()
