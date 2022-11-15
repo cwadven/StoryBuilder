@@ -33,6 +33,7 @@ THIRD_APPS = [
 # Django startapp
 PROJECT_APPS = [
     'account',
+    'story',
 ]
 
 PROJECT_SETTING_APPS = [
