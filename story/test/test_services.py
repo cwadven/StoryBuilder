@@ -1,5 +1,4 @@
-from django.urls import reverse
-from django.test import TestCase, Client
+from django.test import TestCase
 from rest_framework.exceptions import APIException
 
 from account.models import User
@@ -7,7 +6,7 @@ from story.models import Story, Sheet
 from story.services import get_running_start_sheet_by_story
 
 
-class SocialLoginTestCase(TestCase):
+class GetSheetStoryTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.story = Story.objects.create(
