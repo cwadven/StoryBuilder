@@ -32,6 +32,7 @@ class Sheet(models.Model):
     background_image = models.TextField(verbose_name='대표 배경 이미지', blank=True, null=True)
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False)
     version = models.IntegerField(verbose_name='수정 시 자동 변경 되는 버전', default=0)
+    is_start = models.BooleanField(verbose_name='시작 부분 여부', default=False)
     is_final = models.BooleanField(verbose_name='마지막 부분 여부', default=False)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
