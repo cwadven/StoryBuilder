@@ -47,3 +47,9 @@ class MissingMandatoryParameterException(APIException):
     status_code = 400
     default_detail = '입력값을 다시 확인해주세요.'
     default_code = 'missing-mandatory-parameter'
+
+
+class StartingSheetDoesNotExists(APIException):
+    status_code = 400
+    default_detail = '스토리를 불러올 수 없습니다.'
+    default_code = 'starging-sheet-does-not-exists'
