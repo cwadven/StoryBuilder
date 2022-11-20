@@ -59,8 +59,8 @@ class SheetAnswer(models.Model):
 
 
 class NextSheetPath(models.Model):
-    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE)
     answer = models.ForeignKey(SheetAnswer, on_delete=models.CASCADE)
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE)
     quantity = models.IntegerField(verbose_name='가중치', default=1)
 
     def __str__(self):
