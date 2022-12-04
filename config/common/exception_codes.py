@@ -53,3 +53,9 @@ class StartingSheetDoesNotExists(APIException):
     status_code = 400
     default_detail = '스토리를 불러올 수 없습니다.'
     default_code = 'starging-sheet-does-not-exists'
+
+
+class SheetDoesNotExists(APIException):
+    status_code = 400
+    default_detail = '존재하지 않은 Sheet 입니다.'
+    default_code = 'sheet-does-not-exists'

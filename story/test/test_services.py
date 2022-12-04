@@ -1,10 +1,14 @@
 from django.test import TestCase
-from rest_framework.exceptions import APIException
 
 from account.models import User
-from config.common.exception_codes import StartingSheetDoesNotExists
-from story.models import Story, Sheet
-from story.services import get_running_start_sheet_by_story
+from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath
+from story.services import (
+    get_running_start_sheet_by_story,
+    get_sheet_answers,
+    get_valid_answer_info_with_random_quantity,
+    get_sheet_answer_with_next_path_responses,
+)
 
 
 class GetSheetStoryTestCase(TestCase):
@@ -74,3 +78,159 @@ class GetSheetStoryTestCase(TestCase):
 
         # Then: Sheet 조회 성공
         self.assertEqual(sheet.id, self.start_sheet.id)
+
+
+class GetSheetAnswerTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.start_sheet_answer2 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test2',
+            answer_reply='test_reply2',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.final_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='test_title2',
+            question='test_question2',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+
+    def test_get_sheet_answers(self):
+        # Given:
+        # When: Sheet의 정답을 가져옵니다.
+        answers = get_sheet_answers(self.start_sheet.id)
+
+        # Then: start_sheet_answer1 와 start_sheet_answer2 의 answer 값이 있습니다.
+        self.assertTrue(self.start_sheet_answer1.answer in answers)
+        self.assertTrue(self.start_sheet_answer2.answer in answers)
+
+    def test_get_sheet_answer_with_next_path_responses_should_success(self):
+        # Given:
+        # When: Sheet의 정답을 SheetAnswerResponse 형태로 가져옵니다.
+        sheet_answer_responses = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
+        self.assertEqual(sheet_answer_responses[0].id, self.start_sheet_answer1.id)
+        self.assertEqual(sheet_answer_responses[1].id, self.start_sheet_answer2.id)
+
+    def test_get_sheet_answer_with_next_path_responses_should_fail_when_sheet_is_deleted(self):
+        # Given: Sheet 가 삭제됐을 경우
+        self.start_sheet.is_deleted = True
+        self.start_sheet.save()
+
+        # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
+        # Then: Sheet 삭제되어서 Error 반환
+        with self.assertRaises(SheetDoesNotExists):
+            get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+    def test_get_sheet_answer_with_next_path_responses_should_fail_when_story_is_deleted(self):
+        # Given:
+        self.start_sheet.story.is_deleted = True
+        self.start_sheet.story.save()
+
+        # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
+        # Then: Story 삭제되어서 Error 반환
+        with self.assertRaises(SheetDoesNotExists):
+            get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+    def test_get_sheet_answer_with_next_path_responses_should_fail_when_story_not_displayable(self):
+        # Given:
+        self.start_sheet.story.displayable = False
+        self.start_sheet.story.save()
+
+        # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
+        # Then: Story 삭제되어서 Error 반환
+        with self.assertRaises(SheetDoesNotExists):
+            get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+    def test_get_valid_answer_info_with_random_quantity_should_success_when_answer_is_valid(self):
+        # Given: SheetAnswer 에 final_sheet1 을 바라보는 NextSheetPath 를 추가합니다. quantity 10
+        possible_next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        # And: SheetAnswer 에 final_sheet2 을 바라보는 NextSheetPath 를 추가합니다. quantity 0
+        NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        # And: sheet answer response 를 가져옵니다.
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: 정답 및 랜덤 값들을 가져옵니다.
+        is_valid, sheet_answer_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer=self.start_sheet_answer1.answer,
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다.
+        self.assertTrue(is_valid)
+        # And: 맞춘 정답의 id 를 가져옵니다.
+        self.assertEqual(sheet_answer_id, self.start_sheet_answer1.id)
+        # And: quantity 가 10 인 next_sheet_id 를 가져옵니다
+        # 0 은 가능성 이 없기 때문에 랜덤으로 안가져와 집니다.
+        self.assertEqual(next_sheet_id, possible_next_sheet_path.sheet_id)
+
+    def test_get_valid_answer_info_with_random_quantity_should_fail_when_answer_is_invalid(self):
+        # Given: SheetAnswer 에 final_sheet1 을 바라보는 NextSheetPath 를 추가합니다. quantity 10
+        NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        # And: SheetAnswer 에 final_sheet2 을 바라보는 NextSheetPath 를 추가합니다. quantity 0
+        NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        # And: sheet answer response 를 가져옵니다.
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: 없는 정답으로 정답 및 랜덤 값들을 가져옵니다.
+        is_valid, sheet_answer_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer='wrong_answer',
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다.
+        self.assertFalse(is_valid)
+        # And: 정답을 맞추지 못해 None 입니다.
+        self.assertIsNone(sheet_answer_id)
+        # And: 정답을 맞추지 못해 None 입니다.
+        self.assertIsNone(next_sheet_id)

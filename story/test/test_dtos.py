@@ -1,11 +1,11 @@
 from django.test import TestCase
 
 from account.models import User
-from story.dtos import PlayingSheetDTO
-from story.models import Sheet, Story
+from story.dtos import PlayingSheetDTO, SheetAnswerResponseDTO
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath
 
 
-class DTOTopicItemTestCase(TestCase):
+class DTOPlayingSheetTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.story = Story.objects.create(
@@ -37,3 +37,64 @@ class DTOTopicItemTestCase(TestCase):
         self.assertEqual(playing_sheet.get('question'), self.start_sheet.question)
         self.assertEqual(playing_sheet.get('image'), self.start_sheet.image)
         self.assertEqual(playing_sheet.get('background_image'), self.start_sheet.background_image)
+
+
+class DTOSheetAnswerResponseTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+
+    def test_sheet_answer_response_dto(self):
+        # Given: SheetAnswerResponseDTO 에 맞는 타입 생성
+        start_sheet_values = self.start_sheet.sheetanswer_set.all().values(
+            'id',
+            'answer',
+            'answer_reply',
+            'next_sheet_paths__nextsheetpath__sheet_id',
+            'next_sheet_paths__nextsheetpath__quantity',
+        )
+
+        # When: dto 객체 생성
+        sheet_answer_response_dto = SheetAnswerResponseDTO.of(start_sheet_values[0])
+        sheet_answer_response = sheet_answer_response_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(sheet_answer_response.get('id'), start_sheet_values[0]['id'])
+        self.assertEqual(sheet_answer_response.get('answer'), start_sheet_values[0]['answer'])
+        self.assertEqual(sheet_answer_response.get('answer_reply'), start_sheet_values[0]['answer_reply'])
+        self.assertEqual(sheet_answer_response.get('next_sheet_id'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__sheet_id'])
+        self.assertEqual(sheet_answer_response.get('next_sheet_quantity'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__quantity'])
