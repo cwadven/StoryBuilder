@@ -24,6 +24,20 @@ class Story(models.Model):
         return f'{self.id} {self.title}'
 
 
+class UserStorySolve(models.Model):
+    STATUS_CHOICES = (
+        ('solving', '진행중'),
+        ('give_up', '포기'),
+        ('solved', '성공'),
+    )
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+
+    def __str__(self):
+        return f'User: {self.user_id} Story: {self.story_id} Status: {self.status}'
+
+
 class Sheet(models.Model):
     story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
     title = models.CharField(verbose_name='제목', max_length=100)
