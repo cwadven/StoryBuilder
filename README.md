@@ -1,32 +1,28 @@
-# NULLYS DjangoRESTFramework TEMPLATE
+# Story Builder
 
 ## Purpose Of Project
 
-[edit . 2022-02-09]
+[edit . 2022-12-04]
 
-- Django DRF 용 TEMPLATE
+- 문제를 만드는 스토리 빌더 입니다.
+- 원하는 문제를 만들고 다음 문제로 넘어갈 수 있도록 만드는 재미있는 프로젝트 입니다.
 
 ## Project Introduce
 
-[edit . 2022-08-07]
+[edit . 2022-12-04]
 
-- Github Clone 으로 DRF 프로젝트를 빠르게 생성하기 위한 Template
-- 비동기 처리 Celery
-- 캐시 서버 Redis Cacheops
-- Random Model Object Create
-- CI/CD Github Actions
-- TestCase Github Actions
-- 회원 및 소셜 로그인 기능 제공 (카카오, 네어버, 구글)
+- Story Builder 는 Story 라는 문제지와 Sheet 라는 문제로 구성되어 있습니다.
+- Sheet 에 연결되어 있는 정답에 따란 다음 Sheet 로 넘어갑니다.
 
 ## Project Duration
 
-[edit . 2022-08-05]
+[edit . 2022-12-04]
 
-2022-02-09 ~ 
+2022-11-15 ~ 
 
 ## Technologies Used
 
-[edit . 2022-08-07]
+[edit . 2022-12-04]
 
 #### Framework
 
@@ -40,14 +36,10 @@
 
 ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
-#### Others
-
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-
 
 ## Developer Information
 
-[edit . 2022-02-09]
+[edit . 2022-12-04]
 
 #### Developer
 
@@ -57,16 +49,10 @@
 
 ## Project Structure
 
-[edit . 2022-02-09]
+[edit . 2022-12-04]
 
 ```
 Project Root
-├── 📂 docker
-│    └── 📂 mysql_server
-│         ├── 📂 log
-│         ├── 📂 data
-│         └── 📂 conf.d
-│              └── 📜 my.cnf
 │
 ├── 📂 config
 │    ├── 📂 settings
@@ -142,39 +128,7 @@ Project Root
 
 ## Usage
 
-[edit . 2022-08-05]
-
-## With Docker
-
-Docker 설정을 하지 않을 경우 바로 밑에 `기본설정` 부터 가이드를 따르세요!
-
----
-
-```shell
-# MySQL 실행
-docker-compose -f docker/mysql-server.yml up -d
-
-# Redis 실행
-docker-compose -f docker/redis-server.yml up -d
-```
-
-#### 데이터베이스 설정
-```shell
-# mysql 도커 cli 실행 후 mysql 초기 접속
-mysql -u root -p
-비밀번호 root
-
-# 데이터베이스 생성
-CREATE DATABASE 데이터베이스명;
-
-# 루트 비밀번호 변경
-# mysql 8.0 이상은 mysql_native_password 로 비밀변호 생성 필요
-ALTER user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '변경 비밀번호';
-FLUSH PRIVILEGES;
-
-# settings 폴더에 있는 python 파일에 비밀번호 수정
-```
-
+[edit . 2022-12-04]
 
 ### 1. 기본 설정
 
