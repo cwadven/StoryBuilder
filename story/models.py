@@ -33,6 +33,7 @@ class UserStorySolve(models.Model):
     story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    solved_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f'User: {self.user_id} Story: {self.story_id} Status: {self.status}'
