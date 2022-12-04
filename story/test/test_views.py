@@ -4,13 +4,13 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from account.models import User
-from config.common.exception_codes import SheetDoesNotExists
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath
+from config.test_helper.helper import LoginMixin
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve
 
 
-class StoryPlayAPIViewTestCase(TestCase):
+class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
-        self.c = Client()
+        super(StoryPlayAPIViewTestCase, self).setUp()
         self.user = User.objects.all()[0]
         self.story = Story.objects.create(
             author=self.user,
@@ -91,6 +91,24 @@ class StoryPlayAPIViewTestCase(TestCase):
         self.assertTrue(content.get('question'), self.start_sheet.question)
         self.assertTrue(content.get('image'), self.start_sheet.image)
         self.assertTrue(content.get('background_image'), self.start_sheet.background_image)
+
+    def test_get_story_play_api_should_create_user_story_solve_when_user_is_authenticated(self):
+        # Given: 로그인
+        self.login()
+
+        # When: story_play 요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: Story 조회 성공
+        self.assertTrue(response.status_code, 200)
+        self.assertTrue(content.get('id'), self.start_sheet.id)
+        self.assertTrue(content.get('title'), self.start_sheet.title)
+        self.assertTrue(content.get('question'), self.start_sheet.question)
+        self.assertTrue(content.get('image'), self.start_sheet.image)
+        self.assertTrue(content.get('background_image'), self.start_sheet.background_image)
+        # And: 로그인 한 유저의 UserStorySolve 존재
+        self.assertTrue(UserStorySolve.objects.filter(user=self.c.user, status=UserStorySolve.STATUS_CHOICES[0][0]).exists())
 
 
 class SheetAnswerCheckAPIViewViewTestCase(TestCase):
