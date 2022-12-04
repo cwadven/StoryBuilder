@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 
 from common_decorator import mandatories
 from story.dtos import PlayingSheetDTO
-from story.models import SheetAnswer
+from story.models import SheetAnswer, UserStorySolve
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
@@ -13,8 +13,14 @@ from story.services import (
 
 class StoryPlayAPIView(APIView):
     def get(self, request, story_id):
-        # UserStorySolve 생성
         start_sheet = get_running_start_sheet_by_story(story_id)
+
+        if request.user.is_authenticated:
+            UserStorySolve.objects.get_or_create(
+                story_id=story_id,
+                user=request.user,
+            )
+
         playing_sheet = PlayingSheetDTO.of(start_sheet).to_dict()
         return Response(playing_sheet, status=200)
 
