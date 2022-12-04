@@ -48,8 +48,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         content = json.loads(response.content)
 
         # Then: Story 조회 실패
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_fail_when_story_is_not_displayable(self):
         # Given: Story 가 displayable 가 False 인 경우
@@ -61,8 +61,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         content = json.loads(response.content)
 
         # Then: Story 조회 실패
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_fail_when_story_not_have_is_start_sheet(self):
         # Given: Sheet 가 is_start 가 없는 경우
@@ -74,8 +74,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         content = json.loads(response.content)
 
         # Then: Story 조회 실패
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_success_when_story_have_is_start(self):
         # Given: Sheet 가 is_start 가 있는 경우
@@ -85,12 +85,12 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         content = json.loads(response.content)
 
         # Then: Story 조회 성공
-        self.assertTrue(response.status_code, 200)
-        self.assertTrue(content.get('id'), self.start_sheet.id)
-        self.assertTrue(content.get('title'), self.start_sheet.title)
-        self.assertTrue(content.get('question'), self.start_sheet.question)
-        self.assertTrue(content.get('image'), self.start_sheet.image)
-        self.assertTrue(content.get('background_image'), self.start_sheet.background_image)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('id'), self.start_sheet.id)
+        self.assertEqual(content.get('title'), self.start_sheet.title)
+        self.assertEqual(content.get('question'), self.start_sheet.question)
+        self.assertEqual(content.get('image'), self.start_sheet.image)
+        self.assertEqual(content.get('background_image'), self.start_sheet.background_image)
 
     def test_get_story_play_api_should_create_user_story_solve_when_user_is_authenticated(self):
         # Given: 로그인
@@ -101,14 +101,106 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         content = json.loads(response.content)
 
         # Then: Story 조회 성공
-        self.assertTrue(response.status_code, 200)
-        self.assertTrue(content.get('id'), self.start_sheet.id)
-        self.assertTrue(content.get('title'), self.start_sheet.title)
-        self.assertTrue(content.get('question'), self.start_sheet.question)
-        self.assertTrue(content.get('image'), self.start_sheet.image)
-        self.assertTrue(content.get('background_image'), self.start_sheet.background_image)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('id'), self.start_sheet.id)
+        self.assertEqual(content.get('title'), self.start_sheet.title)
+        self.assertEqual(content.get('question'), self.start_sheet.question)
+        self.assertEqual(content.get('image'), self.start_sheet.image)
+        self.assertEqual(content.get('background_image'), self.start_sheet.background_image)
         # And: 로그인 한 유저의 UserStorySolve 존재
         self.assertTrue(UserStorySolve.objects.filter(user=self.c.user, status=UserStorySolve.STATUS_CHOICES[0][0]).exists())
+
+
+class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(SheetPlayAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.normal_sheet = Sheet.objects.create(
+            story=self.story,
+            title='normal sheet',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=False,
+        )
+        self.final_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+
+    def test_get_sheet_play_api_should_fail_when_story_is_deleted(self):
+        # Given: Story 가 삭제된 경우
+        self.story.is_deleted = True
+        self.story.save()
+
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then: Sheet 조회 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+
+    def test_get_sheet_play_api_should_fail_when_story_is_not_displayable(self):
+        # Given: Story 가 displayable 가 False 인 경우
+        self.story.displayable = False
+        self.story.save()
+
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then: Sheet 조회 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+
+    def test_get_sheet_play_api_should_fail_when_sheet_is_deleted(self):
+        # Given: Sheet 가 is_deleted 인 경우
+        self.normal_sheet.is_deleted = True
+        self.normal_sheet.save()
+
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then: Sheet 조회 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+
+    def test_get_sheet_play_api_should_return_playing_sheet_dto_when_success(self):
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then: Sheet 조회 성공
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('id'), self.normal_sheet.id)
+        self.assertEqual(content.get('title'), self.normal_sheet.title)
+        self.assertEqual(content.get('question'), self.normal_sheet.question)
+        self.assertEqual(content.get('image'), self.normal_sheet.image)
+        self.assertEqual(content.get('background_image'), self.normal_sheet.background_image)
 
 
 class SheetAnswerCheckAPIViewViewTestCase(TestCase):
@@ -181,13 +273,13 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         content = json.loads(response.content)
 
         # Then: 조회 성공
-        self.assertTrue(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         # And: 정답은 참
         self.assertTrue(content.get('is_valid'))
         # And: 정답이 start_sheet_answer1 이기 때문에 해당 quantity 10인 final_sheet1 을 선택
-        self.assertTrue(content.get('next_sheet_id'), self.final_sheet1.id)
+        self.assertEqual(content.get('next_sheet_id'), self.final_sheet1.id)
         # And: 정답 응답 확인
-        self.assertTrue(content.get('answer_reply'), self.start_sheet_answer1.answer_reply)
+        self.assertEqual(content.get('answer_reply'), self.start_sheet_answer1.answer_reply)
 
     def test_get_story_next_sheet_when_answer_is_invalid(self):
         # Given: sheet_id 에 대해 오답 명시
@@ -215,8 +307,8 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         content = json.loads(response.content)
 
         # Then: Sheet 삭제되어서 Error 반환
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_story_next_sheet_should_fail_when_story_is_not_displayable(self):
         # Given: sheet 삭제 됐을 경우
@@ -228,8 +320,8 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         content = json.loads(response.content)
 
         # Then: Story 삭제 되어서 Error 반환
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_story_next_sheet_should_fail_when_story_is_deleted(self):
         # Given: sheet 삭제 됐을 경우
@@ -241,5 +333,5 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         content = json.loads(response.content)
 
         # Then: Story 비활성화 되어서 Error 반환
-        self.assertTrue(response.status_code, 400)
-        self.assertTrue(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')

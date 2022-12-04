@@ -7,7 +7,7 @@ from story.models import SheetAnswer, UserStorySolve
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
-    get_valid_answer_info_with_random_quantity,
+    get_valid_answer_info_with_random_quantity, get_running_sheet,
 )
 
 
@@ -22,6 +22,13 @@ class StoryPlayAPIView(APIView):
             )
 
         playing_sheet = PlayingSheetDTO.of(start_sheet).to_dict()
+        return Response(playing_sheet, status=200)
+
+
+class SheetPlayAPIView(APIView):
+    def get(self, request, sheet_id):
+        sheet = get_running_sheet(sheet_id)
+        playing_sheet = PlayingSheetDTO.of(sheet).to_dict()
         return Response(playing_sheet, status=200)
 
 
