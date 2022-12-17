@@ -121,6 +121,30 @@ class UserSheetAnswerSolve(models.Model):
     start_time = models.DateTimeField(null=True)
     solved_time = models.DateTimeField(null=True)
 
+    @classmethod
+    def generate_cls_if_first_time(cls, user, sheet_id):
+        try:
+            sheet = Sheet.objects.select_related(
+                'story',
+            ).get(
+                id=sheet_id
+            )
+            user_story_solve = UserStorySolve.objects.get(
+                user_id=user.id,
+                story=sheet.story
+            )
+            user_sheet_answer_solve, is_created = cls.objects.get_or_create(
+                user=user,
+                story=sheet.story,
+                user_story_solve=user_story_solve,
+                sheet=sheet,
+            )
+            user_sheet_answer_solve.start_time = datetime.now()
+            user_sheet_answer_solve.save(update_fields=['start_time'])
+        except (Sheet.DoesNotExist, UserStorySolve.DoesNotExist):
+            return None, None
+        return user_sheet_answer_solve, is_created
+
     def solved_sheet_action(self, answer, solved_sheet_version, solved_answer_version, next_sheet_path):
         self.answer = answer
         self.solved_sheet_version = solved_sheet_version

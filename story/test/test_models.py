@@ -4,7 +4,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from account.models import User
-from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -87,3 +87,59 @@ class UserSheetAnswerSolveTestCase(TestCase):
         self.assertEqual(user_sheet_answer_solve.solved_sheet_version, self.start_sheet.version)
         self.assertEqual(user_sheet_answer_solve.solved_answer_version, self.start_sheet_answer1.version)
         self.assertEqual(user_sheet_answer_solve.next_sheet_path, self.next_sheet_path)
+
+    @freeze_time('2022-05-31')
+    def test_generate_cls_if_first_time_should_create_user_sheet_answer_solve_when_not_exists(self):
+        # Given: UserStorySolve 생성
+        user_story_solve = UserStorySolve.objects.create(
+            story=self.story,
+            user=self.user,
+        )
+
+        # When: generate_cls_if_first_time 실행
+        user_sheet_answer_solve, is_created = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.start_sheet.id,
+        )
+
+        # Then:
+        self.assertEqual(user_sheet_answer_solve.user, self.user)
+        self.assertEqual(user_sheet_answer_solve.story, self.story)
+        self.assertEqual(user_sheet_answer_solve.user_story_solve, user_story_solve)
+        self.assertEqual(user_sheet_answer_solve.sheet, self.start_sheet)
+        self.assertEqual(user_sheet_answer_solve.start_time, datetime.now())
+
+    @freeze_time('2022-05-31')
+    def test_generate_cls_if_first_time_should_not_create_when_already_exists(self):
+        # Given: UserStorySolve 생성
+        UserStorySolve.objects.create(
+            story=self.story,
+            user=self.user,
+        )
+        # And: generate_cls_if_first_time 한번 실행
+        UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.start_sheet.id,
+        )
+
+        # When: generate_cls_if_first_time 또 실행
+        user_sheet_answer_solve, is_created = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.start_sheet.id,
+        )
+
+        # Then: 생성 된게 아닙니다.
+        self.assertFalse(is_created)
+
+    @freeze_time('2022-05-31')
+    def test_generate_cls_if_first_time_should_return_none_if_user_story_solve_not_exists(self):
+        # Given: UserStorySolve 가 없은 경우
+        # When: generate_cls_if_first_time 실행
+        user_sheet_answer_solve, is_created = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.start_sheet.id,
+        )
+
+        # Then:
+        self.assertIsNone(user_sheet_answer_solve)
+        self.assertIsNone(is_created)
