@@ -1,13 +1,14 @@
 from django.test import TestCase
 
 from account.models import User
-from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath
+from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
+from config.test_helper.helper import LoginMixin
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
-    get_sheet_answer_with_next_path_responses, get_running_sheet,
+    get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
 )
 
 
@@ -272,3 +273,98 @@ class GetSheetAnswerTestCase(TestCase):
         self.assertIsNone(sheet_answer_id)
         # And: 정답을 맞추지 못해 None 입니다.
         self.assertIsNone(next_sheet_id)
+
+
+class ValidateUserPlayingSheetTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.start_sheet_answer2 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test2',
+            answer_reply='test_reply2',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.final_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='test_title2',
+            question='test_question2',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+
+    def test_validate_user_playing_sheet_should_not_raise_error_when_user_solved_before_answer(self):
+        # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성
+        UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            next_sheet_path=self.next_sheet_path,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status='solved',
+            answer=self.start_sheet_answer1.answer
+        )
+
+        # Expected: 에러 없이 성공
+        validate_user_playing_sheet(self.user.id, self.final_sheet1)
+        
+    def test_validate_user_playing_sheet_should_raise_error_when_answer_has_been_modify(self):
+        # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성
+        UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            next_sheet_path=self.next_sheet_path,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status='solving',
+            answer=self.start_sheet_answer1.answer
+        )
+        # And: 문제의 답이 달라졌을 경우
+        self.start_sheet_answer1.answer = 'change'
+        self.start_sheet_answer1.save()
+
+        # Expected: 에러 반환
+        with self.assertRaises(SheetNotAccessibleException):
+            validate_user_playing_sheet(self.user.id, self.final_sheet1)
+
+    def test_validate_user_playing_sheet_should_raise_error_when_user_not_solved(self):
+        # Expected: 사용자가 final_sheet1 로 가는 문제를 풀적이 없기 때문에 에러 반환
+        with self.assertRaises(SheetNotAccessibleException):
+            validate_user_playing_sheet(self.user.id, self.final_sheet1)
