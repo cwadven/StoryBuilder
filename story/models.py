@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from account.models import User
@@ -118,3 +120,21 @@ class UserSheetAnswerSolve(models.Model):
     )
     start_time = models.DateTimeField(null=True)
     solved_time = models.DateTimeField(null=True)
+
+    def solved_sheet_action(self, answer, solved_sheet_version, solved_answer_version, next_sheet_path):
+        self.answer = answer
+        self.solved_sheet_version = solved_sheet_version
+        self.solved_answer_version = solved_answer_version
+        self.next_sheet_path = next_sheet_path
+        self.solving_status = self.SOLVING_STATUS_CHOICES[1][0]
+        self.solved_time = datetime.now()
+        self.save(
+            update_fields=[
+                'solving_status',
+                'solved_time',
+                'answer',
+                'solved_sheet_version',
+                'solved_answer_version',
+                'next_sheet_path',
+            ]
+        )
