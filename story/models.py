@@ -108,12 +108,13 @@ class UserSheetAnswerSolve(models.Model):
     next_sheet_path = models.ForeignKey(NextSheetPath, on_delete=models.SET_NULL, null=True)
     sheet_question = models.TextField(null=True)
     answer = models.TextField(null=True)
-    solved_sheet_version = models.IntegerField()
-    solved_answer_version = models.IntegerField()
+    solved_sheet_version = models.IntegerField(null=True)
+    solved_answer_version = models.IntegerField(null=True)
     solving_status = models.CharField(
         max_length=20,
         choices=SOLVING_STATUS_CHOICES,
-        default=SOLVING_STATUS_CHOICES[0][0]
+        default=SOLVING_STATUS_CHOICES[0][0],
+        db_index=True,
     )
-    start_time = models.DateTimeField()
-    solved_time = models.DateTimeField()
+    start_time = models.DateTimeField(null=True)
+    solved_time = models.DateTimeField(null=True)
