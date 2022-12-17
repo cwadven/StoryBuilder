@@ -68,6 +68,7 @@ class SheetAnswer(models.Model):
         related_name='next_sheet_paths',
         verbose_name='다음 Sheet 경로'
     )
+    version = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.id} {self.answer}'
@@ -80,3 +81,38 @@ class NextSheetPath(models.Model):
 
     def __str__(self):
         return f'{self.id} {self.sheet_id} {self.answer_id} {self.quantity}'
+
+
+class UserSheetAnswerSolve(models.Model):
+    """
+    story: 사용자가 풀고 있는 스토리
+    user_story_solve: 사용자가 풀고 있는 스토리에 관한 풀었던 정보
+    sheet: 현재 sheet
+    next_sheet_path: 문제를 풀었으면 풀었던 내용의 다음 시트
+    sheet_question: 현재 sheet 의 문제 Snapshot 으로 나중에 문제가 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
+    answer: 사용자가 맞춘 현재 sheet 의 정답 Snapshot 으로 나중에 정답이 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
+    solved_sheet_version: 풀었던 sheet 의 버전
+    solved_answer_version: 풀었던 정답의 버전
+    solving_status: 현재 문제를 풀고 있는 중인지 혹은 성공했는지 확인용
+    start_time: 문제를 푼 시간
+    solved_time: 문제를 해결한 시간
+    """
+    SOLVING_STATUS_CHOICES = (
+        ('solving', '진행중'),
+        ('solved', '성공'),
+    )
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    user_story_solve = models.ForeignKey(UserStorySolve, on_delete=models.SET_NULL, null=True)
+    sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True)
+    next_sheet_path = models.ForeignKey(NextSheetPath, on_delete=models.SET_NULL, null=True)
+    sheet_question = models.TextField(null=True)
+    answer = models.TextField(null=True)
+    solved_sheet_version = models.IntegerField()
+    solved_answer_version = models.IntegerField()
+    solving_status = models.CharField(
+        max_length=20,
+        choices=SOLVING_STATUS_CHOICES,
+        default=SOLVING_STATUS_CHOICES[0][0]
+    )
+    start_time = models.DateTimeField()
+    solved_time = models.DateTimeField()
