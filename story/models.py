@@ -101,6 +101,7 @@ class UserSheetAnswerSolve(models.Model):
         ('solving', '진행중'),
         ('solved', '성공'),
     )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
     user_story_solve = models.ForeignKey(UserStorySolve, on_delete=models.SET_NULL, null=True)
     sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True)
