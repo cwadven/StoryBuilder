@@ -12,5 +12,8 @@ class LoginMixin(object):
         self.c._login(user)
         self.c.user = user
 
+    def logout(self):
+        self.c.logout()
+
     def setUp(self):
         self.c = Client()
