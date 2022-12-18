@@ -65,3 +65,9 @@ class SheetNotAccessibleException(APIException):
     status_code = 400
     default_detail = '접근할 수 없는 Sheet 입니다.'
     default_code = 'sheet-not-accessible'
+
+
+class LoginRequiredException(APIException):
+    status_code = 400
+    default_detail = '로그인이 필요합니다.'
+    default_code = 'login-require'
