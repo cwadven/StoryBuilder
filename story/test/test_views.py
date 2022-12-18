@@ -1,11 +1,36 @@
 import json
+from datetime import datetime
 
-from django.test import Client, TestCase
+from django.test import TestCase
 from django.urls import reverse
+from freezegun import freeze_time
 
 from account.models import User
 from config.test_helper.helper import LoginMixin
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve
+
+
+def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
+                                                     next_sheet: Sheet, sheet_answer: SheetAnswer,
+                                                     solving_status) -> UserSheetAnswerSolve:
+    UserStorySolve.objects.get_or_create(
+        story_id=story.id,
+        user=user,
+    )
+    user_sheet_answer_solve, is_created = UserSheetAnswerSolve.generate_cls_if_first_time(
+        user=user,
+        sheet_id=current_sheet.id,
+    )
+    next_sheet_path = NextSheetPath.objects.create(
+        answer=sheet_answer,
+        sheet=next_sheet,
+        quantity=10,
+    )
+    user_sheet_answer_solve.next_sheet_path = next_sheet_path
+    user_sheet_answer_solve.solving_status = solving_status
+    user_sheet_answer_solve.answer = sheet_answer.answer
+    user_sheet_answer_solve.save()
+    return UserSheetAnswerSolve.objects.get(id=user_sheet_answer_solve.id)
 
 
 class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
@@ -28,6 +53,11 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
             is_start=True,
             is_final=False,
         )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
         self.final_sheet = Sheet.objects.create(
             story=self.story,
             title='test_title',
@@ -42,6 +72,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         # Given: Story 가 삭제된 경우
         self.story.is_deleted = True
         self.story.save()
+        # And: 로그인
+        self.login()
 
         # When: story_play 요청
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
@@ -55,6 +87,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         # Given: Story 가 displayable 가 False 인 경우
         self.story.displayable = False
         self.story.save()
+        # And: 로그인
+        self.login()
 
         # When: story_play 요청
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
@@ -68,6 +102,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         # Given: Sheet 가 is_start 가 없는 경우
         self.start_sheet.is_start = False
         self.start_sheet.save()
+        # And: 로그인
+        self.login()
 
         # When: story_play 요청
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
@@ -79,6 +115,8 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
     def test_get_story_play_api_should_success_when_story_have_is_start(self):
         # Given: Sheet 가 is_start 가 있는 경우
+        # And: 로그인
+        self.login()
 
         # When: story_play 요청
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
@@ -95,6 +133,15 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
     def test_get_story_play_api_should_create_user_story_solve_when_user_is_authenticated(self):
         # Given: 로그인
         self.login()
+        # And: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.final_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
 
         # When: story_play 요청
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
@@ -110,11 +157,35 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         # And: 로그인 한 유저의 UserStorySolve 존재
         self.assertTrue(UserStorySolve.objects.filter(user=self.c.user, status=UserStorySolve.STATUS_CHOICES[0][0]).exists())
 
+    def test_get_story_play_api_should_create_user_sheet_answer_solve_when_user_is_authenticated(self):
+        # Given: 로그인
+        self.login()
+
+        # When: story_play 요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+
+        # Then: Story 조회 성공
+        self.assertEqual(response.status_code, 200)
+        # And: 로그인 한 유저의 UserSheetAnswerSolve 존재
+        self.assertTrue(UserSheetAnswerSolve.objects.filter(user=self.c.user, sheet=self.start_sheet, solving_status='solving').exists())
+
+    def test_get_story_play_api_should_raise_error_user_is_not_authenticated(self):
+        # Given: 로그인 안되어있음
+
+        # When: story_play 요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 로그인 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
+
 
 class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
         super(SheetPlayAPIViewTestCase, self).setUp()
         self.user = User.objects.all()[0]
+        self.login()
         self.story = Story.objects.create(
             author=self.user,
             title='test_story',
@@ -130,6 +201,11 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
             background_image='https://image.test',
             is_start=True,
             is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
         )
         self.normal_sheet = Sheet.objects.create(
             story=self.story,
@@ -151,7 +227,16 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         )
 
     def test_get_sheet_play_api_should_fail_when_story_is_deleted(self):
-        # Given: Story 가 삭제된 경우
+        # Given: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.normal_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
+        # And: Story 삭제
         self.story.is_deleted = True
         self.story.save()
 
@@ -164,7 +249,16 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_fail_when_story_is_not_displayable(self):
-        # Given: Story 가 displayable 가 False 인 경우
+        # Given: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.normal_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
+        # And: Story 가 displayable 가 False 인 경우
         self.story.displayable = False
         self.story.save()
 
@@ -177,7 +271,16 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_fail_when_sheet_is_deleted(self):
-        # Given: Sheet 가 is_deleted 인 경우
+        # Given: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.normal_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
+        # And: Sheet 가 is_deleted 인 경우
         self.normal_sheet.is_deleted = True
         self.normal_sheet.save()
 
@@ -190,6 +293,16 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_return_playing_sheet_dto_when_success(self):
+        # Given: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.normal_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
+
         # When: sheet_play 요청
         response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
         content = json.loads(response.content)
@@ -201,12 +314,44 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('question'), self.normal_sheet.question)
         self.assertEqual(content.get('image'), self.normal_sheet.image)
         self.assertEqual(content.get('background_image'), self.normal_sheet.background_image)
+        
+    def test_get_sheet_play_api_should_create_user_sheet_answer_solve_when_success(self):
+        # Given: 현재 sheet를 플레이할 수 있도록 이전 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.normal_sheet,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solved',
+        )
+
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+
+        # Then: Sheet 조회 성공
+        self.assertEqual(response.status_code, 200)
+        # And: UserSheetAnswerSolve 생성
+        self.assertTrue(UserSheetAnswerSolve.objects.filter(user=self.c.user, sheet=self.normal_sheet, solving_status='solving').exists())
+
+    def test_get_sheet_play_api_should_raise_error_user_is_not_authenticated(self):
+        # Given: 로그인 안되어있음
+        self.logout()
+
+        # When: sheet_play 요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.normal_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then: 로그인 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
 
 
-class SheetAnswerCheckAPIViewViewTestCase(TestCase):
+class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
     def setUp(self):
-        self.c = Client()
+        super(SheetAnswerCheckAPIViewViewTestCase, self).setUp()
         self.user = User.objects.all()[0]
+        self.login()
         self.story = Story.objects.create(
             author=self.user,
             title='test_story',
@@ -266,8 +411,18 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
             'answer': self.start_sheet_answer1.answer,
         }
 
+    @freeze_time('2022-01-01')
     def test_get_story_next_sheet_when_answer_is_valid(self):
         # Given: start_sheet_answer1 정답과 sheet_id 명시
+        # And: 유효한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve = _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.final_sheet1,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solving',
+        )
         # When: submit_answer 요청
         response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
         content = json.loads(response.content)
@@ -280,6 +435,13 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         self.assertEqual(content.get('next_sheet_id'), self.final_sheet1.id)
         # And: 정답 응답 확인
         self.assertEqual(content.get('answer_reply'), self.start_sheet_answer1.answer_reply)
+        # And: UserSheetAnswerSolve solved 로 변경
+        self.assertEqual(UserSheetAnswerSolve.objects.get(id=user_sheet_answer_solve.id).solving_status, 'solved')
+        # And: 현재 시간 해결
+        self.assertEqual(
+            UserSheetAnswerSolve.objects.get(id=user_sheet_answer_solve.id).solved_time.strftime('%Y-%m-%d %H:%M:%S'),
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
 
     def test_get_story_next_sheet_when_answer_is_invalid(self):
         # Given: sheet_id 에 대해 오답 명시
@@ -335,3 +497,15 @@ class SheetAnswerCheckAPIViewViewTestCase(TestCase):
         # Then: Story 비활성화 되어서 Error 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+
+    def test_get_story_next_sheet_should_raise_error_user_is_not_authenticated(self):
+        # Given: 로그인 안되어있음
+        self.logout()
+
+        # When: submit_answer 요청
+        response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
+        content = json.loads(response.content)
+
+        # Then: 로그인 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
