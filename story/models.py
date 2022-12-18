@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from account.models import User
@@ -68,6 +70,7 @@ class SheetAnswer(models.Model):
         related_name='next_sheet_paths',
         verbose_name='다음 Sheet 경로'
     )
+    version = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.id} {self.answer}'
@@ -80,3 +83,83 @@ class NextSheetPath(models.Model):
 
     def __str__(self):
         return f'{self.id} {self.sheet_id} {self.answer_id} {self.quantity}'
+
+
+class UserSheetAnswerSolve(models.Model):
+    """
+    story: 사용자가 풀고 있는 스토리
+    user_story_solve: 사용자가 풀고 있는 스토리에 관한 풀었던 정보
+    sheet: 현재 sheet
+    next_sheet_path: 문제를 풀었으면 풀었던 내용의 다음 시트
+    sheet_question: 현재 sheet 의 문제 Snapshot 으로 나중에 문제가 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
+    answer: 사용자가 맞춘 현재 sheet 의 정답 Snapshot 으로 나중에 정답이 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
+    solved_sheet_version: 풀었던 sheet 의 버전
+    solved_answer_version: 풀었던 정답의 버전
+    solving_status: 현재 문제를 풀고 있는 중인지 혹은 성공했는지 확인용
+    start_time: 문제를 푼 시간
+    solved_time: 문제를 해결한 시간
+    """
+    SOLVING_STATUS_CHOICES = (
+        ('solving', '진행중'),
+        ('solved', '성공'),
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    user_story_solve = models.ForeignKey(UserStorySolve, on_delete=models.SET_NULL, null=True)
+    sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True)
+    next_sheet_path = models.ForeignKey(NextSheetPath, on_delete=models.SET_NULL, null=True)
+    sheet_question = models.TextField(null=True)
+    answer = models.TextField(null=True)
+    solved_sheet_version = models.IntegerField(null=True)
+    solved_answer_version = models.IntegerField(null=True)
+    solving_status = models.CharField(
+        max_length=20,
+        choices=SOLVING_STATUS_CHOICES,
+        default=SOLVING_STATUS_CHOICES[0][0],
+        db_index=True,
+    )
+    start_time = models.DateTimeField(null=True)
+    solved_time = models.DateTimeField(null=True)
+
+    @classmethod
+    def generate_cls_if_first_time(cls, user, sheet_id):
+        try:
+            sheet = Sheet.objects.select_related(
+                'story',
+            ).get(
+                id=sheet_id
+            )
+            user_story_solve = UserStorySolve.objects.get(
+                user_id=user.id,
+                story=sheet.story
+            )
+            user_sheet_answer_solve, is_created = cls.objects.get_or_create(
+                user=user,
+                story=sheet.story,
+                user_story_solve=user_story_solve,
+                sheet=sheet,
+            )
+            user_sheet_answer_solve.start_time = datetime.now()
+            user_sheet_answer_solve.save(update_fields=['start_time'])
+        except (Sheet.DoesNotExist, UserStorySolve.DoesNotExist):
+            return None, None
+        return user_sheet_answer_solve, is_created
+
+    def solved_sheet_action(self, answer, sheet_question, solved_sheet_version, solved_answer_version, next_sheet_path):
+        self.answer = answer
+        self.sheet_question = sheet_question
+        self.solved_sheet_version = solved_sheet_version
+        self.solved_answer_version = solved_answer_version
+        self.next_sheet_path = next_sheet_path
+        self.solving_status = self.SOLVING_STATUS_CHOICES[1][0]
+        self.solved_time = datetime.now()
+        self.save(
+            update_fields=[
+                'solving_status',
+                'solved_time',
+                'answer',
+                'solved_sheet_version',
+                'solved_answer_version',
+                'next_sheet_path',
+            ]
+        )

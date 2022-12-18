@@ -1,12 +1,12 @@
 import random
 from typing import List
 
-from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists
+from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet
+from story.models import Sheet, UserSheetAnswerSolve
 
 
-def get_running_start_sheet_by_story(story_id):
+def get_running_start_sheet_by_story(story_id) -> Sheet:
     """
     Story 에서 시작하는 처음 Sheet 가져오기
     """
@@ -20,6 +20,36 @@ def get_running_start_sheet_by_story(story_id):
         )
     except Sheet.DoesNotExist:
         raise StartingSheetDoesNotExists()
+
+
+def get_running_sheet(sheet_id) -> Sheet:
+    try:
+        return Sheet.objects.get(
+            id=sheet_id,
+            story__is_deleted=False,
+            story__displayable=True,
+            is_deleted=False
+        )
+    except Sheet.DoesNotExist:
+        raise SheetDoesNotExists()
+
+
+def validate_user_playing_sheet(user_id: int, sheet_id: int):
+    """
+    check UserSheetAnswerSolve next_sheet_path of sheet exists
+    And check if answer has been changed
+    """
+    try:
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.get(
+            user_id=user_id,
+            next_sheet_path__sheet_id=sheet_id,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+        )
+    except UserSheetAnswerSolve.DoesNotExist:
+        raise SheetNotAccessibleException()
+
+    if not (user_sheet_answer_solve.answer in get_sheet_answers(user_sheet_answer_solve.sheet_id)):
+        raise SheetNotAccessibleException()
 
 
 def get_sheet_answers(sheet_id: int) -> set:

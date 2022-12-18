@@ -59,3 +59,15 @@ class SheetDoesNotExists(APIException):
     status_code = 400
     default_detail = '존재하지 않은 Sheet 입니다.'
     default_code = 'sheet-does-not-exists'
+
+
+class SheetNotAccessibleException(APIException):
+    status_code = 400
+    default_detail = '접근할 수 없는 Sheet 입니다.'
+    default_code = 'sheet-not-accessible'
+
+
+class LoginRequiredException(APIException):
+    status_code = 400
+    default_detail = '로그인이 필요합니다.'
+    default_code = 'login-require'

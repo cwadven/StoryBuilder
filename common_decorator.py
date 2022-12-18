@@ -1,4 +1,5 @@
 from common_library import optional_key, mandatory_key, paging
+from config.common.exception_codes import LoginRequiredException
 
 
 def optionals(*keys):
@@ -39,3 +40,13 @@ def pagination(default_size=10):
         return wrapper
 
     return decorate
+
+
+def custom_login_required_for_method(func):
+    # TODO 테스트케이스 작성
+    # TODO 메서드용이 아닌 클래스에 데코레이터, 함수에 데코레이터 용으로 분기처리 만들기
+    def wrapper(*args, **kwargs):
+        if not args[1].user.is_authenticated:
+            raise LoginRequiredException()
+        return func(*args, **kwargs)
+    return wrapper
