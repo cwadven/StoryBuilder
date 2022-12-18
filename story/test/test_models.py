@@ -75,6 +75,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         # When: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
             answer=self.start_sheet_answer1.answer,
+            sheet_question=self.start_sheet.question,
             solved_sheet_version=self.start_sheet.version,
             solved_answer_version=self.start_sheet_answer1.version,
             next_sheet_path=self.next_sheet_path,
@@ -84,6 +85,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         self.assertEqual(user_sheet_answer_solve.solving_status, UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0])
         self.assertEqual(user_sheet_answer_solve.solved_time, datetime.now())
         self.assertEqual(user_sheet_answer_solve.answer, self.start_sheet_answer1.answer)
+        self.assertEqual(user_sheet_answer_solve.sheet_question, self.start_sheet.question)
         self.assertEqual(user_sheet_answer_solve.solved_sheet_version, self.start_sheet.version)
         self.assertEqual(user_sheet_answer_solve.solved_answer_version, self.start_sheet_answer1.version)
         self.assertEqual(user_sheet_answer_solve.next_sheet_path, self.next_sheet_path)
