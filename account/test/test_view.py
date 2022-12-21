@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.urls import reverse
 from django.test import TestCase, Client
 
-from account.constants import SocialTypeSelector, UserCreationExceptionMessage
+from account.constants import SocialTypeSelector, UserCreationExceptionMessage, UserTypeEnum, UserProviderEnum
 from account.helpers.social_login_helpers import SocialLoginController
 from account.models import User
 
@@ -338,9 +338,12 @@ class SignUpTestCase(LoginMixin, TestCase):
         response = self.c.post(reverse('sign_up'), body)
         content = json.loads(response.content)
 
-        # Then: username 중복 반환
+        # Then: 유저 생성
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content['message'], f'test_token 님 환영합니다.')
+        user = User.objects.get(username='test')
+        self.assertEqual(user.user_type_id, UserTypeEnum.NORMAL_USER.value)
+        self.assertEqual(user.user_provider_id, UserProviderEnum.EMAIL.value)
 
     def test_sign_up_should_fail_when_username_already_exists(self):
         # Given: 유저를 생성

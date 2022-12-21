@@ -30,3 +30,21 @@ class UserCreationExceptionMessage(StrValueLabel):
     USERNAME_EXISTS = ('already-exists-username', '이미 사용중인 아이디입니다.')
     NICKNAME_EXISTS = ('already-exists-nickname', '이미 사용중인 닉네임입니다.')
 
+
+class UserProviderEnum(IntValueSelector):
+    """
+    상수 값으로 User Provider 제어하기
+    """
+    EMAIL = (1, 'email')
+    KAKAO = (2, 'kakao')
+    NAVER = (3, 'naver')
+    GOOGLE = (4, 'google')
+
+
+class UserTypeEnum(IntValueSelector):
+    """
+    상수 값으로 User Type 제어하기
+    """
+    SYSTEM_ADMIN = (1, '관리자')
+    PRODUCT_ADMIN = (2, '운영자')
+    NORMAL_USER = (3, '일반')

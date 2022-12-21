@@ -1,6 +1,6 @@
 from django.contrib.auth import login
 
-from account.constants import UserCreationExceptionMessage
+from account.constants import UserCreationExceptionMessage, UserProviderEnum, UserTypeEnum
 from account.models import User
 
 from rest_framework.views import APIView
@@ -28,9 +28,9 @@ class SignUpView(APIView):
         created_user = User.objects.create_user(
             username=m['username'],
             nickname=m['nickname'],
-            user_type_id=3,
+            user_type_id=UserTypeEnum.NORMAL_USER.value,
             password=m['password1'],
-            user_provider_id=1,
+            user_provider_id=UserProviderEnum.EMAIL.value,
         )
         return Response({'message': f'{created_user.nickname} 님 환영합니다.'}, 200)
 
