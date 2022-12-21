@@ -325,17 +325,20 @@ class SocialLoginTestCase(TestCase):
 
 
 class SignUpTestCase(LoginMixin, TestCase):
-    def test_sign_up_should_success(self):
-        # Given: body 생성
-        body = {
+    def setUp(self):
+        super(SignUpTestCase, self).setUp()
+        self.body = {
             'username': 'test',
             'nickname': 'test_token',
             'password1': '12341234123412341234',
             'password2': '12341234123412341234',
+            'email': 'aaaa@naver.com',
+            'one_time_token': '1234',
         }
 
+    def test_sign_up_should_success(self):
         # When: 회원가입 요청 이미 있는 username 으로 요청
-        response = self.c.post(reverse('sign_up'), body)
+        response = self.c.post(reverse('sign_up'), self.body)
         content = json.loads(response.content)
 
         # Then: 유저 생성
@@ -348,35 +351,41 @@ class SignUpTestCase(LoginMixin, TestCase):
     def test_sign_up_should_fail_when_username_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test')
-        body = {
-            'username': 'test',
-            'nickname': 'test_token',
-            'password1': '12341234123412341234',
-            'password2': '12341234123412341234',
-        }
+        # And: username 중복 설정
+        self.body['username'] = 'test'
 
         # When: 회원가입 요청 이미 있는 username 으로 요청
-        response = self.c.post(reverse('sign_up'), body)
+        response = self.c.post(reverse('sign_up'), self.body)
         content = json.loads(response.content)
 
         # Then: username 중복 에러 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['error'], UserCreationExceptionMessage.USERNAME_EXISTS.label)
 
-    def test_sign_up_should_fail_when_nick_already_exists(self):
+    def test_sign_up_should_fail_when_nickname_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test2', nickname='test_token')
-        body = {
-            'username': 'test',
-            'nickname': 'test_token',
-            'password1': '12341234123412341234',
-            'password2': '12341234123412341234',
-        }
+        # And: nickname 중복 설정
+        self.body['nickname'] = 'test_token'
 
         # When: 회원가입 요청 이미 있는 nickname 으로 요청
-        response = self.c.post(reverse('sign_up'), body)
+        response = self.c.post(reverse('sign_up'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 중복 에러 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['error'], UserCreationExceptionMessage.NICKNAME_EXISTS.label)
+
+    def test_sign_up_should_fail_when_email_already_exists(self):
+        # Given: 유저를 생성
+        User.objects.create_user(username='test3', nickname='tes2t_token22', email='aaaa@naver.com')
+        # And: 중복 닉네임 설정
+        self.body['email'] = 'aaaa@naver.com'
+
+        # When: 회원가입 요청 이미 있는 email 으로 요청
+        response = self.c.post(reverse('sign_up'), self.body)
+        content = json.loads(response.content)
+
+        # Then: nickname 중복 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['error'], UserCreationExceptionMessage.EMAIL_EXISTS.label)
