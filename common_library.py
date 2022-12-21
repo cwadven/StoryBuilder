@@ -1,12 +1,14 @@
 import string
 import uuid
 import boto3 as boto3
-from random import random
+import random
+import requests
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.cache import cache
 from django.db.models import QuerySet, Max
 from django.http import HttpRequest
 from django.template.loader import render_to_string
@@ -14,7 +16,7 @@ from django.utils.html import strip_tags
 
 from rest_framework.exceptions import APIException
 from rest_framework_jwt.settings import api_settings
-from typing import Optional
+from typing import Optional, Any
 
 from account.models import User
 from config.common.exception_codes import PageSizeMaximumException, MissingMandatoryParameterException
@@ -154,3 +156,11 @@ def generate_random_string_digits(length: int = 4) -> str:
     :return: str
     """
     return ''.join(random.choice(string.digits) for _ in range(length))
+
+
+def generate_random_string_digits_value_by_key_to_cache(key: str, random_string_length: int, expire_seconds: int) -> None:
+    cache.set(key, generate_random_string_digits(random_string_length), expire_seconds)
+
+
+def get_cache_value_by_key(key: str) -> Any:
+    return cache.get(key)
