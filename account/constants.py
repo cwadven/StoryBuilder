@@ -1,5 +1,5 @@
 from account.helpers.social_login_helpers import KakaoSocialType, NaverSocialType, GoogleSocialType
-from config.common.enums import IntValueSelector
+from config.common.enums import IntValueSelector, StrValueLabel
 from config.common.exception_codes import LeaveUserException, BlackUserException, DormantUserException, \
     UnknownPlatformException
 
@@ -24,3 +24,9 @@ class UserStatusExceptionTypeSelector(IntValueSelector):
     LEAVE_USER_EXCEPTION = (2, LeaveUserException)
     BLACK_USER_EXCEPTION = (3, BlackUserException)
     DORMANT_USER_EXCEPTION = (4, DormantUserException)
+
+
+class UserCreationExceptionMessage(StrValueLabel):
+    USERNAME_EXISTS = ('already-exists-username', '이미 사용중인 아이디입니다.')
+    NICKNAME_EXISTS = ('already-exists-nickname', '이미 사용중인 닉네임입니다.')
+
