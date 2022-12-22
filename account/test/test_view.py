@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.urls import reverse
 from django.test import TestCase, Client
@@ -9,7 +9,7 @@ from account.helpers.social_login_helpers import SocialLoginController
 from account.models import User
 
 from config.common.exception_codes import LoginFailedException, UnknownPlatformException, BlackUserException, \
-    LeaveUserException, DormantUserException, CannotCreateUserException
+    LeaveUserException, DormantUserException
 from config.test_helper.helper import LoginMixin
 
 
@@ -389,3 +389,50 @@ class SignUpTestCase(LoginMixin, TestCase):
         # Then: nickname 중복 에러 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['error'], UserCreationExceptionMessage.EMAIL_EXISTS.label)
+
+
+class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(SignUpEmailTokenSendTestCase, self).setUp()
+        self.body = {
+            'username': 'test',
+            'nickname': 'test_token',
+            'password2': '12341234123412341234',
+            'email': 'aaaa@naver.com',
+        }
+
+    @patch('account.views.generate_value_by_key_to_cache', Mock())
+    @patch('account.views.send_one_time_token_email', Mock())
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_create_when_token_create_successful(self, mock_get_cache_value_by_key):
+        # Given:
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1234',
+            'email': self.body['email'],
+            'username': self.body['username'],
+            'nickname': self.body['nickname'],
+            'password2': self.body['password2'],
+        }
+
+        # When:
+        response = self.c.post(reverse('sign_up_check'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 성공 했다는 메시지 반환
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['message'], '인증번호를 이메일로 전송했습니다.')
+
+    @patch('account.views.generate_value_by_key_to_cache', Mock())
+    @patch('account.views.send_one_time_token_email', Mock())
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_create_when_token_create_failed(self, mock_get_cache_value_by_key):
+        # Given:
+        mock_get_cache_value_by_key.return_value = None
+
+        # When:
+        response = self.c.post(reverse('sign_up_check'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 성공 했다는 메시지 반환
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['message'], '인증번호를 이메일로 전송했습니다.')
