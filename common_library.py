@@ -162,5 +162,9 @@ def generate_random_string_digits_value_by_key_to_cache(key: str, random_string_
     cache.set(key, generate_random_string_digits(random_string_length), expire_seconds)
 
 
+def generate_value_by_key_to_cache(key: str, value: dict, expire_seconds: int) -> None:
+    cache.set(key, value, expire_seconds)
+
+
 def get_cache_value_by_key(key: str) -> Any:
     return cache.get(key)
