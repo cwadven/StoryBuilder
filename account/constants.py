@@ -53,3 +53,5 @@ class UserTypeEnum(IntValueSelector):
 
 
 SIGNUP_MACRO_VALIDATION_KEY = '{}:signup:count'
+SIGNUP_MACRO_COUNT = 30
+SIGNUP_MACRO_EXPIRE_SECONDS = 60 * 60 * 24

@@ -1,6 +1,12 @@
 from django.contrib.auth import login
 
-from account.constants import UserProviderEnum, UserTypeEnum
+from account.constants import (
+    UserProviderEnum,
+    UserTypeEnum,
+    UserCreationExceptionMessage,
+    SIGNUP_MACRO_VALIDATION_KEY,
+    SIGNUP_MACRO_COUNT,
+)
 from account.models import User
 
 from rest_framework.views import APIView
@@ -10,18 +16,20 @@ from rest_framework.exceptions import ValidationError
 from common_decorator import mandatories
 from common_library import (
     get_login_token,
-    generate_value_by_key_to_cache,
+    generate_dict_value_by_key_to_cache,
     generate_random_string_digits,
-    get_cache_value_by_key
+    get_cache_value_by_key, delete_cache_value_by_key,
+    increase_cache_int_value_by_key
 )
 from .helpers.payload_validator_helpers import SignUpPayloadValidator
+from .services import is_username_exists, is_nickname_exists, is_email_exists
 from .task import send_one_time_token_email
 
 
 class SignUpEmailTokenSendView(APIView):
     @mandatories('email', 'username', 'nickname', 'password2')
     def post(self, request, m):
-        generate_value_by_key_to_cache(
+        generate_dict_value_by_key_to_cache(
             key=m['email'],
             value={
                 'one_time_token': generate_random_string_digits(),
@@ -54,23 +62,52 @@ class SignUpValidationView(APIView):
         return Response({'result': f'success'}, 200)
 
 
-class SignUpEmailTokenValidationCheckView(APIView):
-    @mandatories('one_time_token')
+class SignUpEmailTokenValidationEndView(APIView):
+    @mandatories('email', 'one_time_token')
     def post(self, request, m):
-        # one_time_token validate
-        # success create user
-        # fail
-        # extra resend token
+        macro_count = increase_cache_int_value_by_key(
+            key=SIGNUP_MACRO_VALIDATION_KEY.format(m['email']),
+        )
+        if macro_count >= SIGNUP_MACRO_COUNT:
+            return Response(
+                data={
+                    'message': '{}회 이상 인증번호를 틀리셨습니다. 현 이메일은 {}시간 동안 인증할 수 없습니다.'.format(
+                        SIGNUP_MACRO_COUNT,
+                        24
+                    )
+                },
+                status=400,
+            )
 
-        created_user = User.objects.create_user(
-            username=m['username'],
-            nickname=m['nickname'],
-            email=m['email'],
+        value = get_cache_value_by_key(m['email'])
+
+        if not value:
+            return Response({'message': '이메일 인증번호를 다시 요청하세요.'}, 400)
+
+        if not value.get('one_time_token') or value.get('one_time_token') != m['one_time_token']:
+            return Response({'message': '인증번호가 다릅니다.'}, 400)
+
+        # 회원 가입 제약을 위해 더블 체킹 validation
+        if is_username_exists(value['username']):
+            return Response({'message': UserCreationExceptionMessage.USERNAME_EXISTS.label}, 400)
+        if is_nickname_exists(value['nickname']):
+            return Response({'message': UserCreationExceptionMessage.NICKNAME_EXISTS.label}, 400)
+        if is_email_exists(value['email']):
+            return Response({'message': UserCreationExceptionMessage.EMAIL_EXISTS.label}, 400)
+
+        User.objects.create_user(
+            username=value['username'],
+            nickname=value['nickname'],
+            email=value['email'],
             user_type_id=UserTypeEnum.NORMAL_USER.value,
-            password=m['password1'],
+            password=value['password2'],
             user_provider_id=UserProviderEnum.EMAIL.value,
         )
-        return Response({'message': f'{created_user.nickname} 님 환영합니다.'}, 200)
+
+        # 캐시 서버 기록 삭제 (메크로 및 정보 보존용)
+        delete_cache_value_by_key(value['email'])
+        delete_cache_value_by_key(SIGNUP_MACRO_VALIDATION_KEY.format(m['email']))
+        return Response({'message': f'회원가입에 성공했습니다.'}, 200)
 
 
 class SocialLoginView(APIView):

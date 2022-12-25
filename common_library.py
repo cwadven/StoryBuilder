@@ -18,6 +18,7 @@ from rest_framework.exceptions import APIException
 from rest_framework_jwt.settings import api_settings
 from typing import Optional, Any
 
+from account.constants import SIGNUP_MACRO_EXPIRE_SECONDS
 from account.models import User
 from config.common.exception_codes import PageSizeMaximumException, MissingMandatoryParameterException
 
@@ -185,7 +186,7 @@ def increase_cache_int_value_by_key(key: str) -> int:
         generate_str_value_by_key_to_cache(
             key=key,
             value=1,
-            expire_seconds=60 * 60 * 24,
+            expire_seconds=SIGNUP_MACRO_EXPIRE_SECONDS,
         )
         return 1
 

@@ -4,7 +4,11 @@ from unittest.mock import patch, Mock
 from django.urls import reverse
 from django.test import TestCase, Client
 
-from account.constants import SocialTypeSelector, UserCreationExceptionMessage, UserTypeEnum, UserProviderEnum
+from account.constants import (
+    SocialTypeSelector,
+    UserCreationExceptionMessage,
+    SIGNUP_MACRO_COUNT,
+)
 from account.helpers.social_login_helpers import SocialLoginController
 from account.models import User
 
@@ -445,3 +449,215 @@ class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
         # Then: 성공 했다는 메시지 반환
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content['message'], '인증번호를 이메일로 전송했습니다.')
+
+
+class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(SignUpEmailTokenValidationEndViewTestCase, self).setUp()
+        self.body = {
+            'email': 'aaaa@naver.com',
+            'one_time_token': '1234',
+        }
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    def test_email_token_validate_should_return_fail_when_macro_count_is_30_times(self, mock_increase_cache_int_value_by_key):
+        # Given: 30 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 30
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 메크로 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            '{}회 이상 인증번호를 틀리셨습니다. 현 이메일은 {}시간 동안 인증할 수 없습니다.'.format(SIGNUP_MACRO_COUNT, 24)
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_email_key_not_exists(self,
+                                                                                  mock_get_cache_value_by_key,
+                                                                                  mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        # And: 인증한 이메일이 없는 경우
+        mock_get_cache_value_by_key.return_value = None
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 이메일 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            '이메일 인증번호를 다시 요청하세요.',
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_one_time_token_not_exists(self,
+                                                                               mock_get_cache_value_by_key,
+                                                                               mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        # And: one time token 이 없는 경우
+        mock_get_cache_value_by_key.return_value = {
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 인증번호 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            '인증번호가 다릅니다.',
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_one_time_token_is_different(self,
+                                                                                    mock_get_cache_value_by_key,
+                                                                                    mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        # And: one time token 다르게 설정
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1233',
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+        # And: one time token 다르게 설정
+        self.body['one_time_token'] = '1234'
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 인증번호 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            '인증번호가 다릅니다.',
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_username_user_already_exists(self,
+                                                                                      mock_get_cache_value_by_key,
+                                                                                      mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1234',
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+        # And: 이미 username mocking 한 데이터의 계정이 있는 경우
+        User.objects.create_user(username='test')
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: username 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            UserCreationExceptionMessage.USERNAME_EXISTS.label,
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_nickname_user_already_exists(self,
+                                                                                       mock_get_cache_value_by_key,
+                                                                                       mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1234',
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+        # And: 이미 nickname mocking 한 데이터의 계정이 있는 경우
+        User.objects.create_user(username='test2', nickname='test')
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 닉네임 중복 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            UserCreationExceptionMessage.NICKNAME_EXISTS.label,
+        )
+
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_fail_when_email_user_already_exists(self,
+                                                                                       mock_get_cache_value_by_key,
+                                                                                       mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1234',
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+        # And: 이미 email mocking 한 데이터의 계정이 있는 경우
+        User.objects.create_user(username='test2', nickname='test2', email='test@test.com')
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: email 중복 에러
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            content['message'],
+            UserCreationExceptionMessage.EMAIL_EXISTS.label,
+        )
+
+    @patch('account.views.delete_cache_value_by_key', Mock())
+    @patch('account.views.increase_cache_int_value_by_key')
+    @patch('account.views.get_cache_value_by_key')
+    def test_email_token_validate_should_return_success(self,
+                                                        mock_get_cache_value_by_key,
+                                                        mock_increase_cache_int_value_by_key):
+        # Given: 0 번 메크로를 했을 경우
+        mock_increase_cache_int_value_by_key.return_value = 0
+        mock_get_cache_value_by_key.return_value = {
+            'one_time_token': '1234',
+            'email': 'test@test.com',
+            'username': 'test',
+            'nickname': 'test',
+            'password2': 'test',
+        }
+
+        # When:
+        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        content = json.loads(response.content)
+
+        # Then: email 중복 에러
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content['message'],
+            '회원가입에 성공했습니다.',
+        )
