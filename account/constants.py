@@ -30,6 +30,7 @@ class UserCreationExceptionMessage(StrValueLabel):
     USERNAME_EXISTS = ('already-exists-username', '이미 사용중인 아이디입니다.')
     NICKNAME_EXISTS = ('already-exists-nickname', '이미 사용중인 닉네임입니다.')
     EMAIL_EXISTS = ('already-exists-email', '이미 가입한 이메일입니다.')
+    CHECK_PASSWORD = ('check-password', '비밀번호와 비밀번호 확인이 동일하지 않습니다.')
 
 
 class UserProviderEnum(IntValueSelector):

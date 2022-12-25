@@ -324,9 +324,9 @@ class SocialLoginTestCase(TestCase):
         self.assertEqual(response_data.get('error'), DormantUserException.default_detail)
 
 
-class SignUpTestCase(LoginMixin, TestCase):
+class SignUpValidationTestCase(LoginMixin, TestCase):
     def setUp(self):
-        super(SignUpTestCase, self).setUp()
+        super(SignUpValidationTestCase, self).setUp()
         self.body = {
             'username': 'test',
             'nickname': 'test_token',
@@ -336,59 +336,68 @@ class SignUpTestCase(LoginMixin, TestCase):
             'one_time_token': '1234',
         }
 
-    def test_sign_up_should_success(self):
-        # When: 회원가입 요청 이미 있는 username 으로 요청
-        response = self.c.post(reverse('sign_up'), self.body)
+    def test_sign_up_validation_success(self):
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
         content = json.loads(response.content)
 
-        # Then: 유저 생성
+        # Then: 성공
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(content['message'], f'test_token 님 환영합니다.')
-        user = User.objects.get(username='test')
-        self.assertEqual(user.user_type_id, UserTypeEnum.NORMAL_USER.value)
-        self.assertEqual(user.user_provider_id, UserProviderEnum.EMAIL.value)
+        self.assertEqual(content['result'], 'success')
 
-    def test_sign_up_should_fail_when_username_already_exists(self):
+    def test_sign_up_validation_should_fail_when_username_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test')
         # And: username 중복 설정
         self.body['username'] = 'test'
 
-        # When: 회원가입 요청 이미 있는 username 으로 요청
-        response = self.c.post(reverse('sign_up'), self.body)
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: username 중복 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content['error'], UserCreationExceptionMessage.USERNAME_EXISTS.label)
+        self.assertEqual(content['username'][0], UserCreationExceptionMessage.USERNAME_EXISTS.label)
 
-    def test_sign_up_should_fail_when_nickname_already_exists(self):
+    def test_sign_up_validation_should_fail_when_nickname_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test2', nickname='test_token')
         # And: nickname 중복 설정
         self.body['nickname'] = 'test_token'
 
-        # When: 회원가입 요청 이미 있는 nickname 으로 요청
-        response = self.c.post(reverse('sign_up'), self.body)
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 중복 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content['error'], UserCreationExceptionMessage.NICKNAME_EXISTS.label)
+        self.assertEqual(content['nickname'][0], UserCreationExceptionMessage.NICKNAME_EXISTS.label)
 
-    def test_sign_up_should_fail_when_email_already_exists(self):
+    def test_sign_up_validation_should_fail_when_email_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test3', nickname='tes2t_token22', email='aaaa@naver.com')
         # And: 중복 닉네임 설정
         self.body['email'] = 'aaaa@naver.com'
 
-        # When: 회원가입 요청 이미 있는 email 으로 요청
-        response = self.c.post(reverse('sign_up'), self.body)
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 중복 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content['error'], UserCreationExceptionMessage.EMAIL_EXISTS.label)
+        self.assertEqual(content['email'][0], UserCreationExceptionMessage.EMAIL_EXISTS.label)
+
+    def test_sign_up_validation_should_fail_when_password_wrong(self):
+        # Given: 비밀번호 다르게 설정
+        self.body['password2'] = '12312312'
+
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
+        content = json.loads(response.content)
+
+        # Then: password 확인 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['password2'][0], UserCreationExceptionMessage.CHECK_PASSWORD.label)
 
 
 class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):

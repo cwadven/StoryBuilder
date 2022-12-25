@@ -1,12 +1,12 @@
 from django.contrib.auth import login
 
-from account.constants import UserCreationExceptionMessage, UserProviderEnum, UserTypeEnum
+from account.constants import UserProviderEnum, UserTypeEnum
 from account.models import User
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
-from account.services import is_username_exists, is_nickname_exists, is_email_exists
 from common_decorator import mandatories
 from common_library import (
     get_login_token,
@@ -14,8 +14,8 @@ from common_library import (
     generate_random_string_digits,
     get_cache_value_by_key
 )
+from .helpers.payload_validator_helpers import SignUpPayloadValidator
 from .task import send_one_time_token_email
-from config.common.exception_codes import CannotCreateUserException
 
 
 class SignUpEmailTokenSendView(APIView):
@@ -43,26 +43,24 @@ class SignUpEmailTokenSendView(APIView):
         return Response({'message': '인증번호를 이메일로 전송했습니다.'}, 200)
 
 
-class SignUpView(APIView):
-    @mandatories('username', 'email', 'nickname', 'password1', 'password2', 'one_time_token')
+class SignUpValidationView(APIView):
+    @mandatories('username', 'email', 'nickname', 'password1', 'password2')
     def post(self, request, m):
-        # 1. 정보들을 처음에 redis로 저장 합니다.
-        # 2. 이메일 인증 성공하면 바로 해당 redis 안에 있는 데이터로 유저 생성
-        if is_username_exists(m['username']):
-            raise CannotCreateUserException(
-                detail=UserCreationExceptionMessage.USERNAME_EXISTS.label,
-                code=UserCreationExceptionMessage.USERNAME_EXISTS.value,
-            )
-        if is_nickname_exists(m['nickname']):
-            raise CannotCreateUserException(
-                detail=UserCreationExceptionMessage.NICKNAME_EXISTS.label,
-                code=UserCreationExceptionMessage.NICKNAME_EXISTS.value,
-            )
-        if is_email_exists(m['email']):
-            raise CannotCreateUserException(
-                detail=UserCreationExceptionMessage.EMAIL_EXISTS.label,
-                code=UserCreationExceptionMessage.EMAIL_EXISTS.value,
-            )
+        payload_validator = SignUpPayloadValidator(m)
+        try:
+            payload_validator.validate()
+        except ValidationError as e:
+            return Response(e.detail, 400)
+        return Response({'result': f'success'}, 200)
+
+
+class SignUpEmailTokenValidationCheckView(APIView):
+    @mandatories('one_time_token')
+    def post(self, request, m):
+        # one_time_token validate
+        # success create user
+        # fail
+        # extra resend token
 
         created_user = User.objects.create_user(
             username=m['username'],
