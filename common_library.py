@@ -162,12 +162,32 @@ def generate_random_string_digits_value_by_key_to_cache(key: str, random_string_
     cache.set(key, generate_random_string_digits(random_string_length), expire_seconds)
 
 
-def generate_value_by_key_to_cache(key: str, value: dict, expire_seconds: int) -> None:
+def generate_dict_value_by_key_to_cache(key: str, value: dict, expire_seconds: int) -> None:
+    cache.set(key, value, expire_seconds)
+
+
+def generate_str_value_by_key_to_cache(key: str, value: (str, int), expire_seconds: int) -> None:
     cache.set(key, value, expire_seconds)
 
 
 def get_cache_value_by_key(key: str) -> Any:
     return cache.get(key)
+
+
+def delete_cache_value_by_key(key: str) -> None:
+    cache.delete(key)
+
+
+def increase_cache_int_value_by_key(key: str) -> int:
+    try:
+        return cache.incr(key)
+    except ValueError:
+        generate_str_value_by_key_to_cache(
+            key=key,
+            value=1,
+            expire_seconds=60 * 60 * 24,
+        )
+        return 1
 
 
 class ValidationErrorContext(dict):
