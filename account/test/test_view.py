@@ -655,7 +655,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         response = self.c.post(reverse('sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
-        # Then: email 중복 에러
+        # Then: 성공
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             content['message'],
