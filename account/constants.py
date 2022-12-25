@@ -50,3 +50,6 @@ class UserTypeEnum(IntValueSelector):
     SYSTEM_ADMIN = (1, '관리자')
     PRODUCT_ADMIN = (2, '운영자')
     NORMAL_USER = (3, '일반')
+
+
+SIGNUP_MACRO_VALIDATION_KEY = '{}:signup:count'
