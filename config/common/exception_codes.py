@@ -71,3 +71,10 @@ class LoginRequiredException(APIException):
     status_code = 400
     default_detail = '로그인이 필요합니다.'
     default_code = 'login-require'
+
+
+class CannotCreateUserException(APIException):
+    status_code = 400
+
+    def __init__(self, detail, code):
+        super().__init__(detail, code)

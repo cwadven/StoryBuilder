@@ -1,12 +1,14 @@
 import string
 import uuid
 import boto3 as boto3
-from random import random
+import random
+import requests
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.cache import cache
 from django.db.models import QuerySet, Max
 from django.http import HttpRequest
 from django.template.loader import render_to_string
@@ -14,8 +16,9 @@ from django.utils.html import strip_tags
 
 from rest_framework.exceptions import APIException
 from rest_framework_jwt.settings import api_settings
-from typing import Optional
+from typing import Optional, Any
 
+from account.constants import SIGNUP_MACRO_EXPIRE_SECONDS
 from account.models import User
 from config.common.exception_codes import PageSizeMaximumException, MissingMandatoryParameterException
 
@@ -154,3 +157,89 @@ def generate_random_string_digits(length: int = 4) -> str:
     :return: str
     """
     return ''.join(random.choice(string.digits) for _ in range(length))
+
+
+def generate_random_string_digits_value_by_key_to_cache(key: str, random_string_length: int, expire_seconds: int) -> None:
+    cache.set(key, generate_random_string_digits(random_string_length), expire_seconds)
+
+
+def generate_dict_value_by_key_to_cache(key: str, value: dict, expire_seconds: int) -> None:
+    cache.set(key, value, expire_seconds)
+
+
+def generate_str_value_by_key_to_cache(key: str, value: (str, int), expire_seconds: int) -> None:
+    cache.set(key, value, expire_seconds)
+
+
+def get_cache_value_by_key(key: str) -> Any:
+    return cache.get(key)
+
+
+def delete_cache_value_by_key(key: str) -> None:
+    cache.delete(key)
+
+
+def increase_cache_int_value_by_key(key: str) -> int:
+    try:
+        return cache.incr(key)
+    except ValueError:
+        generate_str_value_by_key_to_cache(
+            key=key,
+            value=1,
+            expire_seconds=SIGNUP_MACRO_EXPIRE_SECONDS,
+        )
+        return 1
+
+
+class ValidationErrorContext(dict):
+    def add_error(self, field, error):
+        value = self.setdefault(field, [])
+        value.append(error)
+
+
+class PayloadValidator(object):
+    def __init__(self, payload):
+        self.payload = payload
+        self.error_context = ValidationErrorContext()
+        self.skip_validate_keys = set()
+
+    def add_error_context(self, key, description):
+        """
+        only add error if key is not in 'skip_validate_keys'
+        """
+        if not (key in self.skip_validate_keys):
+            self.error_context.add_error(key, description)
+
+    def add_error_and_skip_validation_key(self, key, description):
+        """
+        add only main error so other errors cannot add
+        """
+        self.add_error_context(key, description)
+        self.skip_validate_keys.add(key)
+
+    def _get_meta_attribute(self):
+        return getattr(self, 'Meta', None)
+
+    def _validate_payloads_type(self):
+        """
+        validate payload types from class Meta 'type_of_keys'
+        if list of first index is type or tuple then use isinstance to check type else check as function
+        if function it must return boolean
+        list of second index is used for error message
+        """
+        meta = self._get_meta_attribute()
+        if meta:
+            for key, value in getattr(meta, 'type_of_keys', {}).iteritems():
+                type_or_func, error_msg = value
+
+                if isinstance(type_or_func, (type, tuple)):
+                    if not isinstance(self.payload[key], type_or_func):
+                        self.add_error_and_skip_validation_key(key, error_msg)
+                elif not type_or_func(self.payload[key]):
+                    self.add_error_and_skip_validation_key(key, error_msg)
+
+    def common_validate(self):
+        """
+        first check mandatory keys then check key types
+        """
+        self._validate_payloads_type()
