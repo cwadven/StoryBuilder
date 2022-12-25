@@ -410,7 +410,7 @@ class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
             'email': 'aaaa@naver.com',
         }
 
-    @patch('account.views.generate_value_by_key_to_cache', Mock())
+    @patch('account.views.generate_dict_value_by_key_to_cache', Mock())
     @patch('account.views.send_one_time_token_email', Mock())
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_create_when_token_create_successful(self, mock_get_cache_value_by_key):
@@ -431,7 +431,7 @@ class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content['message'], '인증번호를 이메일로 전송했습니다.')
 
-    @patch('account.views.generate_value_by_key_to_cache', Mock())
+    @patch('account.views.generate_dict_value_by_key_to_cache', Mock())
     @patch('account.views.send_one_time_token_email', Mock())
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_create_when_token_create_failed(self, mock_get_cache_value_by_key):
