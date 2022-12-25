@@ -661,3 +661,36 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
             content['message'],
             '회원가입에 성공했습니다.',
         )
+
+
+class LoginTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(LoginTestCase, self).setUp()
+        self.user = User.objects.create_user(
+            username='test',
+            password='12341234'
+        )
+        self.body = {
+            'username': 'test',
+            'password': '12341234',
+        }
+
+    def test_login_user_should_success_when_username_and_password_exists(self):
+        # Given:
+        # When:
+        response = self.c.post(reverse('normal_login'), self.body)
+
+        # Then: 로그인 성공
+        self.assertEqual(response.status_code, 200)
+
+    def test_login_user_should_fail_when_username_and_password_different(self):
+        # Given:
+        self.body['password'] = 'wrong_password'
+        
+        # When:
+        response = self.c.post(reverse('normal_login'), self.body)
+        content = json.loads(response.content)
+
+        # Then: 로그인 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['result'], '이이디/비밀번호 문제가 발생했습니다.')

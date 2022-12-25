@@ -1,4 +1,4 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 
 from account.constants import (
     UserProviderEnum,
@@ -108,6 +108,20 @@ class SignUpEmailTokenValidationEndView(APIView):
         delete_cache_value_by_key(value['email'])
         delete_cache_value_by_key(SIGNUP_MACRO_VALIDATION_KEY.format(m['email']))
         return Response({'message': f'회원가입에 성공했습니다.'}, 200)
+
+
+class LoginView(APIView):
+    @mandatories('username', 'password')
+    def post(self, request, m):
+        user = authenticate(request, username=m['username'], password=m['password'])
+        if not user:
+            return Response({'result': '이이디/비밀번호 문제가 발생했습니다.'}, status=400)
+
+        login(request, user)
+        context = {
+            'accessToken': get_login_token(user),
+        }
+        return Response(context, status=200)
 
 
 class SocialLoginView(APIView):
