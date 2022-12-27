@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.core.cache import cache
 from django.db.models import QuerySet, Max
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
@@ -113,7 +113,7 @@ def generate_presigned_url(file_name, _type='common', unique=0, expires_in=1000)
         )
         return response
     except ClientError as e:
-        return None
+        return JsonResponse({'result': 'fail'})
 
 
 def upload_file_to_presigned_url(presined_url, presigned_data, file):
