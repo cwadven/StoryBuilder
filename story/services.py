@@ -80,14 +80,23 @@ def get_valid_answer_info_with_random_quantity(answer: str, answer_responses: Li
     if is_answer_valid:
         quantity_next_sheet_ids = []
         # 정답들 가져오기
-        filtered_answer_responses = list(filter(lambda answer_response: answer_response.answer.replace(' ', '') == answer.replace(' ', ''), answer_responses))
+        filtered_answer_responses = list(
+            filter(
+                lambda answer_response: answer_response.answer.replace(' ', '') == answer.replace(' ', '')
+                and answer_response.next_sheet_id
+                and answer_response.next_sheet_quantity,
+                answer_responses,
+            )
+        )
         for filtered_answer_response in filtered_answer_responses:
             quantity_next_sheet_ids += [filtered_answer_response.next_sheet_id] * filtered_answer_response.next_sheet_quantity
         # 셔플하기
         random.shuffle(quantity_next_sheet_ids)
-        # 값을 가져오기
+        # 값 가져오기
+        first_filtered_answer_response = next(iter(filtered_answer_responses), None)
+        sheet_answer_id = first_filtered_answer_response.id if first_filtered_answer_response else None
         # 정답유무, sheet_answer_id, next_sheet_id
-        return is_answer_valid, filtered_answer_responses[0].id, quantity_next_sheet_ids[0]
+        return is_answer_valid, sheet_answer_id, next(iter(quantity_next_sheet_ids), None)
     return is_answer_valid, None, None
 
 

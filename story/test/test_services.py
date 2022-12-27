@@ -157,6 +157,11 @@ class GetSheetAnswerTestCase(TestCase):
             is_start=False,
             is_final=True,
         )
+        self.final_sheet1_answer1 = SheetAnswer.objects.create(
+            sheet=self.final_sheet1,
+            answer='final_sheet_answer1',
+            answer_reply='final_sheet_answer1',
+        )
         self.final_sheet2 = Sheet.objects.create(
             story=self.story,
             title='test_title2',
@@ -245,6 +250,23 @@ class GetSheetAnswerTestCase(TestCase):
         # 0 은 가능성 이 없기 때문에 랜덤으로 안가져와 집니다.
         self.assertEqual(next_sheet_id, possible_next_sheet_path.sheet_id)
 
+    def test_get_valid_answer_info_with_random_quantity_should_success_when_answer_is_valid_but_next_path_is_not_exists(self):
+        # Given: NextSheetPath 가 없는 sheet 문제를 해결했을 경우
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.final_sheet1.id)
+
+        # When: 정답 및 랜덤 값들을 가져옵니다.
+        is_valid, sheet_answer_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer=self.final_sheet1_answer1.answer,
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다.
+        self.assertTrue(is_valid)
+        # And: None 을 반환합니다.
+        self.assertIsNone(sheet_answer_id)
+        # And: None 을 반환합니다.
+        self.assertIsNone(next_sheet_id)
+
     def test_get_valid_answer_info_with_random_quantity_should_fail_when_answer_is_invalid(self):
         # Given: SheetAnswer 에 final_sheet1 을 바라보는 NextSheetPath 를 추가합니다. quantity 10
         NextSheetPath.objects.create(
@@ -267,7 +289,7 @@ class GetSheetAnswerTestCase(TestCase):
             answer_responses=sheet_answer_response,
         )
 
-        # Then: 정답이 맞습니다.
+        # Then: 정답이 틀렸습니다
         self.assertFalse(is_valid)
         # And: 정답을 맞추지 못해 None 입니다.
         self.assertIsNone(sheet_answer_id)
