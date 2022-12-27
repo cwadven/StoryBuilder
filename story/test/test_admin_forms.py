@@ -53,7 +53,8 @@ class TestTopicAdminForm(TestCase):
             },
         }
         file_form_data = {
-            'image_file': self.image
+            'image_file': self.image,
+            'background_image_file': self.image,
         }
 
         # When: form 에 요청했을 경우
@@ -67,3 +68,4 @@ class TestTopicAdminForm(TestCase):
         self.assertEqual(story.title, self.form_data['title'])
         self.assertEqual(story.description, self.form_data['description'])
         self.assertEqual(story.image, 'testtest')
+        self.assertEqual(story.background_image, 'testtest')
