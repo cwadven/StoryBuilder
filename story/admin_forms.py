@@ -5,8 +5,8 @@ from story.models import Story
 
 
 class StoryAdminForm(forms.ModelForm):
-    image_file = forms.ImageField(label='이미지 업로드', required=False)
-    image = forms.CharField(label='이미지 주소', required=False)
+    image_file = forms.ImageField(label='대표 이미지 업로드', required=False)
+    image = forms.CharField(label='대표 이미지 주소', required=False)
 
     class Meta:
         model = Story
