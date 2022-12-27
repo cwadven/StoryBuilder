@@ -67,9 +67,9 @@ class SheetAnswerCheckAPIView(APIView):
             )
             answer_reply = sheet_answer.answer_reply
             if is_valid and request.user.is_authenticated:
-                user_sheet_answer_solve, _ = UserSheetAnswerSolve.generate_cls_if_first_time(
+                user_sheet_answer_solve = UserSheetAnswerSolve.objects.get(
                     user=request.user,
-                    sheet_id=sheet_id,
+                    sheet=sheet_answer.sheet,
                 )
                 user_sheet_answer_solve.solved_sheet_action(
                     answer=sheet_answer.answer,
