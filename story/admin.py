@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from story.admin_forms import StoryAdminForm
+from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath
 
 
@@ -26,6 +26,7 @@ class SheetAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at',
     ]
+    form = SheetAdminForm
 
 
 class SheetAnswerAdmin(admin.ModelAdmin):
