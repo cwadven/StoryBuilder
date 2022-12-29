@@ -109,6 +109,9 @@ def generate_presigned_url(file_name, _type='common', unique=0, expires_in=1000)
         response = s3_client.generate_presigned_post(
             Bucket=settings.AWS_S3_BUCKET_NAME,
             Key=f'{_type}/{unique}/{uuid.uuid4()}_{file_name}',
+            Conditions=[
+                ['content-length-range', 0, 10485760]
+            ],
             ExpiresIn=expires_in
         )
         return response
@@ -121,10 +124,10 @@ def upload_file_to_presigned_url(presined_url, presigned_data, file):
         response = requests.post(
             url=presined_url,
             data=presigned_data,
-            files={'file': file}
+            files={'file': file},
         )
         return response.status_code
-    except:
+    except Exception as e:
         return 400
 
 
