@@ -32,7 +32,7 @@ class DTOPlayingSheetTestCase(TestCase):
         playing_sheet = playing_sheet_dto.to_dict()
 
         # Then: set dto
-        self.assertEqual(playing_sheet.get('id'), self.start_sheet.id)
+        self.assertEqual(playing_sheet.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(playing_sheet.get('title'), self.start_sheet.title)
         self.assertEqual(playing_sheet.get('question'), self.start_sheet.question)
         self.assertEqual(playing_sheet.get('image'), self.start_sheet.image)

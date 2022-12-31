@@ -124,7 +124,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 조회 성공
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(content.get('id'), self.start_sheet.id)
+        self.assertEqual(content.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet.title)
         self.assertEqual(content.get('question'), self.start_sheet.question)
         self.assertEqual(content.get('image'), self.start_sheet.image)
@@ -149,7 +149,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 조회 성공
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(content.get('id'), self.start_sheet.id)
+        self.assertEqual(content.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet.title)
         self.assertEqual(content.get('question'), self.start_sheet.question)
         self.assertEqual(content.get('image'), self.start_sheet.image)
@@ -309,7 +309,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Sheet 조회 성공
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(content.get('id'), self.normal_sheet.id)
+        self.assertEqual(content.get('sheet_id'), self.normal_sheet.id)
         self.assertEqual(content.get('title'), self.normal_sheet.title)
         self.assertEqual(content.get('question'), self.normal_sheet.question)
         self.assertEqual(content.get('image'), self.normal_sheet.image)
