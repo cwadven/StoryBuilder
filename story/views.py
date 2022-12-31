@@ -59,6 +59,7 @@ class SheetAnswerCheckAPIView(APIView):
             answer_responses=answer_responses
         )
 
+        # 나중에 Service 레이어로 위치 변환
         try:
             sheet_answer = SheetAnswer.objects.select_related(
                 'sheet'
