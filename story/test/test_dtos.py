@@ -32,7 +32,7 @@ class DTOPlayingSheetTestCase(TestCase):
         playing_sheet = playing_sheet_dto.to_dict()
 
         # Then: set dto
-        self.assertEqual(playing_sheet.get('id'), self.start_sheet.id)
+        self.assertEqual(playing_sheet.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(playing_sheet.get('title'), self.start_sheet.title)
         self.assertEqual(playing_sheet.get('question'), self.start_sheet.question)
         self.assertEqual(playing_sheet.get('image'), self.start_sheet.image)
@@ -84,6 +84,7 @@ class DTOSheetAnswerResponseTestCase(TestCase):
             'id',
             'answer',
             'answer_reply',
+            'nextsheetpath',
             'next_sheet_paths__nextsheetpath__sheet_id',
             'next_sheet_paths__nextsheetpath__quantity',
         )
@@ -96,5 +97,6 @@ class DTOSheetAnswerResponseTestCase(TestCase):
         self.assertEqual(sheet_answer_response.get('id'), start_sheet_values[0]['id'])
         self.assertEqual(sheet_answer_response.get('answer'), start_sheet_values[0]['answer'])
         self.assertEqual(sheet_answer_response.get('answer_reply'), start_sheet_values[0]['answer_reply'])
+        self.assertEqual(sheet_answer_response.get('next_sheet_path_id'), start_sheet_values[0]['nextsheetpath'])
         self.assertEqual(sheet_answer_response.get('next_sheet_id'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__sheet_id'])
         self.assertEqual(sheet_answer_response.get('next_sheet_quantity'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__quantity'])
