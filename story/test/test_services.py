@@ -264,8 +264,8 @@ class GetSheetAnswerTestCase(TestCase):
 
         # Then: 정답이 맞습니다.
         self.assertTrue(is_valid)
-        # And: None 을 반환합니다.
-        self.assertIsNone(sheet_answer_id)
+        # And: NextSheetPaht는 없지만 정답을 가지고 있기 때문에 정답 반환
+        self.assertEqual(sheet_answer_id, self.final_sheet1_answer1.id)
         # And: None 을 반환합니다.
         self.assertIsNone(next_sheet_id)
         # And: None 을 반환합니다.

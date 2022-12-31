@@ -53,6 +53,7 @@ class SheetAnswerCheckAPIView(APIView):
         # 로그인 테스트케이스 추가
         sheet_id = m['sheet_id']
         answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
+        answer_reply = None
 
         is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
             answer=m['answer'],
@@ -71,17 +72,21 @@ class SheetAnswerCheckAPIView(APIView):
                     user=request.user,
                     sheet=sheet_answer.sheet,
                 )
+                try:
+                    next_sheet_path = NextSheetPath.objects.get(
+                        id=next_sheet_path_id,
+                        sheet_id=next_sheet_id,
+                    )
+                except NextSheetPath.DoesNotExist:
+                    next_sheet_path = None
                 user_sheet_answer_solve.solved_sheet_action(
                     answer=sheet_answer.answer,
                     sheet_question=sheet_answer.sheet.question,
                     solved_sheet_version=sheet_answer.sheet.version,
                     solved_answer_version=sheet_answer.version,
-                    next_sheet_path=NextSheetPath.objects.get(
-                        id=next_sheet_path_id,
-                        sheet_id=next_sheet_id,
-                    ),
+                    next_sheet_path=next_sheet_path,
                 )
         except SheetAnswer.DoesNotExist:
-            return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': None}, status=200)
+            return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
 
         return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)

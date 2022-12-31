@@ -443,6 +443,41 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
 
+    @freeze_time('2022-01-01')
+    def test_get_story_answer_reply_when_next_sheet_path_is_not_exists_but_answer_is_valid(self):
+        # Given: start_sheet_answer1 정답과 sheet_id 명시
+        # And: 유효한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve = _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.final_sheet1,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solving',
+        )
+        # And: next_sheet_path 전부 삭제
+        self.start_sheet_answer1.next_sheet_paths.all().delete()
+        
+        # When: submit_answer 요청
+        response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
+        content = json.loads(response.content)
+
+        # Then: 조회 성공
+        self.assertEqual(response.status_code, 200)
+        # And: 정답은 참
+        self.assertTrue(content.get('is_valid'))
+        # And: next_sheet_path 가 없어 None 반환
+        self.assertIsNone(content.get('next_sheet_id'))
+        # And: 정답 응답 확인
+        self.assertEqual(content.get('answer_reply'), self.start_sheet_answer1.answer_reply)
+        # And: UserSheetAnswerSolve solved 로 변경
+        self.assertEqual(UserSheetAnswerSolve.objects.get(id=user_sheet_answer_solve.id).solving_status, 'solved')
+        # And: 현재 시간 해결
+        self.assertEqual(
+            UserSheetAnswerSolve.objects.get(id=user_sheet_answer_solve.id).solved_time.strftime('%Y-%m-%d %H:%M:%S'),
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+
     def test_get_story_next_sheet_when_answer_is_invalid(self):
         # Given: sheet_id 에 대해 오답 명시
         self.request_data['answer'] = '오답'
