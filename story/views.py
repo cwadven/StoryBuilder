@@ -54,7 +54,7 @@ class SheetAnswerCheckAPIView(APIView):
         sheet_id = m['sheet_id']
         answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
 
-        is_valid, sheet_answer_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+        is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
             answer=m['answer'],
             answer_responses=answer_responses
         )
@@ -77,7 +77,8 @@ class SheetAnswerCheckAPIView(APIView):
                     solved_sheet_version=sheet_answer.sheet.version,
                     solved_answer_version=sheet_answer.version,
                     next_sheet_path=NextSheetPath.objects.get(
-                        id=next_sheet_id
+                        id=next_sheet_path_id,
+                        sheet_id=next_sheet_id,
                     ),
                 )
         except SheetAnswer.DoesNotExist:
