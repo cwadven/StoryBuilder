@@ -50,7 +50,6 @@ class SheetAnswerCheckAPIView(APIView):
     @mandatories('sheet_id', 'answer')
     @custom_login_required_for_method
     def post(self, request, m):
-        # 로그인 테스트케이스 추가
         sheet_id = m['sheet_id']
         answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
         answer_reply = None
