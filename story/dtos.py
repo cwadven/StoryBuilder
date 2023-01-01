@@ -60,13 +60,12 @@ class PlayingSheetAnswerSolvedDTO(object):
     @classmethod
     def of(cls, user_sheet_answer_solve: UserSheetAnswerSolve):
         """
-        select related 필요
-        next_sheet_path
+        next_sheet_path__answer 필요
         answer
         """
         return cls(
             next_sheet_id=user_sheet_answer_solve.next_sheet_path.sheet_id,
-            answer_reply=user_sheet_answer_solve.answer.answer_reply,
+            answer_reply=user_sheet_answer_solve.next_sheet_path.answer.answer_reply,
             is_solved=True,
         )
 

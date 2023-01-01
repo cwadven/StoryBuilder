@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Optional
 
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
@@ -127,3 +127,16 @@ def get_sheet_answer_with_next_path_responses(sheet_id: int) -> List[SheetAnswer
     ]
 
     return sheet_answer_responses
+
+
+def get_sheet_solved_user_sheet_answer(user_id: int, sheet_id: int) -> Optional[UserSheetAnswerSolve]:
+    try:
+        return UserSheetAnswerSolve.objects.select_related(
+            'next_sheet_path__answer',
+        ).get(
+            user_id=user_id,
+            sheet_id=sheet_id,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+        )
+    except UserSheetAnswerSolve.DoesNotExist:
+        return

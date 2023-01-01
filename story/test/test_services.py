@@ -9,6 +9,7 @@ from story.services import (
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
+    get_sheet_solved_user_sheet_answer,
 )
 
 
@@ -396,3 +397,70 @@ class ValidateUserPlayingSheetTestCase(LoginMixin, TestCase):
         # Expected: 사용자가 final_sheet1 로 가는 문제를 풀적이 없기 때문에 에러 반환
         with self.assertRaises(SheetNotAccessibleException):
             validate_user_playing_sheet(self.user.id, self.final_sheet1)
+
+
+class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1,
+        )
+
+    def test_get_sheet_solved_user_sheet_answer_should_return_user_sheet_answer_when_sheet_has_been_solved(self):
+        # Given: solved 생성
+        # When: 함수 실행
+        sheet_solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(self.user.id, self.start_sheet.id)
+        # Then:
+        self.assertEqual(sheet_solved_user_sheet_answer.id, self.user_sheet_answer_solve.id)
+
+    def test_get_sheet_solved_user_sheet_answer_should_return_none_when_sheet_is_not_solved(self):
+        # Given: solving 으로 변경
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.get(id=self.user_sheet_answer_solve.id)
+        user_sheet_answer_solve.solving_status = UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0]
+        user_sheet_answer_solve.save()
+        # When: 함수 실행
+        sheet_solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(self.user.id, self.start_sheet.id)
+        # Then: 없기 때문에 None 반환
+        self.assertIsNone(sheet_solved_user_sheet_answer)
