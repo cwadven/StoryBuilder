@@ -67,6 +67,11 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
             is_start=False,
             is_final=True,
         )
+        self.start_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet,
+            quantity=10,
+        )
 
     def test_get_story_play_api_should_fail_when_story_is_deleted(self):
         # Given: Story 가 삭제된 경우
@@ -180,6 +185,33 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('error'), '로그인이 필요합니다.')
 
+    def test_get_story_play_api_should_return_playing_sheet_answer_solved_response_when_already_user_had_been_solved_sheet(self):
+        # Given: 로그인
+        self.login()
+        # And: 유저가 한번 이미 문제를 해결했을 경우
+        self.c.get(reverse('story:story_play', args=[self.story.id]))
+        response = self.c.post(reverse('story:submit_answer'), data={
+            'sheet_id': self.start_sheet.id,
+            'answer': self.start_sheet_answer1.answer,
+        })
+        self.assertEqual(response.status_code, 200)
+
+        # When: story_play 요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('sheet_id'), self.start_sheet.id)
+        self.assertEqual(content.get('title'), self.start_sheet.title)
+        self.assertEqual(content.get('question'), self.start_sheet.question)
+        self.assertEqual(content.get('image'), self.start_sheet.image)
+        self.assertEqual(content.get('background_image'), self.start_sheet.background_image)
+        self.assertEqual(content.get('next_sheet_id'), self.start_sheet_answer_next_sheet_path1.sheet_id)
+        self.assertEqual(content.get('answer'), self.start_sheet_answer1.answer)
+        self.assertEqual(content.get('answer_reply'), self.start_sheet_answer1.answer_reply)
+        self.assertTrue(content.get('is_solved'))
+
 
 class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
@@ -216,6 +248,11 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
             is_start=False,
             is_final=False,
         )
+        self.normal_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.normal_sheet,
+            answer='normal_sheet_test',
+            answer_reply='normal_sheet_test_reply',
+        )
         self.final_sheet = Sheet.objects.create(
             story=self.story,
             title='test_title',
@@ -224,6 +261,16 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
             background_image='https://image.test',
             is_start=False,
             is_final=True,
+        )
+        self.start_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.normal_sheet,
+            quantity=10,
+        )
+        self.normal_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.normal_sheet_answer1,
+            sheet=self.final_sheet,
+            quantity=10,
         )
 
     def test_get_sheet_play_api_should_fail_when_story_is_deleted(self):
@@ -345,6 +392,37 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         # Then: 로그인 에러 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('error'), '로그인이 필요합니다.')
+
+    def test_get_sheet_play_api_should_return_playing_sheet_answer_solved_response_when_already_user_had_been_solved_sheet(self):
+        # Given: 첫 story 의 첫 sheet 문제 해결
+        self.c.get(reverse('story:story_play', args=[self.story.id]))
+        response = self.c.post(reverse('story:submit_answer'), data={
+            'sheet_id': self.start_sheet.id,
+            'answer': self.start_sheet_answer1.answer,
+        })
+        self.assertEqual(response.status_code, 200)
+        # And: 두번째 문제 해결
+        self.c.get(reverse('story:sheet_play', args=[self.start_sheet_answer_next_sheet_path1.sheet_id]))
+        self.c.post(reverse('story:submit_answer'), data={
+            'sheet_id': self.start_sheet_answer_next_sheet_path1.sheet_id,
+            'answer': self.normal_sheet_answer1.answer,
+        })
+
+        # When: sheet_play 재요청
+        response = self.c.get(reverse('story:sheet_play', args=[self.start_sheet_answer_next_sheet_path1.sheet_id]))
+        content = json.loads(response.content)
+
+        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('sheet_id'), self.start_sheet_answer_next_sheet_path1.sheet.id)
+        self.assertEqual(content.get('title'), self.start_sheet_answer_next_sheet_path1.sheet.title)
+        self.assertEqual(content.get('question'), self.start_sheet_answer_next_sheet_path1.sheet.question)
+        self.assertEqual(content.get('image'), self.start_sheet_answer_next_sheet_path1.sheet.image)
+        self.assertEqual(content.get('background_image'), self.start_sheet_answer_next_sheet_path1.sheet.background_image)
+        self.assertEqual(content.get('next_sheet_id'), self.normal_sheet_answer_next_sheet_path1.sheet_id)
+        self.assertEqual(content.get('answer'), self.normal_sheet_answer1.answer)
+        self.assertEqual(content.get('answer_reply'), self.normal_sheet_answer1.answer_reply)
+        self.assertTrue(content.get('is_solved'))
 
 
 class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
