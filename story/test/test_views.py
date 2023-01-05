@@ -522,6 +522,27 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
         )
 
     @freeze_time('2022-01-01')
+    def test_get_story_next_sheet_when_answer_is_valid_but_one_more_submit_answer(self):
+        # Given: start_sheet_answer1 정답과 sheet_id 명시
+        # And: 유효한 UserSheetAnswerSolve 생성
+        _generate_user_sheet_answer_solve_with_next_path(
+            user=self.c.user,
+            story=self.story,
+            current_sheet=self.start_sheet,
+            next_sheet=self.final_sheet1,
+            sheet_answer=self.start_sheet_answer1,
+            solving_status='solving',
+        )
+        self.c.post(reverse('story:submit_answer'), data=self.request_data)
+
+        # When: submit_answer 요청
+        response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('message'), '이미 문제를 해결한 기록이 있습니다.')
+
+    @freeze_time('2022-01-01')
     def test_get_story_answer_reply_when_next_sheet_path_is_not_exists_but_answer_is_valid(self):
         # Given: start_sheet_answer1 정답과 sheet_id 명시
         # And: 유효한 UserSheetAnswerSolve 생성

@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method
+from story.constants import StoryErrorMessage
 from story.dtos import PlayingSheetDTO, PlayingSheetAnswerSolvedDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath
 from story.services import (
@@ -73,6 +74,10 @@ class SheetAnswerCheckAPIView(APIView):
         sheet_id = m['sheet_id']
         answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
         answer_reply = None
+
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
+        if solved_user_sheet_answer:
+            return Response({'message': StoryErrorMessage.ALREADY_SOLVED.label}, status=400)
 
         is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
             answer=m['answer'],
