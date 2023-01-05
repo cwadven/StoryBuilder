@@ -539,6 +539,7 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
         response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
         content = json.loads(response.content)
 
+        # Then: 이미 문제를 해결한 기록이 있기 때문에 문제를 다시 풀 수 없습니다.
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('message'), '이미 문제를 해결한 기록이 있습니다.')
 
