@@ -154,10 +154,19 @@ class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
     def test_playing_sheet_answer_solved_dto(self):
         # Given:
         # When: dto 객체 생성
-        playing_sheet_answer_solved_dto = PlayingSheetAnswerSolvedDTO.of(self.user_sheet_answer_solve)
+        playing_sheet_answer_solved_dto = PlayingSheetAnswerSolvedDTO.of(
+            self.start_sheet,
+            self.user_sheet_answer_solve
+        )
         playing_sheet_answer_solved = playing_sheet_answer_solved_dto.to_dict()
 
         # Then: set dto
         self.assertEqual(playing_sheet_answer_solved.get('next_sheet_id'), self.final_sheet1.id)
+        self.assertEqual(playing_sheet_answer_solved.get('answer'), self.start_sheet_answer1.answer)
         self.assertEqual(playing_sheet_answer_solved.get('answer_reply'), self.start_sheet_answer1.answer_reply)
+        self.assertEqual(playing_sheet_answer_solved.get('sheet_id'), self.start_sheet.id)
+        self.assertEqual(playing_sheet_answer_solved.get('title'), self.start_sheet.title)
+        self.assertEqual(playing_sheet_answer_solved.get('question'), self.start_sheet.question)
+        self.assertEqual(playing_sheet_answer_solved.get('image'), self.start_sheet.image)
+        self.assertEqual(playing_sheet_answer_solved.get('background_image'), self.start_sheet.background_image)
         self.assertTrue(playing_sheet_answer_solved.get('is_solved'))

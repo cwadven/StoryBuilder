@@ -53,18 +53,30 @@ class SheetAnswerResponseDTO(object):
 
 @attr.s
 class PlayingSheetAnswerSolvedDTO(object):
+    sheet_id = attr.ib(type=int)
+    title = attr.ib(type=str)
+    question = attr.ib(type=str)
+    image = attr.ib(type=str)
+    background_image = attr.ib(type=str)
     next_sheet_id = attr.ib(type=int)
+    answer = attr.ib(type=str)
     answer_reply = attr.ib(type=str)
     is_solved = attr.ib(type=bool)
 
     @classmethod
-    def of(cls, user_sheet_answer_solve: UserSheetAnswerSolve):
+    def of(cls, sheet: Sheet, user_sheet_answer_solve: UserSheetAnswerSolve):
         """
-        next_sheet_path__answer 필요
+        user_sheet_answer_solve의 next_sheet_path__answer 필요
         answer
         """
         return cls(
+            sheet_id=sheet.id,
+            title=sheet.title,
+            question=sheet.question,
+            image=sheet.image,
+            background_image=sheet.background_image,
             next_sheet_id=user_sheet_answer_solve.next_sheet_path.sheet_id,
+            answer=user_sheet_answer_solve.next_sheet_path.answer.answer,
             answer_reply=user_sheet_answer_solve.next_sheet_path.answer.answer_reply,
             is_solved=True,
         )
