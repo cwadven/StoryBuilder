@@ -2,14 +2,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method
-from story.dtos import PlayingSheetDTO
+from story.constants import StoryErrorMessage
+from story.dtos import PlayingSheetDTO, PlayingSheetAnswerSolvedDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
     get_valid_answer_info_with_random_quantity,
     get_running_sheet,
-    validate_user_playing_sheet,
+    validate_user_playing_sheet, get_sheet_solved_user_sheet_answer,
 )
 
 
@@ -27,6 +28,16 @@ class StoryPlayAPIView(APIView):
             sheet_id=start_sheet.id,
         )
 
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, start_sheet.id)
+        if solved_user_sheet_answer:
+            return Response(
+                data=PlayingSheetAnswerSolvedDTO.of(
+                    start_sheet,
+                    solved_user_sheet_answer
+                ).to_dict(),
+                status=200
+            )
+
         playing_sheet = PlayingSheetDTO.of(start_sheet).to_dict()
         return Response(playing_sheet, status=200)
 
@@ -37,10 +48,20 @@ class SheetPlayAPIView(APIView):
         validate_user_playing_sheet(request.user.id, sheet_id)
 
         sheet = get_running_sheet(sheet_id)
-        UserSheetAnswerSolve.generate_cls_if_first_time(
+        user_sheet_answer_solve, _ = UserSheetAnswerSolve.generate_cls_if_first_time(
             user=request.user,
             sheet_id=sheet.id,
         )
+
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
+        if solved_user_sheet_answer:
+            return Response(
+                data=PlayingSheetAnswerSolvedDTO.of(
+                    sheet,
+                    solved_user_sheet_answer
+                ).to_dict(),
+                status=200
+            )
 
         playing_sheet = PlayingSheetDTO.of(sheet).to_dict()
         return Response(playing_sheet, status=200)
@@ -53,6 +74,10 @@ class SheetAnswerCheckAPIView(APIView):
         sheet_id = m['sheet_id']
         answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
         answer_reply = None
+
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
+        if solved_user_sheet_answer:
+            return Response({'message': StoryErrorMessage.ALREADY_SOLVED.label}, status=400)
 
         is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
             answer=m['answer'],
