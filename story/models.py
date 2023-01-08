@@ -75,14 +75,22 @@ class SheetAnswer(models.Model):
     def __str__(self):
         return f'{self.id} {self.answer}'
 
+    class Meta:
+        verbose_name = 'Sheet 정답 데이터'
+        verbose_name_plural = 'Sheet 정답 데이터'
+
 
 class NextSheetPath(models.Model):
-    answer = models.ForeignKey(SheetAnswer, on_delete=models.CASCADE)
-    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE)
+    answer = models.ForeignKey(SheetAnswer, on_delete=models.CASCADE, verbose_name='정답')
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, verbose_name='정답을 맞춘 후, 다음 시트')
     quantity = models.IntegerField(verbose_name='가중치', default=1)
 
     def __str__(self):
         return f'{self.id} {self.sheet_id} {self.answer_id} {self.quantity}'
+    
+    class Meta:
+        verbose_name = '정답에 의한 다음 Sheet 경로'
+        verbose_name_plural = '정답에 의한 다음 Sheet 경로'
 
 
 class UserSheetAnswerSolve(models.Model):
