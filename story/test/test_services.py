@@ -441,12 +441,22 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
             user=self.user,
             story=self.story,
             sheet=self.start_sheet,
-            solved_sheet_version=1,
-            solved_answer_version=1,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
             next_sheet_path=self.next_sheet_path,
             answer=self.start_sheet_answer1,
         )
+
+    def test_get_sheet_solved_user_sheet_answer_should_return_none_when_sheet_is_solved_but_sheet_version_is_changed(self):
+        # Given: sheet version 변경
+        self.start_sheet.version = 9
+        self.start_sheet.save()
+
+        # When: 함수 실행
+        sheet_solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(self.user.id, self.start_sheet.id)
+        # Then:
+        self.assertIsNone(sheet_solved_user_sheet_answer)
 
     def test_get_sheet_solved_user_sheet_answer_should_return_user_sheet_answer_when_sheet_has_been_solved(self):
         # Given: solved 생성

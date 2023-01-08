@@ -130,12 +130,14 @@ def get_sheet_answer_with_next_path_responses(sheet_id: int) -> List[SheetAnswer
 
 
 def get_sheet_solved_user_sheet_answer(user_id: int, sheet_id: int) -> Optional[UserSheetAnswerSolve]:
+    running_sheet = get_running_sheet(sheet_id)
     try:
         return UserSheetAnswerSolve.objects.select_related(
             'next_sheet_path__answer',
         ).get(
             user_id=user_id,
             sheet_id=sheet_id,
+            solved_sheet_version=running_sheet.version,
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
         )
     except UserSheetAnswerSolve.DoesNotExist:
