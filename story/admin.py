@@ -41,10 +41,12 @@ class SheetAnswerAdmin(admin.ModelAdmin):
 class NextSheetPathAdmin(admin.ModelAdmin):
     list_display = [
         'id',
-        'answer_id',
-        'answer_answer',
+        'story_id',
+        'story_title',
         'sheet_id',
         'sheet_title',
+        'answer_id',
+        'answer_answer',
         'quantity',
     ]
 
@@ -55,6 +57,22 @@ class NextSheetPathAdmin(admin.ModelAdmin):
     def sheet_title(self, obj):
         return obj.sheet.title
     sheet_title.short_description = '정답을 맞춘 후, 다음 시트 title'
+
+    def story_id(self, obj):
+        return obj.sheet.story_id
+    story_id.short_description = 'Story ID'
+
+    def story_title(self, obj):
+        return obj.sheet.story.title
+    story_title.short_description = 'Story title'
+
+    def get_queryset(self, request):
+        return super(NextSheetPathAdmin, self).get_queryset(
+            request
+        ).select_related(
+            'sheet__story',
+            'answer',
+        )
 
 
 admin.site.register(Story, StoryAdmin)
