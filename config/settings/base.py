@@ -34,6 +34,7 @@ THIRD_APPS = [
 PROJECT_APPS = [
     'account',
     'story',
+    'hint',
 ]
 
 PROJECT_SETTING_APPS = [
