@@ -6,7 +6,7 @@ from story.models import Sheet
 
 class SheetHint(models.Model):
     sheet = models.ForeignKey(Sheet, on_delete=models.SET_NULL, null=True)
-    hint = models.CharField(varverbose_name='힌트 내용', blank=True, null=True)
+    hint = models.TextField(verbose_name='힌트 내용', blank=True, null=True)
     image = models.TextField(verbose_name='힌트 이미지', blank=True, null=True)
     sequence = models.IntegerField(null=True, verbose_name='보여주는 순서')
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False)
