@@ -35,7 +35,7 @@ class GetUserHistoryHintTestCase(LoginMixin, TestCase):
             point=10,
         )
 
-    def test_get_user_available_sheet_hints_has_history(self):
+    def test_get_sheet_hint_infos_has_history(self):
         # Given: 유저가 hint history 가 있을 경우
         self.login()
         self.user_sheet_hint_history = UserSheetHintHistory.objects.create(
@@ -52,7 +52,7 @@ class GetUserHistoryHintTestCase(LoginMixin, TestCase):
         self.assertEqual(user_available_sheet_hints[0].get('image'), self.start_sheet_hint.image)
         self.assertTrue(user_available_sheet_hints[0].get('has_history'))
 
-    def test_get_user_available_sheet_hints_not_have_history(self):
+    def test_get_sheet_hint_infos_not_have_history(self):
         # Given: 유저가 hint history 가 없을 경우
         self.login()
         UserSheetHintHistory.objects.filter(

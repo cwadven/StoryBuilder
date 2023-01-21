@@ -2,7 +2,7 @@ from hint.dtos import UserSheetHintInfoDTO
 from hint.models import SheetHint, UserSheetHintHistory
 
 
-def get_user_available_sheet_hints(user, sheet_id: int) -> list:
+def get_sheet_hint_infos(user, sheet_id: int) -> list:
     sheet_hints = SheetHint.objects.filter(
         sheet_id=sheet_id,
         is_deleted=False,
