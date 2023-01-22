@@ -23,3 +23,11 @@ class UserSheetHintInfoDTO(object):
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class UserSheetHintInfosResponse(object):
+    user_sheet_hint_infos = attr.ib(type=list)
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
