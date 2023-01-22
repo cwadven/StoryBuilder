@@ -2,7 +2,7 @@ from hint.dtos import UserSheetHintInfoDTO
 from hint.models import SheetHint, UserSheetHintHistory
 
 
-def get_sheet_hint_infos(user, sheet_id: int) -> list:
+def get_sheet_hint_infos(user_id: int, sheet_id: int) -> list:
     sheet_hints = SheetHint.objects.filter(
         sheet_id=sheet_id,
         is_deleted=False,
@@ -12,7 +12,7 @@ def get_sheet_hint_infos(user, sheet_id: int) -> list:
     user_accessible_sheet_hint_ids = UserSheetHintHistory.objects.select_related(
         'sheet_hint',
     ).filter(
-        user=user,
+        user_id=user_id,
         sheet_hint__sheet_id=sheet_id,
     ).values_list(
         'sheet_hint_id',

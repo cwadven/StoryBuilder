@@ -3,7 +3,7 @@ from django.test import TestCase
 from account.models import User
 from config.test_helper.helper import LoginMixin
 from hint.models import SheetHint, UserSheetHintHistory
-from hint.services import get_user_available_sheet_hints
+from hint.services import get_sheet_hint_infos
 from story.models import Story, Sheet
 
 
@@ -44,7 +44,7 @@ class GetUserHistoryHintTestCase(LoginMixin, TestCase):
         )
 
         # When: get_user_available_sheet_hints 요청
-        user_available_sheet_hints = get_user_available_sheet_hints(self.c.user, self.start_sheet.id)
+        user_available_sheet_hints = get_sheet_hint_infos(self.c.user.id, self.start_sheet.id)
 
         # Then: hint 내용 있음
         self.assertEqual(user_available_sheet_hints[0].get('id'), self.start_sheet_hint.id)
@@ -60,7 +60,7 @@ class GetUserHistoryHintTestCase(LoginMixin, TestCase):
         ).delete()
 
         # When: get_user_available_sheet_hints 요청
-        user_available_sheet_hints = get_user_available_sheet_hints(self.c.user, self.start_sheet.id)
+        user_available_sheet_hints = get_sheet_hint_infos(self.c.user.id, self.start_sheet.id)
 
         # Then: hint 내용 없음
         self.assertEqual(user_available_sheet_hints[0].get('id'), self.start_sheet_hint.id)
