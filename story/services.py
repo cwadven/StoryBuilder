@@ -88,9 +88,10 @@ def get_valid_answer_info_with_random_quantity(answer: str, answer_responses: Li
             )
         )
         for filtered_answer_response in filtered_answer_responses:
-            quantity_next_sheet_id_and_next_sheet_path_ids += [
-               [filtered_answer_response.next_sheet_path_id, filtered_answer_response.next_sheet_id]
-            ] * (filtered_answer_response.next_sheet_quantity or 1)
+            if filtered_answer_response.next_sheet_quantity:
+                quantity_next_sheet_id_and_next_sheet_path_ids += [
+                   [filtered_answer_response.next_sheet_path_id, filtered_answer_response.next_sheet_id]
+                ] * filtered_answer_response.next_sheet_quantity
         # 셔플하기
         random.shuffle(quantity_next_sheet_id_and_next_sheet_path_ids)
         # 값 가져오기
