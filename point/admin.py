@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from point.models import UserPoint
+
+
+admin.site.register(UserPoint)
