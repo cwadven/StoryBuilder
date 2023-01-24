@@ -90,3 +90,9 @@ class SheetHintDoesNotExists(APIException):
     status_code = 400
     default_detail = '존재하지 않은 Sheet hint 입니다.'
     default_code = 'sheet-hint-does-not-exists'
+
+
+class NotEnoughUserPoints(APIException):
+    status_code = 400
+    default_detail = '유저의 포인트가 부족합니다.'
+    default_code = 'not-enough-user-points'
