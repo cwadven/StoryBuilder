@@ -76,3 +76,18 @@ class TestStoryAdminForm(TestCase):
 
         # Then:
         self.assertTrue(formset.is_valid())
+
+    def test_sheet_hint_formset_should_not_raise_error_when_sequence_has_same_value_but_is_deleting(self):
+        # Given: 동일한 sequence 적용 하지만 is_deleted 는 True
+        self.data['sheethint_set-TOTAL_FORMS'] = 2
+        self.data['sheethint_set-1-hint'] = '힌트1번'
+        self.data['sheethint_set-1-sequence'] = 1
+        self.data['sheethint_set-1-is_deleted'] = False
+        self.data['sheethint_set-1-point'] = 10
+        self.data['sheethint_set-1-DELETE'] = 'on'
+
+        # When:
+        formset = self.SheetHintInlineFormSet(self.data, instance=self.start_sheet)
+
+        # Then:
+        self.assertTrue(formset.is_valid())

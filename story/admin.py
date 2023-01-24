@@ -24,6 +24,10 @@ class SheetHintInline(admin.TabularInline):
     formset = SheetHintInlineFormset
     model = SheetHint
     extra = 0
+    ordering = [
+        'is_deleted',
+        'sequence',
+    ]
 
 
 class SheetAdmin(admin.ModelAdmin):

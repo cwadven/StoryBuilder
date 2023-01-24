@@ -6,7 +6,7 @@ class SheetHintInlineFormset(forms.models.BaseInlineFormSet):
     def clean(self):
         sequences = []
         for form in self.forms:
-            if form.cleaned_data['is_deleted']:
+            if form.cleaned_data['is_deleted'] or form.cleaned_data['DELETE']:
                 continue
             sequence = form.cleaned_data['sequence']
             if int(sequence) in sequences:
