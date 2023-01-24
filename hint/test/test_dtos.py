@@ -30,7 +30,7 @@ class DTOUserSheetHintInfoTestCase(TestCase):
             hint='test_hint',
             image='test_image',
             sequence=1,
-            point=10,
+            point=0,
         )
 
     def test_user_sheet_hint_info_dto_when_user_has_history(self):
@@ -84,7 +84,7 @@ class DTOUserSheetHintInfosResponseTestCase(TestCase):
             hint='test_hint',
             image='test_image',
             sequence=1,
-            point=10,
+            point=0,
         )
 
     def test_user_sheet_hint_infos_response(self):

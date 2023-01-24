@@ -74,7 +74,7 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
             hint='test_hint',
             image='test_image',
             sequence=1,
-            point=10,
+            point=0,
         )
 
     def test_get_sheet_hint_infos_when_user_not_have_hint_history(self):
