@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from hint.admin_forms import SheetHintInlineFormset
+from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath
@@ -21,6 +21,7 @@ class StoryAdmin(admin.ModelAdmin):
 
 
 class SheetHintInline(admin.TabularInline):
+    form = SheetHintAdminForm
     formset = SheetHintInlineFormset
     model = SheetHint
     extra = 0
