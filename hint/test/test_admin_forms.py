@@ -1,8 +1,13 @@
+from io import BytesIO
+from PIL import Image
+from unittest.mock import Mock, patch
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import inlineformset_factory
 from django.test import TestCase
 
 from account.models import User
-from hint.admin_forms import SheetHintInlineFormset
+from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
 from hint.models import SheetHint
 from story.admin_forms import SheetAdminForm
 from story.models import Story, Sheet
@@ -40,6 +45,13 @@ class TestStoryAdminForm(TestCase):
             'sheethint_set-0-is_deleted': False,
             'sheethint_set-0-point': 10,
         }
+        im = Image.new(mode='RGB', size=(200, 200))
+        im_io = BytesIO()
+        im.save(im_io, 'JPEG')
+        im_io.seek(0)
+        self.image = InMemoryUploadedFile(
+            im_io, None, 'random-name.jpg', 'image/jpeg', len(im_io.getvalue()), None
+        )
 
     def test_sheet_hint_formset_is_valid(self):
         # Given:
@@ -91,3 +103,37 @@ class TestStoryAdminForm(TestCase):
 
         # Then:
         self.assertTrue(formset.is_valid())
+
+    @patch('hint.admin_forms.upload_file_to_presigned_url', Mock())
+    @patch('hint.admin_forms.generate_presigned_url')
+    def test_sheet_hint_admin_form_success(self, mock_generate_presigned_url):
+        # Given: 파일을 생성합니다.
+        mock_generate_presigned_url.return_value = {
+            'url': 'test',
+            'fields': {
+                'key': 'test'
+            },
+        }
+        file_form_data = {
+            'image_file': self.image,
+        }
+        form_data = {
+            'hint': 'test',
+            'point': 0,
+            'sheet': self.start_sheet.id,
+            'sequence': 1,
+            '_save': 'Save',
+        }
+
+        # When: form 에 요청했을 경우
+        form = SheetHintAdminForm(form_data, file_form_data)
+
+        # Then: 정상적으로 데이터 생성가능 하도록 True
+        self.assertTrue(form.is_valid())
+        instance = form.save()
+
+        sheet_hint = SheetHint.objects.get(id=instance.id)
+        self.assertEqual(sheet_hint.hint, form_data['hint'])
+        self.assertEqual(sheet_hint.point, form_data['point'])
+        self.assertEqual(sheet_hint.sequence, form_data['sequence'])
+        self.assertEqual(sheet_hint.image, 'testtest')
