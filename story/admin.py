@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
+from hint.admin_forms import SheetHintInlineFormset
+from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath
 
@@ -18,6 +20,16 @@ class StoryAdmin(admin.ModelAdmin):
     form = StoryAdminForm
 
 
+class SheetHintInline(admin.TabularInline):
+    formset = SheetHintInlineFormset
+    model = SheetHint
+    extra = 0
+    ordering = [
+        'is_deleted',
+        'sequence',
+    ]
+
+
 class SheetAdmin(admin.ModelAdmin):
     list_display = [
         'id',
@@ -27,6 +39,9 @@ class SheetAdmin(admin.ModelAdmin):
         'is_deleted',
         'created_at',
         'updated_at',
+    ]
+    inlines = [
+        SheetHintInline,
     ]
     form = SheetAdminForm
 

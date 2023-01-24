@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from hint.models import SheetHint, UserSheetHintHistory
+
+
+admin.site.register(SheetHint)
+admin.site.register(UserSheetHintHistory)
