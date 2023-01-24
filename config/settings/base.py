@@ -35,6 +35,7 @@ PROJECT_APPS = [
     'account',
     'story',
     'hint',
+    'point',
 ]
 
 PROJECT_SETTING_APPS = [
