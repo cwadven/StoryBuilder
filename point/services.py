@@ -1,6 +1,7 @@
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
+from config.common.exception_codes import NotEnoughUserPoints
 from point.models import UserPoint
 
 
@@ -14,3 +15,14 @@ def get_user_available_total_point(user_id: int) -> int:
         'total_point'
     )
     return max(total_point, 0)
+
+
+def use_point(user_id: int, point: int, description: str):
+    total_point = get_user_available_total_point(user_id)
+    if total_point < point:
+        raise NotEnoughUserPoints
+    return UserPoint.objects.create(
+        user_id=user_id,
+        point=-point,
+        description=description,
+    )
