@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from account.models import User
-from config.common.exception_codes import UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists
+from config.common.exception_codes import UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists, NotEnoughUserPoints
 from config.test_helper.helper import LoginMixin
 from hint.models import SheetHint, UserSheetHintHistory
 from hint.services import get_sheet_hint_infos, give_sheet_hint_information, get_available_sheet_hint
@@ -33,7 +33,7 @@ class GetUserHistoryHintTestCase(LoginMixin, TestCase):
             hint='test_hint',
             image='test_image',
             sequence=1,
-            point=10,
+            point=0,
         )
 
     def test_get_sheet_hint_infos_has_history(self):
@@ -112,7 +112,7 @@ class GiveUserHistoryHintTestCase(LoginMixin, TestCase):
             hint='test_hint',
             image='test_image',
             sequence=1,
-            point=10,
+            point=0,
         )
 
     def test_give_sheet_hint_information_should_raise_error_when_user_already_has_sheet_hint(self):
@@ -138,3 +138,16 @@ class GiveUserHistoryHintTestCase(LoginMixin, TestCase):
         self.assertEqual(self.start_sheet_hint.id, start_sheet_hint.id)
         # And: UserSheetHintHistory 존재
         self.assertTrue(UserSheetHintHistory.objects.filter(sheet_hint_id=self.start_sheet_hint.id, user_id=self.c.user.id).exists())
+
+    def test_give_sheet_hint_information_should_raise_error_when_user_not_have_enough_point(self):
+        # Given: 힌트 포인트 10 으로 설정
+        self.login()
+        self.start_sheet_hint.point = 10
+        self.start_sheet_hint.save()
+
+        # When:
+        with self.assertRaises(NotEnoughUserPoints):
+            give_sheet_hint_information(self.c.user.id, self.start_sheet_hint.id)
+
+        # Then: UserSheetHintHistory Transaction 으로 존재하지 않음
+        self.assertFalse(UserSheetHintHistory.objects.filter(sheet_hint_id=self.start_sheet_hint.id, user_id=self.c.user.id).exists())
