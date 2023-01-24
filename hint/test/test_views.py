@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from account.models import User
+from config.common.exception_codes import SheetDoesNotExists, UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists
 from config.test_helper.helper import LoginMixin
 from hint.models import SheetHint, UserSheetHintHistory
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath
@@ -108,3 +109,87 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('user_sheet_hint_infos')[0]['hint'], self.start_sheet_hint.hint)
         self.assertEqual(content.get('user_sheet_hint_infos')[0]['image'], self.start_sheet_hint.image)
         self.assertTrue(content.get('user_sheet_hint_infos')[0]['has_history'])
+
+    def test_get_sheet_hint_infos_should_raise_error_when_sheet_is_not_valid(self):
+        # Given: Sheet 가 유효하지 않는 경우
+        self.start_sheet.is_deleted = True
+        self.start_sheet.save()
+
+        # When: start_sheet hint 요청
+        response = self.c.get(reverse('hint:sheet_hint', args=[self.start_sheet.id]))
+        content = json.loads(response.content)
+
+        # Then:
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), SheetDoesNotExists.default_detail)
+
+    def test_give_sheet_hint_to_user_api_should_success(self):
+        # Given: start_sheet_hint id
+        data = {
+            'sheet_hint_id': self.start_sheet_hint.id
+        }
+
+        # When: start_sheet hint 요청
+        response = self.c.post(reverse('hint:sheet_hint', args=[self.start_sheet.id]), data=data)
+        content = json.loads(response.content)
+
+        # Then:
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('id'), self.start_sheet_hint.id)
+        self.assertEqual(content.get('hint'), self.start_sheet_hint.hint)
+        self.assertEqual(content.get('point'), self.start_sheet_hint.point)
+        self.assertEqual(content.get('image'), self.start_sheet_hint.image)
+        self.assertTrue(content.get('has_history'))
+
+    def test_give_sheet_hint_to_user_api_should_raise_error_when_user_already_has_hint_history(self):
+        # Given: 유저가 hint history 가 있을 경우
+        self.user_sheet_hint_history = UserSheetHintHistory.objects.create(
+            user=self.c.user,
+            sheet_hint=self.start_sheet_hint,
+        )
+        # And: start_sheet_hint id
+        data = {
+            'sheet_hint_id': self.start_sheet_hint.id
+        }
+
+        # When: start_sheet hint 요청
+        response = self.c.post(reverse('hint:sheet_hint', args=[self.start_sheet.id]), data=data)
+        content = json.loads(response.content)
+
+        # Then:
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), UserSheetHintHistoryAlreadyExists.default_detail)
+
+    def test_give_sheet_hint_to_user_api_should_raise_error_when_sheet_is_not_available(self):
+        # Given: 유효하지 않은 sheet
+        self.start_sheet.is_deleted = True
+        self.start_sheet.save()
+        # And: start_sheet_hint id
+        data = {
+            'sheet_hint_id': self.start_sheet_hint.id
+        }
+
+        # When: start_sheet hint 요청
+        response = self.c.post(reverse('hint:sheet_hint', args=[self.start_sheet.id]), data=data)
+        content = json.loads(response.content)
+
+        # Then:
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), SheetDoesNotExists.default_detail)
+
+    def test_give_sheet_hint_to_user_api_should_raise_error_when_sheet_hint_is_not_available(self):
+        # Given: 유효하지 않은 sheet hint
+        self.start_sheet_hint.is_deleted = True
+        self.start_sheet_hint.save()
+        # And: start_sheet_hint id
+        data = {
+            'sheet_hint_id': self.start_sheet_hint.id
+        }
+
+        # When: start_sheet hint 요청
+        response = self.c.post(reverse('hint:sheet_hint', args=[self.start_sheet.id]), data=data)
+        content = json.loads(response.content)
+
+        # Then:
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('error'), SheetHintDoesNotExists.default_detail)

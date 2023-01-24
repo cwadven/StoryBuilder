@@ -1,3 +1,4 @@
+from config.common.exception_codes import UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists
 from hint.dtos import UserSheetHintInfoDTO
 from hint.models import SheetHint, UserSheetHintHistory
 
@@ -28,3 +29,24 @@ def get_sheet_hint_infos(user_id: int, sheet_id: int) -> list:
             ).to_dict()
         )
     return user_available_sheet_hint_infos
+
+
+def give_sheet_hint_information(user_id: int, sheet_hint_id: int) -> SheetHint:
+    user_sheet_hint_history, is_created = UserSheetHintHistory.objects.get_or_create(
+        user_id=user_id,
+        sheet_hint_id=sheet_hint_id,
+    )
+    if not is_created:
+        raise UserSheetHintHistoryAlreadyExists
+
+    return user_sheet_hint_history.sheet_hint
+
+
+def get_available_sheet_hint(sheet_hint_id: int) -> SheetHint:
+    try:
+        return SheetHint.objects.get(
+            id=sheet_hint_id,
+            is_deleted=False,
+        )
+    except SheetHint.DoesNotExist:
+        raise SheetHintDoesNotExists

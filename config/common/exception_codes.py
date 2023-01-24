@@ -78,3 +78,15 @@ class CannotCreateUserException(APIException):
 
     def __init__(self, detail, code):
         super().__init__(detail, code)
+
+
+class UserSheetHintHistoryAlreadyExists(APIException):
+    status_code = 400
+    default_detail = '이미 Sheet hint 를 받은 기록이 있습니다.'
+    default_code = 'already-has-sheet-hint-history'
+
+
+class SheetHintDoesNotExists(APIException):
+    status_code = 400
+    default_detail = '존재하지 않은 Sheet hint 입니다.'
+    default_code = 'sheet-hint-does-not-exists'
