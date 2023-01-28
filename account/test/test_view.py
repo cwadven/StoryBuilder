@@ -148,7 +148,7 @@ class SocialLoginTestCase(TestCase):
 
         # Then
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response_data.get('error'), '입력값을 다시 확인해주세요.')
+        self.assertEqual(response_data.get('message'), '입력값을 다시 확인해주세요.')
 
     @patch('account.helpers.social_login_helpers.requests.post')
     @patch('account.helpers.social_login_helpers.requests.get')
@@ -253,7 +253,7 @@ class SocialLoginTestCase(TestCase):
 
         # Then: 정지된 계정이라는 에러가 나와야합니다.
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response_data.get('error'), BlackUserException.default_detail)
+        self.assertEqual(response_data.get('message'), BlackUserException.default_detail)
 
     @patch('account.helpers.social_login_helpers.requests.post')
     @patch('account.helpers.social_login_helpers.requests.get')
@@ -289,7 +289,7 @@ class SocialLoginTestCase(TestCase):
 
         # Then: 탈퇴된 계정이라는 에러가 나와야합니다.
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response_data.get('error'), LeaveUserException.default_detail)
+        self.assertEqual(response_data.get('message'), LeaveUserException.default_detail)
 
     @patch('account.helpers.social_login_helpers.requests.post')
     @patch('account.helpers.social_login_helpers.requests.get')
@@ -325,7 +325,7 @@ class SocialLoginTestCase(TestCase):
 
         # Then: 휴면 계정이라는 에러가 나와야합니다.
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response_data.get('error'), DormantUserException.default_detail)
+        self.assertEqual(response_data.get('message'), DormantUserException.default_detail)
 
 
 class SignUpValidationTestCase(LoginMixin, TestCase):
