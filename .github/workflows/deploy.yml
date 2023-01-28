@@ -30,16 +30,10 @@ jobs:
     - name: Database Update
       run: |
         . /var/www/StoryBuilder/venv/bin/activate && python /var/www/StoryBuilder/manage.py migrate --noinput
-    - name: TEST
-      run: |
-        pwd
-    - name: TEST2
-      run: |
-        . pwd
       continue-on-error: true
     - name: TestCase
       run: |
-        . /var/www/StoryBuilder/venv/bin/activate && python /var/www/StoryBuilder/manage.py test --noinput
+        cd /var/www/StoryBuilder && . /var/www/StoryBuilder/venv/bin/activate && python /var/www/StoryBuilder/manage.py test --noinput
     - name: cronjob restart
       run: |
         cat /var/www/StoryBuilder/command.cron | sudo crontab -
