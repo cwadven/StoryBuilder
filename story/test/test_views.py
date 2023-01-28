@@ -86,7 +86,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(content.get('message'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_fail_when_story_is_not_displayable(self):
         # Given: Story 가 displayable 가 False 인 경우
@@ -101,7 +101,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(content.get('message'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_fail_when_story_not_have_is_start_sheet(self):
         # Given: Sheet 가 is_start 가 없는 경우
@@ -116,7 +116,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '스토리를 불러올 수 없습니다.')
+        self.assertEqual(content.get('message'), '스토리를 불러올 수 없습니다.')
 
     def test_get_story_play_api_should_success_when_story_have_is_start(self):
         # Given: Sheet 가 is_start 가 있는 경우
@@ -183,7 +183,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: 로그인 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
+        self.assertEqual(content.get('message'), '로그인이 필요합니다.')
 
     def test_get_story_play_api_should_return_playing_sheet_answer_solved_response_when_already_user_had_been_solved_sheet(self):
         # Given: 로그인
@@ -293,7 +293,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Sheet 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_fail_when_story_is_not_displayable(self):
         # Given: 유효한 UserSheetAnswerSolve 생성
@@ -315,7 +315,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Sheet 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_fail_when_sheet_is_deleted(self):
         # Given: 유효한 UserSheetAnswerSolve 생성
@@ -337,7 +337,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: Sheet 조회 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_sheet_play_api_should_return_playing_sheet_dto_when_success(self):
         # Given: 유효한 UserSheetAnswerSolve 생성
@@ -391,7 +391,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
 
         # Then: 로그인 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
+        self.assertEqual(content.get('message'), '로그인이 필요합니다.')
 
     def test_get_sheet_play_api_should_return_playing_sheet_answer_solved_response_when_already_user_had_been_solved_sheet(self):
         # Given: 첫 story 의 첫 sheet 문제 해결
@@ -605,7 +605,7 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then: Sheet 삭제되어서 Error 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_story_next_sheet_should_fail_when_story_is_not_displayable(self):
         # Given: sheet 삭제 됐을 경우
@@ -618,7 +618,7 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 삭제 되어서 Error 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_story_next_sheet_should_fail_when_story_is_deleted(self):
         # Given: sheet 삭제 됐을 경우
@@ -631,7 +631,7 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then: Story 비활성화 되어서 Error 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '존재하지 않은 Sheet 입니다.')
+        self.assertEqual(content.get('message'), '존재하지 않은 Sheet 입니다.')
 
     def test_get_story_next_sheet_should_raise_error_user_is_not_authenticated(self):
         # Given: 로그인 안되어있음
@@ -643,4 +643,4 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then: 로그인 에러 반환
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), '로그인이 필요합니다.')
+        self.assertEqual(content.get('message'), '로그인이 필요합니다.')

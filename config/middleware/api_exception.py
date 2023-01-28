@@ -34,7 +34,7 @@ def custom_exception_handler(exc, context):
         elif isinstance(exc, exceptions.APIException):
             msg = exc.detail
 
-        response.data['error'] = msg
+        response.data['message'] = msg
 
         try:
             del response.data['detail']

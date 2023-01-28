@@ -121,7 +121,7 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then:
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), SheetDoesNotExists.default_detail)
+        self.assertEqual(content.get('message'), SheetDoesNotExists.default_detail)
 
     def test_give_sheet_hint_to_user_api_should_success(self):
         # Given: start_sheet_hint id
@@ -158,7 +158,7 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then:
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), UserSheetHintHistoryAlreadyExists.default_detail)
+        self.assertEqual(content.get('message'), UserSheetHintHistoryAlreadyExists.default_detail)
 
     def test_give_sheet_hint_to_user_api_should_raise_error_when_sheet_is_not_available(self):
         # Given: 유효하지 않은 sheet
@@ -175,7 +175,7 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then:
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), SheetDoesNotExists.default_detail)
+        self.assertEqual(content.get('message'), SheetDoesNotExists.default_detail)
 
     def test_give_sheet_hint_to_user_api_should_raise_error_when_sheet_hint_is_not_available(self):
         # Given: 유효하지 않은 sheet hint
@@ -192,4 +192,4 @@ class SheetHintAPIViewViewTestCase(LoginMixin, TestCase):
 
         # Then:
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error'), SheetHintDoesNotExists.default_detail)
+        self.assertEqual(content.get('message'), SheetHintDoesNotExists.default_detail)

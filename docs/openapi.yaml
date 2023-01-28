@@ -534,10 +534,10 @@ components:
           example: true
     StoryStartFailResponse:
       required:
-        - error
+        - message
       type: object
       properties:
-        error: 
+        message: 
           type: string
           example: '스토리를 불러올 수 없습니다.'
     SheetPlaySuccessResponse:
@@ -592,7 +592,7 @@ components:
         - message
       type: object
       properties:
-        error: 
+        message: 
           type: string
           example: '접근할 수 없는 Sheet 입니다.'
     SheetAnswerSubmitSuccessResponse:
@@ -647,10 +647,10 @@ components:
                 example: false
     GetSheetHintsFailResponse:
       required:
-        - error
+        - message
       type: object
       properties:
-        error: 
+        message: 
           type: string
           example: '존재하지 않은 Sheet 입니다.'
     PostSheetHintsSuccessResponse:
@@ -679,10 +679,10 @@ components:
           example: true
     PostSheetHintsFailResponse:
       required:
-        - error
+        - message
       type: object
       properties:
-        error: 
+        message: 
           type: string
           example: '유저의 포인트가 부족합니다.'
     GetUserTotalPointSuccessResponse:
