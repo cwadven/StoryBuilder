@@ -143,3 +143,21 @@ def get_sheet_solved_user_sheet_answer(user_id: int, sheet_id: int) -> Optional[
         )
     except UserSheetAnswerSolve.DoesNotExist:
         return
+
+
+def get_recent_unsolved_sheet_by_story_id(user_id: int, story_id: int):
+    try:
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.select_related(
+            'sheet',
+            'next_sheet_path__answer__sheet',
+        ).get(
+            user_id=user_id,
+            story_id=story_id,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+        )
+    except UserSheetAnswerSolve.DoesNotExist:
+        return
+
+    if user_sheet_answer_solve.sheet.is_deleted:
+        return
+    return user_sheet_answer_solve.sheet
