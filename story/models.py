@@ -130,7 +130,7 @@ class UserSheetAnswerSolve(models.Model):
     solved_time = models.DateTimeField(null=True)
 
     @classmethod
-    def get_solved_previous_sheet_with_current_sheet_id(cls, user_id: int, current_sheet_id: int):
+    def get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(cls, user_id: int, current_sheet_id: int):
         try:
             return cls.objects.select_related(
                 'next_sheet_path'

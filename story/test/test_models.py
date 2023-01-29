@@ -173,7 +173,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
 
         # When: solved_sheet_action 실행
-        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_sheet_with_current_sheet_id(
+        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(
             user_id=self.user.id,
             current_sheet_id=self.final_sheet1.id,
         )
@@ -194,7 +194,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
 
         # When: solved_sheet_action 실행
-        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_sheet_with_current_sheet_id(
+        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(
             user_id=self.user.id,
             current_sheet_id=self.start_sheet.id,
         )
