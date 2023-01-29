@@ -130,17 +130,14 @@ class UserSheetAnswerSolve(models.Model):
     solved_time = models.DateTimeField(null=True)
 
     @classmethod
-    def get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(cls, user_id: int, current_sheet_id: int):
-        try:
-            return cls.objects.select_related(
-                'next_sheet_path'
-            ).get(
-                user_id=user_id,
-                next_sheet_path__sheet_id=current_sheet_id,
-                solving_status=cls.SOLVING_STATUS_CHOICES[1][0],
-            )
-        except cls.DoesNotExist:
-            return
+    def get_previous_user_sheet_answer_solves_with_current_sheet_id(cls, user_id: int, current_sheet_id: int):
+        return cls.objects.select_related(
+            'next_sheet_path'
+        ).filter(
+            user_id=user_id,
+            next_sheet_path__sheet_id=current_sheet_id,
+            solving_status=cls.SOLVING_STATUS_CHOICES[1][0],
+        )
 
     @classmethod
     def generate_cls_if_first_time(cls, user, sheet_id):
