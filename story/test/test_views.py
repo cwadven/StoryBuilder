@@ -644,3 +644,107 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
         # Then: 로그인 에러 반환
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('message'), '로그인이 필요합니다.')
+
+
+class GetStoryRecentPlayAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(GetStoryRecentPlayAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.start_sheet_answer2 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test2',
+            answer_reply='test_reply2',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.final_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='test_title2',
+            question='test_question2',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.start_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.start_sheet_answer_next_sheet_path2 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_story_solve = UserStorySolve.objects.get_or_create(
+            story_id=self.story.id,
+            user=self.c.user,
+        )
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.c.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1.answer,
+        )
+
+    def test_get_recent_play_sheet(self):
+        # Given: next_sheet_path 조회로 UserSheetAnswerSolve 생성
+        self.c.get(reverse('story:sheet_play', args=[self.next_sheet_path.sheet.id]))
+
+        # When: get_recent_play_sheet 요청
+        response = self.c.get(reverse('story:get_recent_play_sheet', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content.get('recent_sheet_id'), self.next_sheet_path.sheet.id)
+
+    def test_get_recent_play_sheet_should_raise_error_when_user_do_not_have_user_sheet_answer_solve(self):
+        # Given: 모든 UserSheetAnswerSolve 제거
+        UserSheetAnswerSolve.objects.all().delete()
+
+        # When: get_recent_play_sheet 요청
+        response = self.c.get(reverse('story:get_recent_play_sheet', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content.get('message'), '최근에 해결 못한 sheet 가 없습니다.')

@@ -3,13 +3,13 @@ from django.test import TestCase
 from account.models import User
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from config.test_helper.helper import LoginMixin
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
-    get_sheet_solved_user_sheet_answer,
+    get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
 )
 
 
@@ -447,6 +447,10 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
             next_sheet_path=self.next_sheet_path,
             answer=self.start_sheet_answer1,
         )
+        self.user_story_solve = UserStorySolve.objects.get_or_create(
+            story_id=self.story.id,
+            user=self.user,
+        )
 
     def test_get_sheet_solved_user_sheet_answer_should_return_none_when_sheet_is_solved_but_sheet_version_is_changed(self):
         # Given: sheet version 변경
@@ -474,3 +478,54 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
         sheet_solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(self.user.id, self.start_sheet.id)
         # Then: 없기 때문에 None 반환
         self.assertIsNone(sheet_solved_user_sheet_answer)
+
+    def test_get_recent_played_sheet_by_story_id(self):
+        # Given: start_sheet 해결한 UserSheetAnswer 생성
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1,
+        )
+        # And: 다음 sheet path 를 생성
+        user_sheet_answer_solve, _ = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.next_sheet_path.sheet.id,
+        )
+
+        # When:
+        recent_unsolved_sheet = get_recent_played_sheet_by_story_id(self.user.id, self.story.id)
+
+        # Then: next_sheet_path 는 아직 풀지 못한 sheet 입니다.
+        self.assertEqual(recent_unsolved_sheet.id, self.next_sheet_path.sheet.id)
+
+    def test_get_recent_played_sheet_by_story_id_should_return_none_when_recent_sheet_has_been_deleted(self):
+        # Given: start_sheet 해결한 UserSheetAnswer 생성
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1,
+        )
+        # And: 다음 sheet path 를 생성
+        user_sheet_answer_solve, _ = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.next_sheet_path.sheet.id,
+        )
+        # next_sheet_path 제거
+        self.next_sheet_path.sheet.is_deleted = True
+        self.next_sheet_path.sheet.save()
+
+        # When:
+        recent_unsolved_sheet = get_recent_played_sheet_by_story_id(self.user.id, self.story.id)
+
+        # Then: next_sheet_path 는 아직 풀지 못한 sheet 입니다.
+        self.assertIsNone(recent_unsolved_sheet)

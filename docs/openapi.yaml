@@ -145,6 +145,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StoryStartFailResponse'
+  /v1/story/{story_id}/recent-play-sheet:
+    get:
+      tags:
+        - Play
+      summary: Story 에서 최근 플레이 한 Sheet 가져오기
+      description: Story 에서 최근 플레이 한 Sheet 가져오기 API
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: true
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecentStorySheetPlayedSuccessResponse'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecentStorySheetPlayedFailResponse'
   /v1/story/sheet/{sheet_id}/play:
     get:
       tags:
@@ -693,6 +725,22 @@ components:
         total_point: 
           type: integer
           example: 100
+    GetRecentStorySheetPlayedSuccessResponse:
+      required:
+        - recent_sheet_id
+      type: object
+      properties:
+        recent_sheet_id:
+          type: integer
+          example: 4
+    GetRecentStorySheetPlayedFailResponse:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: '최근에 해결 못한 sheet 가 없습니다.'
   securitySchemes:
     petstore_auth:
       type: oauth2

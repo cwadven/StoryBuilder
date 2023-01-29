@@ -143,3 +143,19 @@ def get_sheet_solved_user_sheet_answer(user_id: int, sheet_id: int) -> Optional[
         )
     except UserSheetAnswerSolve.DoesNotExist:
         return
+
+
+def get_recent_played_sheet_by_story_id(user_id: int, story_id: int):
+    user_sheet_answer_solve = UserSheetAnswerSolve.objects.select_related(
+        'sheet',
+    ).filter(
+        user_id=user_id,
+        story_id=story_id,
+        sheet__is_deleted=False,
+        start_time__isnull=False,
+    ).order_by(
+        '-start_time'
+    ).first()
+    if user_sheet_answer_solve:
+        return user_sheet_answer_solve.sheet
+    return
