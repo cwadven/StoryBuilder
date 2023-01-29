@@ -10,7 +10,7 @@ from story.services import (
     get_sheet_answer_with_next_path_responses,
     get_valid_answer_info_with_random_quantity,
     get_running_sheet,
-    validate_user_playing_sheet, get_sheet_solved_user_sheet_answer,
+    validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
 )
 
 
@@ -40,6 +40,25 @@ class StoryPlayAPIView(APIView):
 
         playing_sheet = PlayingSheetDTO.of(start_sheet).to_dict()
         return Response(playing_sheet, status=200)
+
+
+class StoryPlayGetRecentUnsolvedSheetAPIView(APIView):
+    @custom_login_required_for_method
+    def get(self, request, story_id):
+        start_sheet = get_running_start_sheet_by_story(story_id)
+
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, start_sheet.id)
+        if solved_user_sheet_answer:
+            recent_sheet = get_recent_played_sheet_by_story_id(
+                user_id=request.user.id,
+                story_id=story_id,
+            )
+            return Response(
+                data={'recent_sheet_id': recent_sheet.id},
+                status=200
+            )
+
+        return Response(data={'message': '최근에 해결 못한 sheet 가 없습니다.'}, status=400)
 
 
 class SheetPlayAPIView(APIView):
