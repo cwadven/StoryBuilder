@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method
 from story.constants import StoryErrorMessage
-from story.dtos import PlayingSheetAnswerSolvedDTO
+from story.dtos import PlayingSheetInfoDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath
 from story.services import (
     get_running_start_sheet_by_story,
@@ -31,14 +31,14 @@ class StoryPlayAPIView(APIView):
         solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, start_sheet.id)
         if solved_user_sheet_answer:
             return Response(
-                data=PlayingSheetAnswerSolvedDTO.of(
+                data=PlayingSheetInfoDTO.of(
                     start_sheet,
                     solved_user_sheet_answer
                 ).to_dict(),
                 status=200
             )
 
-        playing_sheet = PlayingSheetAnswerSolvedDTO.of(start_sheet).to_dict()
+        playing_sheet = PlayingSheetInfoDTO.of(start_sheet).to_dict()
         return Response(playing_sheet, status=200)
 
 
@@ -75,14 +75,14 @@ class SheetPlayAPIView(APIView):
         solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
         if solved_user_sheet_answer:
             return Response(
-                data=PlayingSheetAnswerSolvedDTO.of(
+                data=PlayingSheetInfoDTO.of(
                     sheet,
                     solved_user_sheet_answer
                 ).to_dict(),
                 status=200
             )
 
-        playing_sheet = PlayingSheetAnswerSolvedDTO.of(sheet).to_dict()
+        playing_sheet = PlayingSheetInfoDTO.of(sheet).to_dict()
         return Response(playing_sheet, status=200)
 
 

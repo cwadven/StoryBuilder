@@ -28,7 +28,7 @@ class SheetAnswerResponseDTO(object):
 
 
 @attr.s
-class PlayingSheetAnswerSolvedDTO(object):
+class PlayingSheetInfoDTO(object):
     sheet_id = attr.ib(type=int)
     title = attr.ib(type=str)
     question = attr.ib(type=str)

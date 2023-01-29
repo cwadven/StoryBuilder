@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from account.models import User
-from story.dtos import PlayingSheetDTO, SheetAnswerResponseDTO, PlayingSheetAnswerSolvedDTO
+from story.dtos import PlayingSheetDTO, SheetAnswerResponseDTO, PlayingSheetInfoDTO
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
 
 
@@ -68,7 +68,7 @@ class DTOSheetAnswerResponseTestCase(TestCase):
         self.assertEqual(sheet_answer_response.get('next_sheet_quantity'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__quantity'])
 
 
-class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
+class DTOPlayingSheetInfoDTOTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.story = Story.objects.create(
@@ -120,7 +120,7 @@ class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
     def test_playing_sheet_answer_solved_dto(self):
         # Given:
         # When: dto 객체 생성
-        playing_sheet_answer_solved_dto = PlayingSheetAnswerSolvedDTO.of(
+        playing_sheet_answer_solved_dto = PlayingSheetInfoDTO.of(
             self.start_sheet,
             self.user_sheet_answer_solve
         )

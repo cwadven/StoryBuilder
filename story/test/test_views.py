@@ -208,7 +208,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
         content = json.loads(response.content)
 
-        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        # Then: PlayingSheetInfoDTO response 반환
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet.title)
@@ -424,7 +424,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         response = self.c.get(reverse('story:sheet_play', args=[self.start_sheet_answer_next_sheet_path1.sheet_id]))
         content = json.loads(response.content)
 
-        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        # Then: PlayingSheetInfoDTO response 반환
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content.get('sheet_id'), self.start_sheet_answer_next_sheet_path1.sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet_answer_next_sheet_path1.sheet.title)
