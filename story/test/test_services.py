@@ -9,7 +9,7 @@ from story.services import (
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
-    get_sheet_solved_user_sheet_answer, get_recent_unsolved_sheet_by_story_id,
+    get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
 )
 
 
@@ -479,7 +479,7 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
         # Then: 없기 때문에 None 반환
         self.assertIsNone(sheet_solved_user_sheet_answer)
 
-    def test_get_recent_unsolved_sheet_by_story_id(self):
+    def test_get_recent_played_sheet_by_story_id(self):
         # Given: start_sheet 해결한 UserSheetAnswer 생성
         self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
             user=self.user,
@@ -498,12 +498,12 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
         )
 
         # When:
-        recent_unsolved_sheet = get_recent_unsolved_sheet_by_story_id(self.user.id, self.story.id)
+        recent_unsolved_sheet = get_recent_played_sheet_by_story_id(self.user.id, self.story.id)
 
         # Then: next_sheet_path 는 아직 풀지 못한 sheet 입니다.
         self.assertEqual(recent_unsolved_sheet.id, self.next_sheet_path.sheet.id)
 
-    def test_get_recent_unsolved_sheet_by_story_id_should_return_none_when_recent_sheet_has_been_deleted(self):
+    def test_get_recent_played_sheet_by_story_id_should_return_none_when_recent_sheet_has_been_deleted(self):
         # Given: start_sheet 해결한 UserSheetAnswer 생성
         self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
             user=self.user,
@@ -525,7 +525,7 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
         self.next_sheet_path.sheet.save()
 
         # When:
-        recent_unsolved_sheet = get_recent_unsolved_sheet_by_story_id(self.user.id, self.story.id)
+        recent_unsolved_sheet = get_recent_played_sheet_by_story_id(self.user.id, self.story.id)
 
         # Then: next_sheet_path 는 아직 풀지 못한 sheet 입니다.
         self.assertIsNone(recent_unsolved_sheet)
