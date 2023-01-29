@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method
 from story.constants import StoryErrorMessage
-from story.dtos import PlayingSheetDTO, PlayingSheetAnswerSolvedDTO
+from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath
 from story.services import (
     get_running_start_sheet_by_story,
@@ -31,14 +31,14 @@ class StoryPlayAPIView(APIView):
         solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, start_sheet.id)
         if solved_user_sheet_answer:
             return Response(
-                data=PlayingSheetAnswerSolvedDTO.of(
+                data=PlayingSheetInfoDTO.of(
                     start_sheet,
                     solved_user_sheet_answer
                 ).to_dict(),
                 status=200
             )
 
-        playing_sheet = PlayingSheetDTO.of(start_sheet).to_dict()
+        playing_sheet = PlayingSheetInfoDTO.of(start_sheet).to_dict()
         return Response(playing_sheet, status=200)
 
 
@@ -73,16 +73,33 @@ class SheetPlayAPIView(APIView):
         )
 
         solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
+        previous_sheet_infos = UserSheetAnswerSolve.get_previous_user_sheet_answer_solves_with_current_sheet_id(
+            user_id=request.user.id,
+            current_sheet_id=sheet_id,
+        )
+        previous_sheet_info_dto_list = list(
+            map(
+                lambda previous_sheet_info: PreviousSheetInfoDTO(
+                    sheet_id=previous_sheet_info['sheet_id'],
+                    title=previous_sheet_info['sheet__title'],
+                ),
+                previous_sheet_infos
+            )
+        )
         if solved_user_sheet_answer:
             return Response(
-                data=PlayingSheetAnswerSolvedDTO.of(
-                    sheet,
-                    solved_user_sheet_answer
+                data=PlayingSheetInfoDTO.of(
+                    sheet=sheet,
+                    user_sheet_answer_solve=solved_user_sheet_answer,
+                    previous_sheet_infos=previous_sheet_info_dto_list,
                 ).to_dict(),
                 status=200
             )
 
-        playing_sheet = PlayingSheetDTO.of(sheet).to_dict()
+        playing_sheet = PlayingSheetInfoDTO.of(
+            sheet=sheet,
+            previous_sheet_infos=previous_sheet_info_dto_list,
+        ).to_dict()
         return Response(playing_sheet, status=200)
 
 

@@ -173,13 +173,50 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
 
         # When: solved_sheet_action 실행
-        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(
+        previous_user_sheet_answer_solves = UserSheetAnswerSolve.get_previous_user_sheet_answer_solves_with_current_sheet_id(
             user_id=self.user.id,
             current_sheet_id=self.final_sheet1.id,
         )
 
         # Then: 이전에 푼 start_sheet 조회
-        self.assertEqual(get_solved_previous_sheet.id, self.start_sheet.id)
+        self.assertEqual(previous_user_sheet_answer_solves[0]['sheet_id'], self.start_sheet.id)
+
+    def test_get_solved_previous_sheet_with_current_sheet_id_should_return_none_due_to_solved_sheet_deleted(self):
+        # Given: UserStorySolve 생성
+        UserStorySolve.objects.create(
+            story=self.story,
+            user=self.user,
+        )
+        # And: start_sheet generate_cls_if_first_time 실행으로 문제를 해결하기 위한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve, _ = UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.start_sheet.id,
+        )
+        # And: solved_sheet_action 실행
+        user_sheet_answer_solve.solved_sheet_action(
+            answer=self.start_sheet_answer1.answer,
+            sheet_question=self.start_sheet.question,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            next_sheet_path=self.next_sheet_path,
+        )
+        # And: start_sheet 제거
+        self.start_sheet.is_deleted = True
+        self.start_sheet.save()
+        # And: final Sheet로 generate_cls_if_first_time 생성
+        UserSheetAnswerSolve.generate_cls_if_first_time(
+            self.user,
+            self.final_sheet1.id,
+        )
+
+        # When: solved_sheet_action 실행
+        previous_user_sheet_answer_solves = UserSheetAnswerSolve.get_previous_user_sheet_answer_solves_with_current_sheet_id(
+            user_id=self.user.id,
+            current_sheet_id=self.final_sheet1.id,
+        )
+
+        # Then: start_sheet 제거돼서 안보임
+        self.assertEqual(list(previous_user_sheet_answer_solves), [])
 
     def test_get_solved_previous_sheet_with_current_sheet_id_should_return_none_due_to_not_exists(self):
         # Given: UserStorySolve 생성
@@ -194,10 +231,10 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
 
         # When: solved_sheet_action 실행
-        get_solved_previous_sheet = UserSheetAnswerSolve.get_solved_previous_user_sheet_answer_solve_with_current_sheet_id(
+        previous_user_sheet_answer_solves = UserSheetAnswerSolve.get_previous_user_sheet_answer_solves_with_current_sheet_id(
             user_id=self.user.id,
             current_sheet_id=self.start_sheet.id,
         )
 
         # Then: start_sheet 에서 시작해서 이전에 푼 문제 자체가 없어서 None 반환
-        self.assertIsNone(get_solved_previous_sheet)
+        self.assertEqual(list(previous_user_sheet_answer_solves), [])

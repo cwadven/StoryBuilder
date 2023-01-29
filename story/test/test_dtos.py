@@ -1,42 +1,8 @@
 from django.test import TestCase
 
 from account.models import User
-from story.dtos import PlayingSheetDTO, SheetAnswerResponseDTO, PlayingSheetAnswerSolvedDTO
+from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
-
-
-class DTOPlayingSheetTestCase(TestCase):
-    def setUp(self):
-        self.user = User.objects.all()[0]
-        self.story = Story.objects.create(
-            author=self.user,
-            title='test_story',
-            description='test_description',
-            image='https://image.test',
-            background_image='https://image.test',
-        )
-        self.start_sheet = Sheet.objects.create(
-            story=self.story,
-            title='test_title',
-            question='test_question',
-            image='https://image.test',
-            background_image='https://image.test',
-            is_start=True,
-            is_final=False,
-        )
-
-    def test_playing_sheet_dto(self):
-        # Given:
-        # When: dto 객체 생성
-        playing_sheet_dto = PlayingSheetDTO.of(self.start_sheet)
-        playing_sheet = playing_sheet_dto.to_dict()
-
-        # Then: set dto
-        self.assertEqual(playing_sheet.get('sheet_id'), self.start_sheet.id)
-        self.assertEqual(playing_sheet.get('title'), self.start_sheet.title)
-        self.assertEqual(playing_sheet.get('question'), self.start_sheet.question)
-        self.assertEqual(playing_sheet.get('image'), self.start_sheet.image)
-        self.assertEqual(playing_sheet.get('background_image'), self.start_sheet.background_image)
 
 
 class DTOSheetAnswerResponseTestCase(TestCase):
@@ -102,7 +68,7 @@ class DTOSheetAnswerResponseTestCase(TestCase):
         self.assertEqual(sheet_answer_response.get('next_sheet_quantity'), start_sheet_values[0]['next_sheet_paths__nextsheetpath__quantity'])
 
 
-class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
+class DTOPlayingSheetInfoDTOTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.story = Story.objects.create(
@@ -154,7 +120,7 @@ class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
     def test_playing_sheet_answer_solved_dto(self):
         # Given:
         # When: dto 객체 생성
-        playing_sheet_answer_solved_dto = PlayingSheetAnswerSolvedDTO.of(
+        playing_sheet_answer_solved_dto = PlayingSheetInfoDTO.of(
             self.start_sheet,
             self.user_sheet_answer_solve
         )
@@ -170,3 +136,48 @@ class DTOPlayingSheetAnswerSolvedDTOTestCase(TestCase):
         self.assertEqual(playing_sheet_answer_solved.get('image'), self.start_sheet.image)
         self.assertEqual(playing_sheet_answer_solved.get('background_image'), self.start_sheet.background_image)
         self.assertTrue(playing_sheet_answer_solved.get('is_solved'))
+
+    def test_playing_sheet_answer_solved_dto_with_previous_sheet_infos(self):
+        # Given:
+        previous_sheet_infos = [
+            PreviousSheetInfoDTO(
+                sheet_id=i,
+                title='test_test',
+            ) for i in range(3)
+        ]
+        # When: dto 객체 생성
+        playing_sheet_answer_solved_dto = PlayingSheetInfoDTO.of(
+            self.start_sheet,
+            self.user_sheet_answer_solve,
+            previous_sheet_infos,
+        )
+        playing_sheet_answer_solved = playing_sheet_answer_solved_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(playing_sheet_answer_solved['next_sheet_id'], self.final_sheet1.id)
+        self.assertEqual(playing_sheet_answer_solved['answer'], self.start_sheet_answer1.answer)
+        self.assertEqual(playing_sheet_answer_solved['answer_reply'], self.start_sheet_answer1.answer_reply)
+        self.assertEqual(playing_sheet_answer_solved['sheet_id'], self.start_sheet.id)
+        self.assertEqual(playing_sheet_answer_solved['title'], self.start_sheet.title)
+        self.assertEqual(playing_sheet_answer_solved['question'], self.start_sheet.question)
+        self.assertEqual(playing_sheet_answer_solved['image'], self.start_sheet.image)
+        self.assertEqual(playing_sheet_answer_solved['background_image'], self.start_sheet.background_image)
+        self.assertTrue(playing_sheet_answer_solved['is_solved'])
+        self.assertEqual(playing_sheet_answer_solved['previous_sheet_infos'][0], previous_sheet_infos[0].to_dict())
+        self.assertEqual(playing_sheet_answer_solved['previous_sheet_infos'][1], previous_sheet_infos[1].to_dict())
+        self.assertEqual(playing_sheet_answer_solved['previous_sheet_infos'][2], previous_sheet_infos[2].to_dict())
+
+
+class PreviousSheetInfoDTOTestCase(TestCase):
+    def test_previous_sheet_info_dto(self):
+        # Given:
+        # When: dto 객체 생성
+        previous_sheet_info_dto = PreviousSheetInfoDTO(
+            sheet_id=1,
+            title='test'
+        )
+        previous_sheet_info = previous_sheet_info_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(previous_sheet_info['sheet_id'], 1)
+        self.assertEqual(previous_sheet_info['title'], 'test')

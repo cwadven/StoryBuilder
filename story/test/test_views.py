@@ -134,6 +134,10 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('question'), self.start_sheet.question)
         self.assertEqual(content.get('image'), self.start_sheet.image)
         self.assertEqual(content.get('background_image'), self.start_sheet.background_image)
+        self.assertIsNone(content.get('next_sheet_id'))
+        self.assertIsNone(content.get('answer'))
+        self.assertIsNone(content.get('answer_reply'))
+        self.assertFalse(content.get('is_solved'))
 
     def test_get_story_play_api_should_create_user_story_solve_when_user_is_authenticated(self):
         # Given: 로그인
@@ -159,6 +163,10 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('question'), self.start_sheet.question)
         self.assertEqual(content.get('image'), self.start_sheet.image)
         self.assertEqual(content.get('background_image'), self.start_sheet.background_image)
+        self.assertIsNone(content.get('next_sheet_id'))
+        self.assertIsNone(content.get('answer'))
+        self.assertIsNone(content.get('answer_reply'))
+        self.assertFalse(content.get('is_solved'))
         # And: 로그인 한 유저의 UserStorySolve 존재
         self.assertTrue(UserStorySolve.objects.filter(user=self.c.user, status=UserStorySolve.STATUS_CHOICES[0][0]).exists())
 
@@ -200,7 +208,7 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         response = self.c.get(reverse('story:story_play', args=[self.story.id]))
         content = json.loads(response.content)
 
-        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        # Then: PlayingSheetInfoDTO response 반환
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content.get('sheet_id'), self.start_sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet.title)
@@ -361,6 +369,10 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content.get('question'), self.normal_sheet.question)
         self.assertEqual(content.get('image'), self.normal_sheet.image)
         self.assertEqual(content.get('background_image'), self.normal_sheet.background_image)
+        self.assertIsNone(content.get('next_sheet_id'))
+        self.assertIsNone(content.get('answer'))
+        self.assertIsNone(content.get('answer_reply'))
+        self.assertFalse(content.get('is_solved'))
         
     def test_get_sheet_play_api_should_create_user_sheet_answer_solve_when_success(self):
         # Given: 현재 sheet를 플레이할 수 있도록 이전 UserSheetAnswerSolve 생성
@@ -412,7 +424,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         response = self.c.get(reverse('story:sheet_play', args=[self.start_sheet_answer_next_sheet_path1.sheet_id]))
         content = json.loads(response.content)
 
-        # Then: PlayingSheetAnswerSolvedDTO response 반환
+        # Then: PlayingSheetInfoDTO response 반환
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content.get('sheet_id'), self.start_sheet_answer_next_sheet_path1.sheet.id)
         self.assertEqual(content.get('title'), self.start_sheet_answer_next_sheet_path1.sheet.title)

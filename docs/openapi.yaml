@@ -524,6 +524,7 @@ components:
         - question
         - image
         - background_image
+        - previous_sheet_infos
         - next_sheet_id
         - answer
         - answer_reply
@@ -549,6 +550,17 @@ components:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_background_image/3/d4acf837-a4d0-4efa-978b-c54aa649adc7_sky.jpg'
+        previous_sheet_infos:
+          type: array
+          items:
+            type: object
+            properties:
+              sheet_id:
+                type: integer
+                example: 4
+              title:
+                type: string
+                example: 집 비밀번호가 뭐지?
         next_sheet_id: 
           type: integer
           format: nullable
@@ -579,6 +591,7 @@ components:
         - question
         - image
         - background_image
+        - previous_sheet_infos
         - next_sheet_id
         - answer
         - answer_reply
@@ -604,6 +617,17 @@ components:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_background_image/3/d4acf837-a4d0-4efa-978b-c54aa649adc7_sky.jpg'
+        previous_sheet_infos:
+          type: array
+          items:
+            type: object
+            properties:
+              sheet_id:
+                type: integer
+                example: 4
+              title:
+                type: string
+                example: 집 비밀번호가 뭐지?
         next_sheet_id: 
           type: integer
           format: nullable
