@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription
 
 
 class StoryAdmin(admin.ModelAdmin):
@@ -110,7 +110,17 @@ class NextSheetPathAdmin(admin.ModelAdmin):
         )
 
 
+class StoryEmailSubscriptionAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'story',
+        'respondent_user',
+        'email',
+    ]
+
+
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Sheet, SheetAdmin)
 admin.site.register(SheetAnswer, SheetAnswerAdmin)
 admin.site.register(NextSheetPath, NextSheetPathAdmin)
+admin.site.register(StoryEmailSubscription, StoryEmailSubscriptionAdmin)
