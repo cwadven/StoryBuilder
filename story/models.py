@@ -188,3 +188,23 @@ class UserSheetAnswerSolve(models.Model):
                 'next_sheet_path',
             ]
         )
+
+
+class StoryEmailSubscription(models.Model):
+    """
+    story: 사용자가 풀고 있는 스토리
+    respondent_user: Story 에서 행동에 대한 관찰할 user
+    email: respondent_user 가 무언가를 했을 때, 이에 대한 이메일을 전송하기 위한 이메일 주소
+    """
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    respondent_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    email = models.CharField(verbose_name='이메일', max_length=100)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.id} {self.story_id} {self.respondent_user_id} {self.email}'
+
+    class Meta:
+        verbose_name = 'Story 관전을 위한 이메일'
+        verbose_name_plural = 'Story 관전을 위한 이메일'
