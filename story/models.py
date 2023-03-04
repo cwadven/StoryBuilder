@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db import models
 
 from account.models import User
+from .task import send_user_sheet_solved_email
 
 
 class Story(models.Model):
@@ -103,6 +104,7 @@ class UserSheetAnswerSolve(models.Model):
     answer: 사용자가 맞춘 현재 sheet 의 정답 Snapshot 으로 나중에 정답이 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
     solved_sheet_version: 풀었던 sheet 의 버전
     solved_answer_version: 풀었던 정답의 버전
+    solved_sheet_answer: 풀었던 정답
     solving_status: 현재 문제를 풀고 있는 중인지 혹은 성공했는지 확인용
     start_time: 문제를 푼 시간
     solved_time: 문제를 해결한 시간
@@ -120,6 +122,7 @@ class UserSheetAnswerSolve(models.Model):
     answer = models.TextField(null=True)
     solved_sheet_version = models.IntegerField(null=True)
     solved_answer_version = models.IntegerField(null=True)
+    solved_sheet_answer = models.ForeignKey(SheetAnswer, on_delete=models.SET_NULL, null=True)
     solving_status = models.CharField(
         max_length=20,
         choices=SOLVING_STATUS_CHOICES,
