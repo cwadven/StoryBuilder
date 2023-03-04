@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.test import TestCase
+from unittest.mock import patch, Mock
 from freezegun import freeze_time
 
 from account.models import User
@@ -88,6 +89,34 @@ class UserSheetAnswerSolveTestCase(TestCase):
         self.assertEqual(user_sheet_answer_solve.solved_answer_version, self.start_sheet_answer1.version)
         self.assertEqual(user_sheet_answer_solve.next_sheet_path, self.next_sheet_path)
         self.assertEqual(user_sheet_answer_solve.solved_sheet_answer, self.start_sheet_answer1)
+
+    @freeze_time('2022-05-31')
+    @patch('story.models.send_user_sheet_solved_email.apply_async')
+    def test_solved_sheet_action_when_success_then_send_user_sheet_solved_email(self, mock_send_user_sheet_solved_email):
+        # Given: 해결하지 못한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+        )
+        # And: StoryEmailSubscription 생성
+        StoryEmailSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            email='cwadven@kakao.com',
+        )
+
+        # When: solved_sheet_action 실행
+        user_sheet_answer_solve.solved_sheet_action(
+            solved_sheet_answer=self.start_sheet_answer1,
+            next_sheet_path=self.next_sheet_path,
+        )
+
+        # Then: 호출이 됐는지 확인
+        mock_send_user_sheet_solved_email.assert_called_once()
 
     @freeze_time('2022-05-31')
     def test_generate_cls_if_first_time_should_create_user_sheet_answer_solve_when_not_exists(self):

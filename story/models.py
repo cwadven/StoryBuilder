@@ -194,15 +194,16 @@ class UserSheetAnswerSolve(models.Model):
                 'next_sheet_path',
             ]
         )
-        send_user_sheet_solved_email.apply_async(
-            (
-                self.id,
-                get_story_email_subscription_emails(
-                    int(self.story_id),
-                    int(self.user_id),
+        if StoryEmailSubscription.has_respondent_user(self.story_id, self.user_id):
+            send_user_sheet_solved_email.apply_async(
+                (
+                    self.id,
+                    get_story_email_subscription_emails(
+                        int(self.story_id),
+                        int(self.user_id),
+                    )
                 )
             )
-        )
 
 
 class StoryEmailSubscription(models.Model):
