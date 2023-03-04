@@ -74,10 +74,6 @@ class UserSheetAnswerSolveTestCase(TestCase):
 
         # When: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
             solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
@@ -162,10 +158,6 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
         # And: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
             solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
@@ -197,10 +189,6 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
         # And: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
             solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )

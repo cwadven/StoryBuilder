@@ -64,7 +64,7 @@ class PlayingSheetInfoDTO(object):
             background_image=sheet.background_image,
             previous_sheet_infos=previous_sheet_infos,
             next_sheet_id=user_sheet_answer_solve.next_sheet_path.sheet_id if (user_sheet_answer_solve and user_sheet_answer_solve.next_sheet_path) else None,
-            answer=user_sheet_answer_solve.solved_sheet_answer.answer if (user_sheet_answer_solve and user_sheet_answer_solve.solved_sheet_answer) else None,
+            answer=user_sheet_answer_solve.answer if user_sheet_answer_solve else None,
             answer_reply=user_sheet_answer_solve.solved_sheet_answer.answer_reply if (user_sheet_answer_solve and user_sheet_answer_solve.solved_sheet_answer) else None,
             is_solved=bool(user_sheet_answer_solve),
         )

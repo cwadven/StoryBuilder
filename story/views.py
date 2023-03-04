@@ -141,10 +141,6 @@ class SheetAnswerCheckAPIView(APIView):
                 except NextSheetPath.DoesNotExist:
                     next_sheet_path = None
                 user_sheet_answer_solve.solved_sheet_action(
-                    answer=sheet_answer.answer,
-                    sheet_question=sheet_answer.sheet.question,
-                    solved_sheet_version=sheet_answer.sheet.version,
-                    solved_answer_version=sheet_answer.version,
                     solved_sheet_answer=sheet_answer,
                     next_sheet_path=next_sheet_path,
                 )
