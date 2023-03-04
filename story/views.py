@@ -148,7 +148,7 @@ class SheetAnswerCheckAPIView(APIView):
                     solved_sheet_answer=sheet_answer,
                     next_sheet_path=next_sheet_path,
                 )
-        except SheetAnswer.DoesNotExist:
+        except (SheetAnswer.DoesNotExist, UserSheetAnswerSolve.DoesNotExist):
             return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
 
         return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
