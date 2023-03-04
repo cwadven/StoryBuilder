@@ -145,6 +145,7 @@ class SheetAnswerCheckAPIView(APIView):
                     sheet_question=sheet_answer.sheet.question,
                     solved_sheet_version=sheet_answer.sheet.version,
                     solved_answer_version=sheet_answer.version,
+                    solved_sheet_answer=sheet_answer,
                     next_sheet_path=next_sheet_path,
                 )
         except SheetAnswer.DoesNotExist:

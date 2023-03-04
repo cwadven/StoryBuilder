@@ -173,11 +173,12 @@ class UserSheetAnswerSolve(models.Model):
             return None, None
         return user_sheet_answer_solve, is_created
 
-    def solved_sheet_action(self, answer, sheet_question, solved_sheet_version, solved_answer_version, next_sheet_path):
+    def solved_sheet_action(self, answer, sheet_question, solved_sheet_version, solved_answer_version, solved_sheet_answer, next_sheet_path):
         self.answer = answer
         self.sheet_question = sheet_question
         self.solved_sheet_version = solved_sheet_version
         self.solved_answer_version = solved_answer_version
+        self.solved_sheet_answer = solved_sheet_answer
         self.next_sheet_path = next_sheet_path
         self.solving_status = self.SOLVING_STATUS_CHOICES[1][0]
         self.solved_time = datetime.now()
@@ -188,6 +189,7 @@ class UserSheetAnswerSolve(models.Model):
                 'answer',
                 'solved_sheet_version',
                 'solved_answer_version',
+                'solved_sheet_answer',
                 'next_sheet_path',
             ]
         )

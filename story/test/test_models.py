@@ -78,6 +78,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
             sheet_question=self.start_sheet.question,
             solved_sheet_version=self.start_sheet.version,
             solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
 
@@ -89,6 +90,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         self.assertEqual(user_sheet_answer_solve.solved_sheet_version, self.start_sheet.version)
         self.assertEqual(user_sheet_answer_solve.solved_answer_version, self.start_sheet_answer1.version)
         self.assertEqual(user_sheet_answer_solve.next_sheet_path, self.next_sheet_path)
+        self.assertEqual(user_sheet_answer_solve.solved_sheet_answer, self.start_sheet_answer1)
 
     @freeze_time('2022-05-31')
     def test_generate_cls_if_first_time_should_create_user_sheet_answer_solve_when_not_exists(self):
@@ -164,6 +166,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
             sheet_question=self.start_sheet.question,
             solved_sheet_version=self.start_sheet.version,
             solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
         # And: final Sheet로 generate_cls_if_first_time 생성
@@ -198,6 +201,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
             sheet_question=self.start_sheet.question,
             solved_sheet_version=self.start_sheet.version,
             solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
         # And: start_sheet 제거
