@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription
 
 
 def get_running_start_sheet_by_story(story_id) -> Sheet:
@@ -159,3 +159,15 @@ def get_recent_played_sheet_by_story_id(user_id: int, story_id: int):
     if user_sheet_answer_solve:
         return user_sheet_answer_solve.sheet
     return
+
+
+def get_story_email_subscription_emails(story_id: int, user_id: int):
+    return list(
+        StoryEmailSubscription.objects.filter(
+            story_id=story_id,
+            respondent_user_id=user_id,
+        ).values_list(
+            'email',
+            flat=True
+        )
+    )
