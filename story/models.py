@@ -174,6 +174,7 @@ class UserSheetAnswerSolve(models.Model):
         return user_sheet_answer_solve, is_created
 
     def solved_sheet_action(self, answer, sheet_question, solved_sheet_version, solved_answer_version, solved_sheet_answer, next_sheet_path):
+        from .services import get_story_email_subscription_emails
         self.answer = answer
         self.sheet_question = sheet_question
         self.solved_sheet_version = solved_sheet_version
@@ -192,6 +193,15 @@ class UserSheetAnswerSolve(models.Model):
                 'solved_sheet_answer',
                 'next_sheet_path',
             ]
+        )
+        send_user_sheet_solved_email.apply_async(
+            (
+                self.id,
+                get_story_email_subscription_emails(
+                    int(self.story_id),
+                    int(self.user_id),
+                )
+            )
         )
 
 
