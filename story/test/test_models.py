@@ -4,7 +4,8 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from account.models import User
-from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
+    StoryEmailSubscription
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -230,3 +231,29 @@ class UserSheetAnswerSolveTestCase(TestCase):
 
         # Then: start_sheet 에서 시작해서 이전에 푼 문제 자체가 없어서 None 반환
         self.assertEqual(list(previous_user_sheet_answer_solves), [])
+
+
+class StoryEmailSubscriptionMethodTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    @freeze_time('2022-05-31')
+    def test_has_respondent_user(self):
+        # Given: StoryEmailSubscription 생성
+        test_emails = ['test1@example.com', 'test2@example.com']
+        for test_email in test_emails:
+            StoryEmailSubscription.objects.create(
+                story_id=self.story.id,
+                respondent_user_id=self.user.id,
+                email=test_email,
+            )
+
+        # Except: 있기 때문에 True 반환
+        self.assertTrue(StoryEmailSubscription.has_respondent_user(self.story.id, self.user.id))

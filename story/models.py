@@ -223,3 +223,7 @@ class StoryEmailSubscription(models.Model):
     class Meta:
         verbose_name = 'Story 관전을 위한 이메일'
         verbose_name_plural = 'Story 관전을 위한 이메일'
+
+    @classmethod
+    def has_respondent_user(cls, story_id, user_id):
+        return cls.objects.filter(story_id=story_id, respondent_user=user_id).exists()
