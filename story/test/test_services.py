@@ -3,13 +3,14 @@ from django.test import TestCase
 from account.models import User
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from config.test_helper.helper import LoginMixin
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
+    StoryEmailSubscription
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
-    get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
+    get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
 )
 
 
@@ -529,3 +530,33 @@ class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
 
         # Then: next_sheet_path 는 아직 풀지 못한 sheet 입니다.
         self.assertIsNone(recent_unsolved_sheet)
+
+
+class GetStoryEmailSubscriptionEmailsTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_get_story_email_subscription_emails(self):
+        # Given: StoryEmailSubscription 생성
+        test_emails = ['test1@example.com', 'test2@example.com']
+        for test_email in test_emails:
+            StoryEmailSubscription.objects.create(
+                story_id=self.story.id,
+                respondent_user_id=self.user.id,
+                email=test_email,
+            )
+
+        # When: 함수 실행
+        story_email_subscription_emails = get_story_email_subscription_emails(self.story.id, self.user.id)
+
+        # Then:
+        self.assertEqual(len(story_email_subscription_emails), 2)
+        self.assertIn(test_emails[0], story_email_subscription_emails)
+        self.assertIn(test_emails[1], story_email_subscription_emails)

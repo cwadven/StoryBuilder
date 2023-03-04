@@ -114,7 +114,8 @@ class DTOPlayingSheetInfoDTOTestCase(TestCase):
             solved_answer_version=1,
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
             next_sheet_path=self.next_sheet_path,
-            answer=self.start_sheet_answer1,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
         )
 
     def test_playing_sheet_answer_solved_dto(self):

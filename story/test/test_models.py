@@ -1,10 +1,12 @@
 from datetime import datetime
 
 from django.test import TestCase
+from unittest.mock import patch, Mock
 from freezegun import freeze_time
 
 from account.models import User
-from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
+    StoryEmailSubscription
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -74,10 +76,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
 
         # When: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
 
@@ -89,6 +88,35 @@ class UserSheetAnswerSolveTestCase(TestCase):
         self.assertEqual(user_sheet_answer_solve.solved_sheet_version, self.start_sheet.version)
         self.assertEqual(user_sheet_answer_solve.solved_answer_version, self.start_sheet_answer1.version)
         self.assertEqual(user_sheet_answer_solve.next_sheet_path, self.next_sheet_path)
+        self.assertEqual(user_sheet_answer_solve.solved_sheet_answer, self.start_sheet_answer1)
+
+    @freeze_time('2022-05-31')
+    @patch('story.models.send_user_sheet_solved_email.apply_async')
+    def test_solved_sheet_action_when_success_then_send_user_sheet_solved_email(self, mock_send_user_sheet_solved_email):
+        # Given: 해결하지 못한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+        )
+        # And: StoryEmailSubscription 생성
+        StoryEmailSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            email='cwadven@kakao.com',
+        )
+
+        # When: solved_sheet_action 실행
+        user_sheet_answer_solve.solved_sheet_action(
+            solved_sheet_answer=self.start_sheet_answer1,
+            next_sheet_path=self.next_sheet_path,
+        )
+
+        # Then: 호출이 됐는지 확인
+        mock_send_user_sheet_solved_email.assert_called_once()
 
     @freeze_time('2022-05-31')
     def test_generate_cls_if_first_time_should_create_user_sheet_answer_solve_when_not_exists(self):
@@ -160,10 +188,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
         # And: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
         # And: final Sheet로 generate_cls_if_first_time 생성
@@ -194,10 +219,7 @@ class UserSheetAnswerSolveTestCase(TestCase):
         )
         # And: solved_sheet_action 실행
         user_sheet_answer_solve.solved_sheet_action(
-            answer=self.start_sheet_answer1.answer,
-            sheet_question=self.start_sheet.question,
-            solved_sheet_version=self.start_sheet.version,
-            solved_answer_version=self.start_sheet_answer1.version,
+            solved_sheet_answer=self.start_sheet_answer1,
             next_sheet_path=self.next_sheet_path,
         )
         # And: start_sheet 제거
@@ -238,3 +260,29 @@ class UserSheetAnswerSolveTestCase(TestCase):
 
         # Then: start_sheet 에서 시작해서 이전에 푼 문제 자체가 없어서 None 반환
         self.assertEqual(list(previous_user_sheet_answer_solves), [])
+
+
+class StoryEmailSubscriptionMethodTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    @freeze_time('2022-05-31')
+    def test_has_respondent_user(self):
+        # Given: StoryEmailSubscription 생성
+        test_emails = ['test1@example.com', 'test2@example.com']
+        for test_email in test_emails:
+            StoryEmailSubscription.objects.create(
+                story_id=self.story.id,
+                respondent_user_id=self.user.id,
+                email=test_email,
+            )
+
+        # Except: 있기 때문에 True 반환
+        self.assertTrue(StoryEmailSubscription.has_respondent_user(self.story.id, self.user.id))

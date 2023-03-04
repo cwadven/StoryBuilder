@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db import models
 
 from account.models import User
+from .task import send_user_sheet_solved_email
 
 
 class Story(models.Model):
@@ -103,6 +104,7 @@ class UserSheetAnswerSolve(models.Model):
     answer: 사용자가 맞춘 현재 sheet 의 정답 Snapshot 으로 나중에 정답이 바꿔졌을 경우 히스토리성으로 가지고 있을 필요
     solved_sheet_version: 풀었던 sheet 의 버전
     solved_answer_version: 풀었던 정답의 버전
+    solved_sheet_answer: 풀었던 정답
     solving_status: 현재 문제를 풀고 있는 중인지 혹은 성공했는지 확인용
     start_time: 문제를 푼 시간
     solved_time: 문제를 해결한 시간
@@ -120,6 +122,7 @@ class UserSheetAnswerSolve(models.Model):
     answer = models.TextField(null=True)
     solved_sheet_version = models.IntegerField(null=True)
     solved_answer_version = models.IntegerField(null=True)
+    solved_sheet_answer = models.ForeignKey(SheetAnswer, on_delete=models.SET_NULL, null=True)
     solving_status = models.CharField(
         max_length=20,
         choices=SOLVING_STATUS_CHOICES,
@@ -170,11 +173,13 @@ class UserSheetAnswerSolve(models.Model):
             return None, None
         return user_sheet_answer_solve, is_created
 
-    def solved_sheet_action(self, answer, sheet_question, solved_sheet_version, solved_answer_version, next_sheet_path):
-        self.answer = answer
-        self.sheet_question = sheet_question
-        self.solved_sheet_version = solved_sheet_version
-        self.solved_answer_version = solved_answer_version
+    def solved_sheet_action(self, solved_sheet_answer, next_sheet_path):
+        from .services import get_story_email_subscription_emails
+        self.answer = solved_sheet_answer.answer
+        self.sheet_question = solved_sheet_answer.sheet.question
+        self.solved_sheet_version = solved_sheet_answer.sheet.version
+        self.solved_answer_version = solved_sheet_answer.version
+        self.solved_sheet_answer = solved_sheet_answer
         self.next_sheet_path = next_sheet_path
         self.solving_status = self.SOLVING_STATUS_CHOICES[1][0]
         self.solved_time = datetime.now()
@@ -185,6 +190,41 @@ class UserSheetAnswerSolve(models.Model):
                 'answer',
                 'solved_sheet_version',
                 'solved_answer_version',
+                'solved_sheet_answer',
                 'next_sheet_path',
             ]
         )
+        if StoryEmailSubscription.has_respondent_user(self.story_id, self.user_id):
+            send_user_sheet_solved_email.apply_async(
+                (
+                    self.id,
+                    get_story_email_subscription_emails(
+                        int(self.story_id),
+                        int(self.user_id),
+                    )
+                )
+            )
+
+
+class StoryEmailSubscription(models.Model):
+    """
+    story: 사용자가 풀고 있는 스토리
+    respondent_user: Story 에서 행동에 대한 관찰할 user
+    email: respondent_user 가 무언가를 했을 때, 이에 대한 이메일을 전송하기 위한 이메일 주소
+    """
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    respondent_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    email = models.CharField(verbose_name='이메일', max_length=100)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.id} {self.story_id} {self.respondent_user_id} {self.email}'
+
+    class Meta:
+        verbose_name = 'Story 관전을 위한 이메일'
+        verbose_name_plural = 'Story 관전을 위한 이메일'
+
+    @classmethod
+    def has_respondent_user(cls, story_id, user_id):
+        return cls.objects.filter(story_id=story_id, respondent_user=user_id).exists()
