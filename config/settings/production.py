@@ -17,6 +17,8 @@ AWS_IAM_ACCESS_KEY = env_production['AWS_IAM_ACCESS_KEY']
 AWS_IAM_SECRET_ACCESS_KEY = env_production['AWS_IAM_SECRET_ACCESS_KEY']
 AWS_S3_BUCKET_NAME = env_production['AWS_S3_BUCKET_NAME']
 
+AWS_SQS_URL = env_production['AWS_SQS_URL']
+
 EMAIL_HOST_USER = env_production['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = env_production['EMAIL_HOST_PASSWORD']
 
