@@ -20,6 +20,7 @@ def send_user_sheet_solved_email(user_sheet_answer_solve_id: int, emails: list) 
                 'story_title': user_sheet_answer_solve.story.title,
                 'sheet_id': user_sheet_answer_solve.sheet_id,
                 'sheet_title': user_sheet_answer_solve.sheet.title,
+                'sheet_question': user_sheet_answer_solve.sheet.question,
                 'username': user_sheet_answer_solve.user.username,
                 'user_answer': user_sheet_answer_solve.answer,
             },
