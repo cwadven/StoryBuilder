@@ -1,5 +1,27 @@
-<div style="text-align: center;">Story ID: {{ story_id }} / {{ story_title }}</div>
-<div style="text-align: center; font-weight: bold;">Sheet ID: {{ sheet_id }}</div>
-<div style="text-align: center; font-weight: bold;">Sheet Title: {{ sheet_title }}</div>
-<div style="text-align: center; font-weight: bold;">username: {{ username }}</div>
-<div style="text-align: center; font-weight: bold;">user_answer: {{ user_answer }}</div>
+<div style="text-align: center; font-weight: bold; font-size: 30px;">Story Title: {{ story_title }}</div>
+
+<div style="display: flex; justify-content: center;">
+    <div style="border: 1px solid; padding: 3px; margin: 15px 0 0 0; width: 100%; max-width: 500px; border-bottom: 1px dashed;">
+        <div style="text-align: center; font-weight: bold; margin: 13px 0;">Sheet Id: {{ sheet_id }}</div>
+        <div style="margin: 13px 0;">
+            <div style="text-align: center; font-weight: bold;">[Sheet Title]</div>
+            <div style="text-align: center;">{{ sheet_title }}</div>
+        </div>
+        <div style="margin: 13px 0;">
+            <div style="text-align: center; font-weight: bold;">[Sheet Question]</div>
+            <div style="text-align: center;">{{ sheet_question }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: center;">
+    <div style="border: 1px solid; padding: 3px; margin: 0 0 15px 0; width: 100%; max-width: 500px; border-top: 1px dashed;">
+        <div style="text-align: center; font-weight: bold;">username: {{ username }}</div>
+        <div style="margin: 13px 0;">
+            <div style="text-align: center; font-weight: bold;">User Answer</div>
+            <div style="text-align: center;">{{ user_answer }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; font-weight: bold;">Admin url: /admin/story/sheet/{{ sheet_id }}/change/</div>
