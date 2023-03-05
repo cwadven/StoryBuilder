@@ -20,6 +20,9 @@ AWS_S3_BUCKET_NAME = env_production['AWS_S3_BUCKET_NAME']
 EMAIL_HOST_USER = env_production['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = env_production['EMAIL_HOST_PASSWORD']
 
+# Slack notification
+PUZZTORY_ALERT_SLACK_URL = env_production['PUZZTORY_ALERT_SLACK_URL']
+
 DATABASES = {
     'default': env_production['default']
 }

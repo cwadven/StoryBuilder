@@ -18,6 +18,9 @@ AWS_S3_BUCKET_NAME = 'memekorea'
 EMAIL_HOST_USER = 'development_EMAIL_HOST_USER'
 EMAIL_HOST_PASSWORD = 'development_EMAIL_HOST_PASSWORD'
 
+# Slack notification
+PUZZTORY_ALERT_SLACK_URL = 'development_PUZZTORY_ALERT_SLACK_URL'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
