@@ -1,3 +1,4 @@
+import json
 import string
 import uuid
 import boto3 as boto3
@@ -246,3 +247,13 @@ class PayloadValidator(object):
         first check mandatory keys then check key types
         """
         self._validate_payloads_type()
+
+
+def notify_slack(channel_url: str, text: str):
+    payload = json.dumps({
+        'text': text,
+    })
+    requests.post(
+        url=channel_url,
+        data=payload,
+    )
