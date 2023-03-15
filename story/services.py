@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
 
 def get_running_start_sheet_by_story(story_id) -> Sheet:
@@ -182,3 +182,9 @@ def create_story_like(story_id: int, user_id: int):
         story_like.is_deleted = False
         story_like.save(update_fields=['is_deleted', 'updated_at'])
     return story_like
+
+
+def update_story_total_like_count(story_id: int):
+    story = Story.objects.get(id=story_id)
+    story.like_count = StoryLike.get_active_story_like_count(story_id)
+    story.save(update_fields=['like_count'])
