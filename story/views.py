@@ -4,13 +4,14 @@ from rest_framework.views import APIView
 from common_decorator import mandatories, custom_login_required_for_method
 from story.constants import StoryErrorMessage
 from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO
-from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath
+from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
     get_valid_answer_info_with_random_quantity,
     get_running_sheet,
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
+    create_story_like, delete_story_like,
 )
 
 
@@ -148,3 +149,23 @@ class SheetAnswerCheckAPIView(APIView):
             return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
 
         return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
+
+
+class StoryLikeAPIView(APIView):
+    @custom_login_required_for_method
+    def post(self, request, story_id):
+        try:
+            create_story_like(story_id, request.user.id)
+        except Story.DoesNotExist:
+            return Response({'message': 'story에 문제가 있습니다.'}, status=400)
+
+        return Response(status=200)
+
+    @custom_login_required_for_method
+    def delete(self, request, story_id):
+        try:
+            delete_story_like(story_id, request.user.id)
+        except StoryLike.DoesNotExist:
+            return Response({'message': '좋아요를 한적이 없습니다.'}, status=400)
+
+        return Response(status=200)
