@@ -193,6 +193,7 @@ def delete_story_like(story_id: int, user_id: int):
         story_like = StoryLike.objects.get(
             story_id=story_id,
             user_id=user_id,
+            is_deleted=False,
         )
         story_like.is_deleted = True
         story_like.save(update_fields=['is_deleted', 'updated_at'])
