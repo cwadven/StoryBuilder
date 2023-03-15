@@ -185,6 +185,17 @@ def create_story_like(story_id: int, user_id: int):
     return story_like
 
 
+def delete_story_like(story_id: int, user_id: int):
+    story_like = StoryLike.objects.get(
+        story_id=story_id,
+        user_id=user_id,
+    )
+    story_like.is_deleted = True
+    story_like.save(update_fields=['is_deleted', 'updated_at'])
+    update_story_total_like_count(story_id)
+    return story_like
+
+
 def update_story_total_like_count(story_id: int):
     story = Story.objects.get(id=story_id)
     story.like_count = StoryLike.get_active_story_like_count(story_id)
