@@ -579,7 +579,7 @@ class CreateStoryLikeTestCase(TestCase):
         self.assertEqual(self.story.like_count, 0)
 
         # When: 함수 실행
-        story_like = create_story_like(self.user.id, self.story.id)
+        story_like = create_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()
@@ -600,7 +600,7 @@ class CreateStoryLikeTestCase(TestCase):
         self.story.save()
 
         # When: 함수 실행
-        new_story_like = create_story_like(self.user.id, self.story.id)
+        new_story_like = create_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()
@@ -628,7 +628,7 @@ class DeleteStoryLikeTestCase(TestCase):
         self.assertEqual(self.story.like_count, 1)
 
         # When: 함수 실행
-        story_like = delete_story_like(self.user.id, self.story.id)
+        story_like = delete_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()
