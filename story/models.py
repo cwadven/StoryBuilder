@@ -13,6 +13,7 @@ class Story(models.Model):
     image = models.TextField(verbose_name='대표 이미지', blank=True, null=True)
     background_image = models.TextField(verbose_name='대표 배경 이미지', blank=True, null=True)
     played_count = models.IntegerField(verbose_name='플레이 횟수', default=0)
+    like_count = models.IntegerField(verbose_name='좋아요 횟수', default=0)
     view_count = models.IntegerField(verbose_name='조회 횟수', default=0)
     review_rate = models.IntegerField(verbose_name='평점', default=0)
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False)
@@ -228,3 +229,15 @@ class StoryEmailSubscription(models.Model):
     @classmethod
     def has_respondent_user(cls, story_id, user_id):
         return cls.objects.filter(story_id=story_id, respondent_user=user_id).exists()
+
+
+class StoryLike(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'Story 좋아요'
+        verbose_name_plural = 'Story 좋아요'
