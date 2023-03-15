@@ -241,3 +241,10 @@ class StoryLike(models.Model):
     class Meta:
         verbose_name = 'Story 좋아요'
         verbose_name_plural = 'Story 좋아요'
+
+    def __str__(self):
+        return f'{self.id} {self.story_id} {self.user_id}'
+
+    @classmethod
+    def get_active_story_like_count(cls, story_id):
+        return cls.objects.filter(story_id=story_id, is_deleted=False).count()
