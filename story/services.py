@@ -181,6 +181,7 @@ def create_story_like(story_id: int, user_id: int):
     if not is_created:
         story_like.is_deleted = False
         story_like.save(update_fields=['is_deleted', 'updated_at'])
+    update_story_total_like_count(story_id)
     return story_like
 
 

@@ -576,25 +576,36 @@ class CreateStoryLikeTestCase(TestCase):
 
     def test_create_story_like_when_first_creation(self):
         # Given: 처음 Like 생성
+        self.assertEqual(self.story.like_count, 0)
+
         # When: 함수 실행
         story_like = create_story_like(self.user.id, self.story.id)
 
         # Then:
+        self.story.refresh_from_db()
         self.assertTrue(StoryLike.objects.filter(id=story_like.id, is_deleted=False).exists())
+        self.assertEqual(self.story.like_count, 1)
         self.assertEqual(story_like.user_id, self.user.id)
         self.assertEqual(story_like.story_id, self.story.id)
 
     def test_create_story_like_when_not_first_creation(self):
         # Given: 처음 Like 제거로 생성
         story_like = create_story_like(self.user.id, self.story.id)
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 1)
         story_like.is_deleted = True
         story_like.save()
+        # And: 좋아요 개수 초기화
+        self.story.like_count = 0
+        self.story.save()
 
         # When: 함수 실행
         new_story_like = create_story_like(self.user.id, self.story.id)
 
         # Then:
+        self.story.refresh_from_db()
         self.assertTrue(StoryLike.objects.filter(id=new_story_like.id, is_deleted=False).exists())
+        self.assertEqual(self.story.like_count, 1)
         self.assertEqual(story_like.user_id, self.user.id)
         self.assertEqual(story_like.story_id, self.story.id)
 
