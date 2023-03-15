@@ -623,7 +623,7 @@ class DeleteStoryLikeTestCase(TestCase):
 
     def test_delete_story_like(self):
         # Given: 처음 Like 생성
-        create_story_like(self.user.id, self.story.id)
+        create_story_like(self.story.id, self.user.id)
         self.story.refresh_from_db()
         self.assertEqual(self.story.like_count, 1)
 
