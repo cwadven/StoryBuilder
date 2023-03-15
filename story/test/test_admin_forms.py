@@ -30,6 +30,7 @@ class TestStoryAdminForm(TestCase):
             'played_count': 0,
             'view_count': 0,
             'review_rate': 0,
+            'like_count': 0,
             'playing_point': 0,
             'free_to_play_sheet_count': 0,
             '_save': 'Save',
@@ -61,6 +62,7 @@ class TestStoryAdminForm(TestCase):
         form = StoryAdminForm(self.form_data, file_form_data)
 
         # Then: 정상적으로 데이터 생성가능 하도록 True
+        form.is_valid()
         self.assertTrue(form.is_valid())
         instance = form.save()
 

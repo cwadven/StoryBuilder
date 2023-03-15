@@ -4,13 +4,14 @@ from account.models import User
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription
+    StoryEmailSubscription, StoryLike
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
+    create_story_like, update_story_total_like_count, delete_story_like,
 )
 
 
@@ -560,3 +561,106 @@ class GetStoryEmailSubscriptionEmailsTestCase(LoginMixin, TestCase):
         self.assertEqual(len(story_email_subscription_emails), 2)
         self.assertIn(test_emails[0], story_email_subscription_emails)
         self.assertIn(test_emails[1], story_email_subscription_emails)
+
+
+class CreateStoryLikeTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_create_story_like_when_first_creation(self):
+        # Given: 처음 Like 생성
+        self.assertEqual(self.story.like_count, 0)
+
+        # When: 함수 실행
+        story_like = create_story_like(self.user.id, self.story.id)
+
+        # Then:
+        self.story.refresh_from_db()
+        self.assertTrue(StoryLike.objects.filter(id=story_like.id, is_deleted=False).exists())
+        self.assertEqual(self.story.like_count, 1)
+        self.assertEqual(story_like.user_id, self.user.id)
+        self.assertEqual(story_like.story_id, self.story.id)
+
+    def test_create_story_like_when_not_first_creation(self):
+        # Given: 처음 Like 제거로 생성
+        story_like = create_story_like(self.user.id, self.story.id)
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 1)
+        story_like.is_deleted = True
+        story_like.save()
+        # And: 좋아요 개수 초기화
+        self.story.like_count = 0
+        self.story.save()
+
+        # When: 함수 실행
+        new_story_like = create_story_like(self.user.id, self.story.id)
+
+        # Then:
+        self.story.refresh_from_db()
+        self.assertTrue(StoryLike.objects.filter(id=new_story_like.id, is_deleted=False).exists())
+        self.assertEqual(self.story.like_count, 1)
+        self.assertEqual(story_like.user_id, self.user.id)
+        self.assertEqual(story_like.story_id, self.story.id)
+
+
+class DeleteStoryLikeTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_delete_story_like(self):
+        # Given: 처음 Like 생성
+        create_story_like(self.user.id, self.story.id)
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 1)
+
+        # When: 함수 실행
+        story_like = delete_story_like(self.user.id, self.story.id)
+
+        # Then:
+        self.story.refresh_from_db()
+        self.assertTrue(StoryLike.objects.filter(id=story_like.id, is_deleted=True).exists())
+        self.assertEqual(self.story.like_count, 0)
+        self.assertEqual(story_like.user_id, self.user.id)
+        self.assertEqual(story_like.story_id, self.story.id)
+
+
+class UpdateStoryLikeCountTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_update_story_total_like_count(self):
+        # Given: StoryLike 생성
+        StoryLike.objects.create(
+            user=self.user,
+            story=self.story,
+        )
+        # And: like_count 가 0
+        self.assertEqual(self.story.like_count, 0)
+
+        # When: 함수 실행
+        update_story_total_like_count(self.story.id)
+
+        # Then: 개수 1 증가
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 1)

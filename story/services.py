@@ -1,9 +1,11 @@
 import random
 from typing import List, Optional
 
+from django.db import transaction
+
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
 
 def get_running_start_sheet_by_story(story_id) -> Sheet:
@@ -171,3 +173,35 @@ def get_story_email_subscription_emails(story_id: int, user_id: int):
             flat=True
         )
     )
+
+
+def create_story_like(story_id: int, user_id: int):
+    with transaction.atomic():
+        story_like, is_created = StoryLike.objects.get_or_create(
+            story_id=story_id,
+            user_id=user_id,
+        )
+        if not is_created:
+            story_like.is_deleted = False
+            story_like.save(update_fields=['is_deleted', 'updated_at'])
+        update_story_total_like_count(story_id)
+    return story_like
+
+
+def delete_story_like(story_id: int, user_id: int):
+    with transaction.atomic():
+        story_like = StoryLike.objects.get(
+            story_id=story_id,
+            user_id=user_id,
+            is_deleted=False,
+        )
+        story_like.is_deleted = True
+        story_like.save(update_fields=['is_deleted', 'updated_at'])
+        update_story_total_like_count(story_id)
+    return story_like
+
+
+def update_story_total_like_count(story_id: int):
+    story = Story.objects.get(id=story_id)
+    story.like_count = StoryLike.get_active_story_like_count(story_id)
+    story.save(update_fields=['like_count'])

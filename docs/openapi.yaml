@@ -37,7 +37,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSignUpValidationSuccessResponse'          
+                $ref: '#/components/schemas/UserSignUpValidationSuccessResponse'
         '400':
           description: Invalid data
           content:
@@ -330,8 +330,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetUserTotalPointSuccessResponse'
+  /v1/story/{story_id}/like:
+    post:
+      tags:
+        - Like
+      summary: 좋아요를 합니다.
+      description: 좋아요를 합니다.
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: true
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id 를 이용해서 좋아요를 합니다.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Invalid to login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotLoginResponse'
+    delete:
+      tags:
+        - Like
+      summary: 좋아요를 취소 합니다.
+      description: 좋아요를 취소 합니다.
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: true
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id 를 이용해서 좋아요를 취소합니다.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Invalid to login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotLoginResponse'
 components:
   schemas:
+    UserNotLoginResponse:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: '로그인이 필요합니다.'
     UserSignUpValidationRequestBody:
       required:
         - username
@@ -441,7 +504,7 @@ components:
         - result
       type: object
       properties:
-        result: 
+        result:
           type: string
           example: 'success'
     UserSignUpValidationFailResponse:
@@ -453,27 +516,27 @@ components:
         - email
       type: object
       properties:
-        username: 
+        username:
           type: array
-          items: 
+          items:
             type: string
             format: nullable
             example: '이미 사용중인 아이디입니다.'
-        nickname: 
+        nickname:
           type: array
-          items: 
+          items:
             type: string
             format: nullable
             example: '이미 사용중인 닉네임입니다.'
-        email: 
+        email:
           type: array
-          items: 
+          items:
             type: string
             format: nullable
             example: '이미 가입한 이메일입니다.'
-        password2: 
+        password2:
           type: array
-          items: 
+          items:
             type: string
             format: nullable
             example: '비밀번호와 비밀번호 확인이 동일하지 않습니다.'
@@ -482,7 +545,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '인증번호를 이메일로 전송했습니다.'
     UserSignUpValidateTokenSuccessResponse:
@@ -490,7 +553,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '회원가입에 성공했습니다.'
     UserSignUpValidateTokenFailResponse:
@@ -498,7 +561,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '이미 가입한 이메일입니다.'
     UserLoginSuccessResponse:
@@ -506,7 +569,7 @@ components:
         - accessToken
       type: object
       properties:
-        accessToken: 
+        accessToken:
           type: string
           example: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzU1MDA2MzgsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDg5NTgzOH0.l7N6M571w5iZMCoWe2lmkGEsW1zoclQG2poTi2_slR8'
     UserLoginFailResponse:
@@ -514,7 +577,7 @@ components:
         - result
       type: object
       properties:
-        result: 
+        result:
           type: string
           example: '이이디/비밀번호 문제가 발생했습니다.'
     StoryStartSuccessResponse:
@@ -542,11 +605,11 @@ components:
           type: string
           format: nullable
           example: '단서를 찾기 위해 창우 집을 가봐야겠어! 창우 집 주소가 어떻게 됐더라? (정확한 도로명주소 "시" "구" 그리고 "호수"는 정답으로 작성할 필요가 없습니다.)'
-        image: 
+        image:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_image/3/ac99667c-10aa-4af7-9e30-09e31dfc3894_house.jpg'
-        background_image: 
+        background_image:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_background_image/3/d4acf837-a4d0-4efa-978b-c54aa649adc7_sky.jpg'
@@ -561,19 +624,19 @@ components:
               title:
                 type: string
                 example: 집 비밀번호가 뭐지?
-        next_sheet_id: 
+        next_sheet_id:
           type: integer
           format: nullable
           example: 4
-        answer: 
+        answer:
           type: string
           format: nullable
           example: '신원로3길 13-7'
-        answer_reply: 
+        answer_reply:
           type: string
           format: nullable
           example: '맞아 건물 이름은 아트빌이고 302호로 알고 있어!! 빨리 집으로 가보자!!'
-        is_solved: 
+        is_solved:
           type: boolean
           example: true
     StoryStartFailResponse:
@@ -581,7 +644,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '스토리를 불러올 수 없습니다.'
     SheetPlaySuccessResponse:
@@ -598,22 +661,22 @@ components:
         - is_solved
       type: object
       properties:
-        sheet_id: 
+        sheet_id:
           type: integer
           example: 3
-        title: 
+        title:
           type: string
           format: nullable
           example: '어디서부터 시작을 해야하지?'
-        question: 
+        question:
           type: string
           format: nullable
           example: '단서를 찾기 위해 창우 집을 가봐야겠어! 창우 집 주소가 어떻게 됐더라? (정확한 도로명주소 "시" "구" 그리고 "호수"는 정답으로 작성할 필요가 없습니다.)'
-        image: 
+        image:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_image/3/ac99667c-10aa-4af7-9e30-09e31dfc3894_house.jpg'
-        background_image: 
+        background_image:
           type: string
           format: nullable
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_background_image/3/d4acf837-a4d0-4efa-978b-c54aa649adc7_sky.jpg'
@@ -628,19 +691,19 @@ components:
               title:
                 type: string
                 example: 집 비밀번호가 뭐지?
-        next_sheet_id: 
+        next_sheet_id:
           type: integer
           format: nullable
           example: 4
-        answer: 
+        answer:
           type: string
           format: nullable
           example: '신원로3길 13-7'
-        answer_reply: 
+        answer_reply:
           type: string
           format: nullable
           example: '맞아 건물 이름은 아트빌이고 302호로 알고 있어!! 빨리 집으로 가보자!!'
-        is_solved: 
+        is_solved:
           type: boolean
           example: true
     SheetPlayFailResponse:
@@ -648,7 +711,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '접근할 수 없는 Sheet 입니다.'
     SheetAnswerSubmitSuccessResponse:
@@ -658,14 +721,14 @@ components:
         - answer_reply
       type: object
       properties:
-        is_valid: 
+        is_valid:
           type: boolean
           example: true
-        next_sheet_id: 
+        next_sheet_id:
           type: integer
           format: nullable
           example: 14
-        answer_reply: 
+        answer_reply:
           type: string
           example: '창우 너무 단순하게 비밀번호 짠거 아니야? 아까도 집 비밀번호도 그렇고! 설마 다음에도 나오는 모든 4자리 비밀번호 똑같은 거는 아니겠지?? 생각을 그만하고 안에 무엇이 들었는지 확인하자!'
     SheetAnswerSubmitFailResponse:
@@ -673,7 +736,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '이미 문제를 해결한 기록이 있습니다.'
     GetSheetHintsSuccessResponse:
@@ -681,24 +744,24 @@ components:
         - user_sheet_hint_infos
       type: object
       properties:
-        user_sheet_hint_infos: 
+        user_sheet_hint_infos:
           type: array
-          items: 
+          items:
             type: object
-            properties: 
-              id: 
+            properties:
+              id:
                 type: integer
                 example: 1
-              hint: 
+              hint:
                 type: string
                 example: ''
-              point: 
+              point:
                 type: integer
                 example: 10
-              image: 
+              image:
                 type: string
                 example: ''
-              has_history: 
+              has_history:
                 type: boolean
                 example: false
     GetSheetHintsFailResponse:
@@ -706,7 +769,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '존재하지 않은 Sheet 입니다.'
     PostSheetHintsSuccessResponse:
@@ -718,19 +781,19 @@ components:
         - has_history
       type: object
       properties:
-        id: 
+        id:
           type: integer
           example: 1
-        hint: 
+        hint:
           type: string
           example: '문제에 정답이 있어요!!'
-        point: 
+        point:
           type: integer
           example: 10
-        image: 
+        image:
           type: string
           example: 'https://storybuilderstorage.s3.amazonaws.com/sheet_hint_image/1/df317dcf-b161-48b7-ac4e-31c255b73d2c_window_logo.jpg'
-        has_history: 
+        has_history:
           type: boolean
           example: true
     PostSheetHintsFailResponse:
@@ -738,7 +801,7 @@ components:
         - message
       type: object
       properties:
-        message: 
+        message:
           type: string
           example: '유저의 포인트가 부족합니다.'
     GetUserTotalPointSuccessResponse:
@@ -746,7 +809,7 @@ components:
         - total_point
       type: object
       properties:
-        total_point: 
+        total_point:
           type: integer
           example: 100
     GetRecentStorySheetPlayedSuccessResponse:

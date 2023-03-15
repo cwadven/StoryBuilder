@@ -6,7 +6,7 @@ from freezegun import freeze_time
 
 from account.models import User
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription
+    StoryEmailSubscription, StoryLike
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -286,3 +286,30 @@ class StoryEmailSubscriptionMethodTestCase(TestCase):
 
         # Except: 있기 때문에 True 반환
         self.assertTrue(StoryEmailSubscription.has_respondent_user(self.story.id, self.user.id))
+
+
+class StoryLikeMethodTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_get_active_story_like_count(self):
+        # Given: is_deleted 5개 True, 5개 False인 StoryLike 생성
+        for boolean in [True, True, True, True, True, False, False, False, False, False]:
+            StoryLike.objects.create(
+                story=self.story,
+                user=self.user,
+                is_deleted=boolean,
+            )
+
+        # When: get_active_story_like_count 실행
+        active_story_like_count = StoryLike.get_active_story_like_count(self.story.id)
+
+        # Then: 5 반환
+        self.assertEqual(active_story_like_count, 5)

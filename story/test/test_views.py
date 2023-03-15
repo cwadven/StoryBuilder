@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from account.models import User
 from config.test_helper.helper import LoginMixin
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike
 
 
 def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
@@ -760,3 +760,73 @@ class GetStoryRecentPlayAPIViewTestCase(LoginMixin, TestCase):
         # Then: 정상 접근
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('message'), '최근에 해결 못한 sheet 가 없습니다.')
+
+
+class StoryLikeAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(StoryLikeAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_post_story_like_when_request_like(self):
+        # Given:
+        # When: story_like 요청
+        response = self.c.post(reverse('story:story_like', args=[self.story.id]))
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: StoryLike 생성
+        self.assertTrue(StoryLike.objects.filter(user=self.c.user, story=self.story, is_deleted=False).exists())
+        # And: like_count 1 증가
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 1)
+
+    # DB 문제로 테스트케이스 실패
+    def test_post_story_like_should_fail_when_story_not_exists(self):
+        # Given: story 제거
+        story_id = self.story.id
+        self.story.delete()
+
+        # When: story_like 요청
+        response = self.c.post(reverse('story:story_like', args=[story_id]))
+        content = json.loads(response.content)
+
+        # Then: 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['message'], 'story에 문제가 있습니다.')
+
+    def test_delete_story_like_when_user_has_like(self):
+        # Given: story like 생성
+        StoryLike.objects.create(
+            user=self.c.user,
+            story=self.story,
+            is_deleted=False,
+        )
+
+        # When: story_like 요청
+        response = self.c.delete(reverse('story:story_like', args=[self.story.id]))
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: StoryLike 제거
+        self.assertTrue(StoryLike.objects.filter(user=self.c.user, story=self.story, is_deleted=True).exists())
+        # And: like_count 0
+        self.story.refresh_from_db()
+        self.assertEqual(self.story.like_count, 0)
+
+    def test_delete_story_like_should_fail_when_user_not_have_like(self):
+        # Given:
+        # When: story_like 요청
+        response = self.c.delete(reverse('story:story_like', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['message'], '좋아요를 한적이 없습니다.')
