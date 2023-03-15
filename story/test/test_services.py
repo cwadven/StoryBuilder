@@ -590,7 +590,7 @@ class CreateStoryLikeTestCase(TestCase):
 
     def test_create_story_like_when_not_first_creation(self):
         # Given: 처음 Like 제거로 생성
-        story_like = create_story_like(self.user.id, self.story.id)
+        story_like = create_story_like(self.story.id, self.user.id)
         self.story.refresh_from_db()
         self.assertEqual(self.story.like_count, 1)
         story_like.is_deleted = True
