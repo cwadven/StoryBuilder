@@ -1,7 +1,8 @@
 from account.models import User
 from django.test import TestCase
 
-from account.services import is_username_exists, is_nickname_exists, is_email_exists
+from account.services import is_username_exists, is_nickname_exists, is_email_exists, is_length_valid, \
+    is_only_alphanumeric, is_only_korean_english_alphanumeric
 
 
 class AccountServiceTestCase(TestCase):
@@ -40,3 +41,18 @@ class AccountServiceTestCase(TestCase):
     def test_is_email_exists_should_return_false_when_username_not_exists(self):
         # Expected:
         self.assertFalse(is_email_exists('test@naver.com'))
+
+    def test_is_length_valid(self):
+        self.assertTrue(is_length_valid("hello", 3, 10))
+        self.assertFalse(is_length_valid("hello", 6, 10))
+        self.assertFalse(is_length_valid("hello", 3, 4))
+
+    def test_is_only_alphanumeric(self):
+        self.assertTrue(is_only_alphanumeric("abc123"))
+        self.assertFalse(is_only_alphanumeric("abc@123"))
+        self.assertFalse(is_only_alphanumeric("한글123"))
+
+    def test_is_only_korean_english_alphanumeric(self):
+        self.assertTrue(is_only_korean_english_alphanumeric("안녕abc123"))
+        self.assertFalse(is_only_korean_english_alphanumeric("안녕abc@123"))
+        self.assertTrue(is_only_korean_english_alphanumeric("가나다ABC123"))

@@ -16,3 +16,15 @@ def is_email_exists(email):
 
 def is_email_reg_exp_valid(email):
     return re.match(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email)
+
+
+def is_length_valid(string, min_length, max_length):
+    return min_length <= len(string) <= max_length
+
+
+def is_only_alphanumeric(string):
+    return re.match(r'^[a-zA-Z0-9]+$', string)
+
+
+def is_only_korean_english_alphanumeric(string):
+    return re.match(r'^[ㄱ-ㅎ가-힣a-zA-Z0-9]+$', string)
