@@ -1,3 +1,4 @@
+import re
 from account.models import User
 
 
@@ -11,3 +12,7 @@ def is_nickname_exists(nickname):
 
 def is_email_exists(email):
     return User.objects.filter(email=email).exists()
+
+
+def is_email_reg_exp_valid(email):
+    return re.match(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email)

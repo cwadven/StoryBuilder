@@ -349,6 +349,17 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content['result'], 'success')
 
+    def test_sign_up_validation_should_fail_when_email_regexp_is_not_valid(self):
+        self.body['email'] = 'something'
+
+        # When: 회원가입 검증 요청
+        response = self.c.post(reverse('sign_up_validation'), self.body)
+        content = json.loads(response.content)
+
+        # Then: email 문제로 에러 반환
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['email'][0], UserCreationExceptionMessage.EMAIL_REG_EXP_INVALID.label)
+
     def test_sign_up_validation_should_fail_when_username_already_exists(self):
         # Given: 유저를 생성
         User.objects.create_user(username='test')
