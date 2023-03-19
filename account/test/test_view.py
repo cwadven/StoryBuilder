@@ -789,4 +789,4 @@ class LoginTestCase(LoginMixin, TestCase):
 
         # Then: 로그인 실패
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(content['result'], '이이디/비밀번호 문제가 발생했습니다.')
+        self.assertEqual(content['message'], '아이디/비밀번호 정보가 일치하지 않습니다.')

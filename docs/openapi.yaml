@@ -579,7 +579,7 @@ components:
       properties:
         result:
           type: string
-          example: '이이디/비밀번호 문제가 발생했습니다.'
+          example: '아이디/비밀번호 정보가 일치하지 않습니다.'
     StoryStartSuccessResponse:
       required:
         - sheet_id
