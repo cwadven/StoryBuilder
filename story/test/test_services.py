@@ -579,7 +579,7 @@ class CreateStoryLikeTestCase(TestCase):
         self.assertEqual(self.story.like_count, 0)
 
         # When: 함수 실행
-        story_like = create_story_like(self.user.id, self.story.id)
+        story_like = create_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()
@@ -590,7 +590,7 @@ class CreateStoryLikeTestCase(TestCase):
 
     def test_create_story_like_when_not_first_creation(self):
         # Given: 처음 Like 제거로 생성
-        story_like = create_story_like(self.user.id, self.story.id)
+        story_like = create_story_like(self.story.id, self.user.id)
         self.story.refresh_from_db()
         self.assertEqual(self.story.like_count, 1)
         story_like.is_deleted = True
@@ -600,7 +600,7 @@ class CreateStoryLikeTestCase(TestCase):
         self.story.save()
 
         # When: 함수 실행
-        new_story_like = create_story_like(self.user.id, self.story.id)
+        new_story_like = create_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()
@@ -623,12 +623,12 @@ class DeleteStoryLikeTestCase(TestCase):
 
     def test_delete_story_like(self):
         # Given: 처음 Like 생성
-        create_story_like(self.user.id, self.story.id)
+        create_story_like(self.story.id, self.user.id)
         self.story.refresh_from_db()
         self.assertEqual(self.story.like_count, 1)
 
         # When: 함수 실행
-        story_like = delete_story_like(self.user.id, self.story.id)
+        story_like = delete_story_like(self.story.id, self.user.id)
 
         # Then:
         self.story.refresh_from_db()

@@ -115,7 +115,7 @@ class LoginView(APIView):
     def post(self, request, m):
         user = authenticate(request, username=m['username'], password=m['password'])
         if not user:
-            return Response({'result': '이이디/비밀번호 문제가 발생했습니다.'}, status=400)
+            return Response({'message': '아이디/비밀번호 정보가 일치하지 않습니다.'}, status=400)
 
         login(request, user)
         context = {
