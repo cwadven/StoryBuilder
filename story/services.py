@@ -8,6 +8,15 @@ from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
 
+def get_active_stories() -> List[Story]:
+    return list(
+        Story.objects.filter(
+            is_deleted=False,
+            displayable=True
+        )
+    )
+
+
 def get_running_start_sheet_by_story(story_id) -> Sheet:
     """
     Story 에서 시작하는 처음 Sheet 가져오기

@@ -11,7 +11,7 @@ from story.services import (
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
-    create_story_like, update_story_total_like_count, delete_story_like,
+    create_story_like, update_story_total_like_count, delete_story_like, get_active_stories,
 )
 
 
@@ -664,3 +664,40 @@ class UpdateStoryLikeCountTestCase(TestCase):
         # Then: 개수 1 증가
         self.story.refresh_from_db()
         self.assertEqual(self.story.like_count, 1)
+
+
+class GetActiveStoriesTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.active_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.displayable_false_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            displayable=False,
+        )
+        self.deleted_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_deleted=True,
+        )
+
+    def test_get_active_stories(self):
+        # Given: setUp 에서 3개 Story 생성
+        active_stories = get_active_stories()
+
+        # Expect: 1개만 active
+        self.assertIsInstance(active_stories, list)
+        self.assertTrue(len(active_stories) == 1)
+        self.assertTrue(active_stories[0].id, self.active_story.id)
