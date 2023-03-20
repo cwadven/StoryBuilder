@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from account.models import User
+from story.constants import StoryLevel
 from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, \
     StoryDetailItemDTO
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
@@ -219,6 +220,7 @@ class StoryDetailItemDTOTestCase(TestCase):
             description='test_description',
             image='https://image.test',
             background_image='https://image.test',
+            level=2,
         )
 
     def test_story_list_item_dto(self):
@@ -240,4 +242,5 @@ class StoryDetailItemDTOTestCase(TestCase):
         self.assertEqual(story_list_item['review_rate'], self.story.review_rate)
         self.assertEqual(story_list_item['playing_point'], self.story.playing_point)
         self.assertEqual(story_list_item['free_to_play_sheet_count'], self.story.free_to_play_sheet_count)
+        self.assertEqual(story_list_item['level'], StoryLevel(self.story.level).selector)
         self.assertEqual(story_list_item['is_liked'], is_liked)

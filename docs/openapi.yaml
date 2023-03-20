@@ -948,6 +948,9 @@ components:
           type: integer
         free_to_play_sheet_count:
           type: integer
+        level:
+          type: string
+          example: '하'
         is_liked:
           type: boolean
       required:
@@ -961,6 +964,7 @@ components:
         - review_rate
         - playing_point
         - free_to_play_sheet_count
+        - level
         - is_liked
   securitySchemes:
     petstore_auth:

@@ -1,6 +1,7 @@
 import attr
 from typing import List, Dict
 
+from story.constants import StoryLevel
 from story.models import Sheet, UserSheetAnswerSolve, Story
 
 
@@ -107,6 +108,7 @@ class StoryDetailItemDTO(object):
     review_rate = attr.ib(type=float)
     playing_point = attr.ib(type=int)
     free_to_play_sheet_count = attr.ib(type=int)
+    level = attr.ib(type=str)
     is_liked = attr.ib(type=bool)
 
     @classmethod
@@ -122,6 +124,7 @@ class StoryDetailItemDTO(object):
             review_rate=story.review_rate,
             playing_point=story.playing_point,
             free_to_play_sheet_count=story.free_to_play_sheet_count,
+            level=StoryLevel(story.level).selector,
             is_liked=is_liked,
         )
 
