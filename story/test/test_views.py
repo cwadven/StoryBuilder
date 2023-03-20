@@ -141,6 +141,26 @@ class StoryPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertIsNone(content.get('answer_reply'))
         self.assertFalse(content.get('is_solved'))
 
+    def test_on_first_story_play_api_story_played_count_should_increase(self):
+        # Given:
+        self.login()
+
+        # When: story_play 요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+
+        # Then: Story 조회 성공
+        self.assertEqual(response.status_code, 200)
+        # And: 스토리 played_count 가 1 증가
+        story = Story.objects.get(id=self.story.id)
+        self.assertEqual(story.played_count, 1)
+
+        # When: story_play 재요청
+        response = self.c.get(reverse('story:story_play', args=[self.story.id]))
+
+        self.assertEqual(response.status_code, 200)
+        # Then: 기존에 1개가 UserStorySolve 로 올랐기 때문에 1개만 조회
+        self.assertEqual(story.played_count, 1)
+
     def test_get_story_play_api_should_create_user_story_solve_when_user_is_authenticated(self):
         # Given: 로그인
         self.login()

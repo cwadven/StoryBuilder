@@ -48,10 +48,15 @@ class StoryPlayAPIView(APIView):
     def get(self, request, story_id):
         start_sheet = get_running_start_sheet_by_story(story_id)
 
-        UserStorySolve.objects.get_or_create(
+        _, is_created = UserStorySolve.objects.get_or_create(
             story_id=story_id,
             user=request.user,
         )
+        if is_created:
+            story = Story.objects.get(id=story_id)
+            story.played_count += 1
+            story.save()
+
         UserSheetAnswerSolve.generate_cls_if_first_time(
             user=request.user,
             sheet_id=start_sheet.id,
