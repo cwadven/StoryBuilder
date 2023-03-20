@@ -701,3 +701,30 @@ class GetActiveStoriesTestCase(TestCase):
         self.assertIsInstance(active_stories, list)
         self.assertTrue(len(active_stories) == 1)
         self.assertTrue(active_stories[0].id, self.active_story.id)
+
+    def test_get_active_stories_by_search(self):
+        # Given: active_story 생성
+        active_story2 = Story.objects.create(
+            author=self.user,
+            title='test_aa',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+        # When:
+        active_stories = get_active_stories(search='test_a')
+
+        # Then: 1개 조회
+        self.assertIsInstance(active_stories, list)
+        self.assertTrue(len(active_stories) == 1)
+        self.assertTrue(active_stories[0].id, active_story2.id)
+
+        # When:
+        active_stories = get_active_stories(search='description')
+
+        # Then: 2개 조회
+        self.assertIsInstance(active_stories, list)
+        self.assertTrue(len(active_stories) == 2)
+        self.assertTrue(active_stories[0].id, active_story2.id)
+        self.assertTrue(active_stories[1].id, self.active_story.id)

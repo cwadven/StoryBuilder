@@ -2,17 +2,22 @@ import random
 from typing import List, Optional
 
 from django.db import transaction
+from django.db.models import Q
 
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
 from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
 
-def get_active_stories(start_row=None, end_row=None) -> List[Story]:
+def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
     qs = Story.objects.filter(
         is_deleted=False,
-        displayable=True
+        displayable=True,
     ).order_by('-id')
+
+    if search:
+        qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
+
     if start_row is not None and end_row is not None:
         return list(qs[start_row:end_row])
     return list(qs)
