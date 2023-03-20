@@ -49,6 +49,12 @@ class MissingMandatoryParameterException(APIException):
     default_code = 'missing-mandatory-parameter'
 
 
+class StoryDoesNotExists(APIException):
+    status_code = 400
+    default_detail = '스토리를 불러올 수 없습니다.'
+    default_code = 'story-does-not-exists'
+
+
 class StartingSheetDoesNotExists(APIException):
     status_code = 400
     default_detail = '스토리를 불러올 수 없습니다.'

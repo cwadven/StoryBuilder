@@ -6,6 +6,7 @@ from django.urls import reverse
 from freezegun import freeze_time
 
 from account.models import User
+from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike
 
@@ -830,3 +831,119 @@ class StoryLikeAPIViewTestCase(LoginMixin, TestCase):
         # Then: 실패
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['message'], '좋아요를 한적이 없습니다.')
+
+
+class StoryListAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(StoryListAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story1 = Story.objects.create(
+            author=self.user,
+            title='test_story1',
+            description='test_description1',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.story2 = Story.objects.create(
+            author=self.user,
+            title='test_story2',
+            description='test_description2',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_story_list_api(self):
+        # Given:
+        # When: story list 요청
+        response = self.c.get(reverse('story:story_list'))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 2)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
+        self.assertEqual(content['stories'][1]['id'], self.story1.id)
+
+    def test_story_list_api_with_paging(self):
+        # Given:
+        size = 1
+
+        # When: story list paging과 함께 요청
+        response = self.c.get(reverse('story:story_list'), data={'size': size})
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 1)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
+
+    def test_story_list_api_with_search(self):
+        # Given:
+        search = self.story2.title
+
+        # When: story list paging과 함께 요청
+        response = self.c.get(reverse('story:story_list'), data={'search': search})
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 1)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
+
+
+class StoryDetailAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(StoryDetailAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story1',
+            description='test_description1',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_story_detail_api_should_success(self):
+        # Given: 좋아요 생성
+        StoryLike.objects.create(
+            user=self.c.user,
+            story=self.story,
+        )
+        # When: story detail 요청
+        response = self.c.get(reverse('story:story_detail', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story detail 반환
+        self.assertEqual(content['id'], self.story.id)
+        self.assertEqual(content['title'], self.story.title)
+        self.assertEqual(content['description'], self.story.description)
+        self.assertEqual(content['image'], self.story.image)
+        self.assertEqual(content['background_image'], self.story.background_image)
+        self.assertEqual(content['played_count'], self.story.played_count)
+        self.assertEqual(content['like_count'], self.story.like_count)
+        self.assertEqual(content['review_rate'], self.story.review_rate)
+        self.assertEqual(content['playing_point'], self.story.playing_point)
+        self.assertEqual(content['free_to_play_sheet_count'], self.story.free_to_play_sheet_count)
+        # And: is_liked True
+        self.assertTrue(content['is_liked'])
+
+    def test_story_detail_api_should_fail_when_story_not_exists(self):
+        # Given:
+        self.story.is_deleted = True
+        self.story.save()
+
+        # When: story detail 요청
+        response = self.c.get(reverse('story:story_detail', args=[9999]))
+        content = json.loads(response.content)
+
+        # Then: 에러 접근
+        self.assertEqual(response.status_code, 400)
+        # And: fail 반환
+        self.assertEqual(content['message'], StoryDoesNotExists.default_detail)
