@@ -24,7 +24,7 @@ def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
     return list(qs)
 
 
-def get_active_story_by_id(story_id: int):
+def get_active_story_by_id(story_id: int) -> Story:
     try:
         return Story.objects.get(
             id=story_id,
