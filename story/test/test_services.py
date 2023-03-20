@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock
+
 from django.test import TestCase
 
 from account.models import User
-from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
+from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
+    StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
     StoryEmailSubscription, StoryLike
@@ -11,7 +14,7 @@ from story.services import (
     get_valid_answer_info_with_random_quantity,
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
-    create_story_like, update_story_total_like_count, delete_story_like, get_active_stories,
+    create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
 )
 
 
@@ -728,3 +731,41 @@ class GetActiveStoriesTestCase(TestCase):
         self.assertTrue(len(active_stories) == 2)
         self.assertTrue(active_stories[0].id, active_story2.id)
         self.assertTrue(active_stories[1].id, self.active_story.id)
+
+
+class TestGetActiveStoryById(TestCase):
+    def setUp(self):
+        self.story1 = Story(id=1, is_deleted=False, displayable=True)
+        self.story2 = Story(id=2, is_deleted=True, displayable=True)
+        self.story3 = Story(id=3, is_deleted=False, displayable=False)
+        self.story4 = Story(id=4, is_deleted=True, displayable=False)
+
+        Story.objects.get = MagicMock(side_effect=self.mock_get)
+        Story.DoesNotExist = ValueError
+
+    def mock_get(self, id, is_deleted, displayable):
+        stories = [self.story1, self.story2, self.story3, self.story4]
+        for story in stories:
+            if story.id == id and story.is_deleted == is_deleted and story.displayable == displayable:
+                return story
+        raise Story.DoesNotExist("Story not found")
+
+    def test_get_active_story_by_id(self):
+        # Given:
+        # When: 조회
+        active_story = get_active_story_by_id(1)
+
+        # Then: 1번 story 조회
+        self.assertEqual(active_story, self.story1)
+
+    def test_story_does_not_exist(self):
+        # Given:
+        # Expect: is_deleted True
+        with self.assertRaises(StoryDoesNotExists):
+            get_active_story_by_id(2)
+        # Expect: displayable False
+        with self.assertRaises(StoryDoesNotExists):
+            get_active_story_by_id(3)
+        # Expect: is_deleted True
+        with self.assertRaises(StoryDoesNotExists):
+            get_active_story_by_id(4)

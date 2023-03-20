@@ -4,7 +4,8 @@ from typing import List, Optional
 from django.db import transaction
 from django.db.models import Q
 
-from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException
+from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
+    StoryDoesNotExists
 from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
@@ -21,6 +22,17 @@ def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
     if start_row is not None and end_row is not None:
         return list(qs[start_row:end_row])
     return list(qs)
+
+
+def get_active_story_by_id(story_id: int):
+    try:
+        return Story.objects.get(
+            id=story_id,
+            is_deleted=False,
+            displayable=True,
+        )
+    except Story.DoesNotExist:
+        raise StoryDoesNotExists()
 
 
 def get_running_start_sheet_by_story(story_id) -> Sheet:
