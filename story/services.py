@@ -8,13 +8,14 @@ from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
 
 
-def get_active_stories() -> List[Story]:
-    return list(
-        Story.objects.filter(
-            is_deleted=False,
-            displayable=True
-        )
-    )
+def get_active_stories(start_row=None, end_row=None) -> List[Story]:
+    qs = Story.objects.filter(
+        is_deleted=False,
+        displayable=True
+    ).order_by('-id')
+    if start_row is not None and end_row is not None:
+        return list(qs[start_row:end_row])
+    return list(qs)
 
 
 def get_running_start_sheet_by_story(story_id) -> Sheet:
