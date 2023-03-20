@@ -33,6 +33,7 @@ class TestStoryAdminForm(TestCase):
             'like_count': 0,
             'playing_point': 0,
             'free_to_play_sheet_count': 0,
+            'level': 0,
             '_save': 'Save',
         }
         im = Image.new(mode='RGB', size=(200, 200))
