@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from account.models import User
 from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
+from story.constants import StoryLevel
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike
 
 
@@ -930,6 +931,7 @@ class StoryDetailAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content['like_count'], self.story.like_count)
         self.assertEqual(content['review_rate'], self.story.review_rate)
         self.assertEqual(content['playing_point'], self.story.playing_point)
+        self.assertEqual(content['level'], StoryLevel(self.story.level).selector)
         self.assertEqual(content['free_to_play_sheet_count'], self.story.free_to_play_sheet_count)
         # And: is_liked True
         self.assertTrue(content['is_liked'])

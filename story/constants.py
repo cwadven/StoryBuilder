@@ -10,3 +10,8 @@ class StoryLevel(IntValueSelector):
     NORMAL = (1, '중')
     HARD = (2, '상')
     EXPERT = (3, '최상')
+    NOT_FOUND = (999, '?')
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.NOT_FOUND
