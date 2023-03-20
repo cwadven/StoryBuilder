@@ -113,6 +113,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserLoginFailResponse'
+  /v1/story/:
+    get:
+      tags:
+        - Story Display
+      summary: 스토리 리스트 조회
+      description: 스토리 리스트 조회
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: 검색 (title, description)
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 페이지 (default = 1)
+          required: false
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 데이터 가져오는 개수 (default = 10)
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of stories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StoryListItemDTO'
   /v1/story/{story_id}/play:
     get:
       tags:
@@ -594,14 +637,14 @@ components:
         - is_solved
       type: object
       properties:
-        sheet_id: 
+        sheet_id:
           type: integer
           example: 3
-        title: 
+        title:
           type: string
           format: nullable
           example: '어디서부터 시작을 해야하지?'
-        question: 
+        question:
           type: string
           format: nullable
           example: '단서를 찾기 위해 창우 집을 가봐야겠어! 창우 집 주소가 어떻게 됐더라? (정확한 도로명주소 "시" "구" 그리고 "호수"는 정답으로 작성할 필요가 없습니다.)'
@@ -828,6 +871,26 @@ components:
         message:
           type: string
           example: '최근에 해결 못한 sheet 가 없습니다.'
+    StoryListItemDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        background_image:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - image
+        - background_image
   securitySchemes:
     petstore_auth:
       type: oauth2
