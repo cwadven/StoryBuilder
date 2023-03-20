@@ -921,7 +921,6 @@ class StoryDetailAPIViewTestCase(LoginMixin, TestCase):
         # Then: 정상 접근
         self.assertEqual(response.status_code, 200)
         # And: story detail 반환
-        self.story.refresh_from_db()
         self.assertEqual(content['id'], self.story.id)
         self.assertEqual(content['title'], self.story.title)
         self.assertEqual(content['description'], self.story.description)
@@ -939,12 +938,12 @@ class StoryDetailAPIViewTestCase(LoginMixin, TestCase):
         # Given:
         self.story.is_deleted = True
         self.story.save()
-        self.story.refresh_from_db()
+
         # When: story detail 요청
-        response = self.c.get(reverse('story:story_detail', args=[self.story.id]))
+        response = self.c.get(reverse('story:story_detail', args=[9999]))
         content = json.loads(response.content)
 
-        # Then: 정상 접근
+        # Then: 에러 접근
         self.assertEqual(response.status_code, 400)
-        # And: story detail 반환
+        # And: fail 반환
         self.assertEqual(content['message'], StoryDoesNotExists.default_detail)

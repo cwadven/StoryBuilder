@@ -735,20 +735,10 @@ class GetActiveStoriesTestCase(TestCase):
 
 class TestGetActiveStoryById(TestCase):
     def setUp(self):
-        self.story1 = Story(id=1, is_deleted=False, displayable=True)
-        self.story2 = Story(id=2, is_deleted=True, displayable=True)
-        self.story3 = Story(id=3, is_deleted=False, displayable=False)
-        self.story4 = Story(id=4, is_deleted=True, displayable=False)
-
-        Story.objects.get = MagicMock(side_effect=self.mock_get)
-        Story.DoesNotExist = ValueError
-
-    def mock_get(self, id, is_deleted, displayable):
-        stories = [self.story1, self.story2, self.story3, self.story4]
-        for story in stories:
-            if story.id == id and story.is_deleted == is_deleted and story.displayable == displayable:
-                return story
-        raise Story.DoesNotExist("Story not found")
+        self.story1 = Story.objects.create(is_deleted=False, displayable=True)
+        self.story2 = Story.objects.create(is_deleted=True, displayable=True)
+        self.story3 = Story.objects.create(is_deleted=False, displayable=False)
+        self.story4 = Story.objects.create(is_deleted=True, displayable=False)
 
     def test_get_active_story_by_id(self):
         # Given:
