@@ -1,9 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common_decorator import mandatories, custom_login_required_for_method
+from common_decorator import mandatories, custom_login_required_for_method, pagination
 from story.constants import StoryErrorMessage
-from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO
+from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story
 from story.services import (
     get_running_start_sheet_by_story,
@@ -11,8 +11,21 @@ from story.services import (
     get_valid_answer_info_with_random_quantity,
     get_running_sheet,
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
-    create_story_like, delete_story_like,
+    create_story_like, delete_story_like, get_active_stories,
 )
+
+
+class StoryListAPIView(APIView):
+    @pagination(default_size=10)
+    def get(self, request, start_row, end_row):
+        search = request.GET.get('search', '')
+        stories = get_active_stories(search, start_row, end_row)
+        return Response(
+            data={
+                'stories': [StoryListItemDTO.of(story).to_dict() for story in stories]
+            },
+            status=200
+        )
 
 
 class StoryPlayAPIView(APIView):

@@ -830,3 +830,65 @@ class StoryLikeAPIViewTestCase(LoginMixin, TestCase):
         # Then: 실패
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['message'], '좋아요를 한적이 없습니다.')
+
+
+class StoryListAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(StoryListAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story1 = Story.objects.create(
+            author=self.user,
+            title='test_story1',
+            description='test_description1',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.story2 = Story.objects.create(
+            author=self.user,
+            title='test_story2',
+            description='test_description2',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_story_list_api(self):
+        # Given:
+        # When: story list 요청
+        response = self.c.get(reverse('story:story_list'))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 2)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
+        self.assertEqual(content['stories'][1]['id'], self.story1.id)
+
+    def test_story_list_api_with_paging(self):
+        # Given:
+        size = 1
+
+        # When: story list paging과 함께 요청
+        response = self.c.get(reverse('story:story_list'), data={'size': size})
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 1)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
+
+    def test_story_list_api_with_search(self):
+        # Given:
+        search = self.story2.title
+
+        # When: story list paging과 함께 요청
+        response = self.c.get(reverse('story:story_list'), data={'search': search})
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['stories']), 1)
+        self.assertEqual(content['stories'][0]['id'], self.story2.id)
