@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import models
 
 from account.models import User
+from .constants import StoryLevel
 from .task import send_user_sheet_solved_email
 
 
@@ -22,6 +23,11 @@ class Story(models.Model):
     playing_point = models.IntegerField(verbose_name='플레이를 위한 포인트', default=0)
     need_to_pay = models.BooleanField(verbose_name='구매 여부', default=False)
     free_to_play_sheet_count = models.IntegerField(verbose_name='무료로 즐길 수 있는 Sheet 갯수', default=0)
+    level = models.IntegerField(
+        verbose_name='난이도',
+        default=StoryLevel.EASY.value,
+        help_text='0: 하, 1: 중, 2: 상, 3: 최상',
+    )
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
 
