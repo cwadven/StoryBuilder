@@ -2,7 +2,7 @@ import attr
 from typing import List, Dict
 
 from story.constants import StoryLevel
-from story.models import Sheet, UserSheetAnswerSolve, Story
+from story.models import Sheet, UserSheetAnswerSolve, Story, UserStorySolve
 
 
 @attr.s
