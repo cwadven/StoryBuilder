@@ -93,3 +93,37 @@ class StoryListItemDTO(object):
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class StoryDetailItemDTO(object):
+    id = attr.ib(type=int)
+    title = attr.ib(type=str)
+    description = attr.ib(type=str)
+    image = attr.ib(type=str)
+    background_image = attr.ib(type=str)
+    played_count = attr.ib(type=int)
+    like_count = attr.ib(type=int)
+    review_rate = attr.ib(type=float)
+    playing_point = attr.ib(type=int)
+    free_to_play_sheet_count = attr.ib(type=int)
+    is_liked = attr.ib(type=bool)
+
+    @classmethod
+    def of(cls, story: Story, is_liked: bool):
+        return cls(
+            id=story.id,
+            title=story.title,
+            description=story.description,
+            image=story.image,
+            background_image=story.background_image,
+            played_count=story.played_count,
+            like_count=story.like_count,
+            review_rate=story.review_rate,
+            playing_point=story.playing_point,
+            free_to_play_sheet_count=story.free_to_play_sheet_count,
+            is_liked=is_liked,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)

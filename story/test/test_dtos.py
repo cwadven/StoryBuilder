@@ -1,7 +1,8 @@
 from django.test import TestCase
 
 from account.models import User
-from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO
+from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, \
+    StoryDetailItemDTO
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
 
 
@@ -207,3 +208,36 @@ class StoryListItemDTOTestCase(TestCase):
         self.assertEqual(story_list_item['description'], self.story.description)
         self.assertEqual(story_list_item['image'], self.story.image)
         self.assertEqual(story_list_item['background_image'], self.story.background_image)
+
+
+class StoryDetailItemDTOTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_story_list_item_dto(self):
+        # Given:
+        is_liked = True
+
+        # When: dto 객체 생성
+        story_list_item_dto = StoryDetailItemDTO.of(self.story, is_liked=is_liked)
+        story_list_item = story_list_item_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(story_list_item['id'], self.story.id)
+        self.assertEqual(story_list_item['title'], self.story.title)
+        self.assertEqual(story_list_item['description'], self.story.description)
+        self.assertEqual(story_list_item['image'], self.story.image)
+        self.assertEqual(story_list_item['background_image'], self.story.background_image)
+        self.assertEqual(story_list_item['played_count'], self.story.played_count)
+        self.assertEqual(story_list_item['like_count'], self.story.like_count)
+        self.assertEqual(story_list_item['review_rate'], self.story.review_rate)
+        self.assertEqual(story_list_item['playing_point'], self.story.playing_point)
+        self.assertEqual(story_list_item['free_to_play_sheet_count'], self.story.free_to_play_sheet_count)
+        self.assertEqual(story_list_item['is_liked'], is_liked)
