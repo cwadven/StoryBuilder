@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import AnonymousUser
 from django.db import models
 
 from account.models import User
@@ -248,3 +249,9 @@ class StoryLike(models.Model):
     @classmethod
     def get_active_story_like_count(cls, story_id):
         return cls.objects.filter(story_id=story_id, is_deleted=False).count()
+
+    @classmethod
+    def is_user_has_active_story_like(cls, user, story_id):
+        if isinstance(user, AnonymousUser):
+            return False
+        return cls.objects.filter(user=user, story_id=story_id, is_deleted=False).exists()

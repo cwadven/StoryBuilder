@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from unittest.mock import patch, Mock
 from freezegun import freeze_time
@@ -313,3 +314,47 @@ class StoryLikeMethodTestCase(TestCase):
 
         # Then: 5 반환
         self.assertEqual(active_story_like_count, 5)
+
+
+class TestIsUserHasActiveStoryLike(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.anonymous_user = AnonymousUser()
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_is_user_has_active_story_like_should_return_false_when_anonymous_user(self):
+        # Given: AnonymousUser
+
+        # When: is_user_has_active_story_like 실행
+        result = StoryLike.is_user_has_active_story_like(self.anonymous_user, self.story.id)
+
+        # Then: False 반환
+        self.assertFalse(result)
+
+    def test_is_user_has_active_story_like_should_return_false_when_user_not_exists_like(self):
+        # Given:
+
+        # When: is_user_has_active_story_like 실행
+        result = StoryLike.is_user_has_active_story_like(self.user, self.story.id)
+
+        # Then: False 반환
+        self.assertFalse(result)
+
+    def test_is_user_has_active_story_like_should_return_true_when_user_exists_like(self):
+        # Given:
+        StoryLike.objects.create(
+            story=self.story,
+            user=self.user,
+        )
+
+        # When: is_user_has_active_story_like 실행
+        result = StoryLike.is_user_has_active_story_like(self.user, self.story.id)
+
+        # Then: True 반환
+        self.assertTrue(result)
