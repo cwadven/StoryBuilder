@@ -743,7 +743,7 @@ class TestGetActiveStoryById(TestCase):
     def test_get_active_story_by_id(self):
         # Given:
         # When: 조회
-        active_story = get_active_story_by_id(1)
+        active_story = get_active_story_by_id(self.story1.id)
 
         # Then: 1번 story 조회
         self.assertEqual(active_story, self.story1)
@@ -752,10 +752,10 @@ class TestGetActiveStoryById(TestCase):
         # Given:
         # Expect: is_deleted True
         with self.assertRaises(StoryDoesNotExists):
-            get_active_story_by_id(2)
+            get_active_story_by_id(self.story2.id)
         # Expect: displayable False
         with self.assertRaises(StoryDoesNotExists):
-            get_active_story_by_id(3)
+            get_active_story_by_id(self.story3.id)
         # Expect: is_deleted True
         with self.assertRaises(StoryDoesNotExists):
-            get_active_story_by_id(4)
+            get_active_story_by_id(self.story4.id)
