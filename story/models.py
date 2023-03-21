@@ -35,6 +35,15 @@ class Story(models.Model):
         return f'{self.id} {self.title}'
 
 
+class PopularStory(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.id} {self.story.title}'
+
+
 class UserStorySolve(models.Model):
     STATUS_CHOICES = (
         ('solving', '진행중'),
