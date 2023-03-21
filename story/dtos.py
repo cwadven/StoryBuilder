@@ -97,6 +97,24 @@ class StoryListItemDTO(object):
 
 
 @attr.s
+class StoryPopularListItemDTO(object):
+    id = attr.ib(type=int)
+    title = attr.ib(type=str)
+    image = attr.ib(type=str)
+
+    @classmethod
+    def of(cls, story: Story):
+        return cls(
+            id=story.id,
+            title=story.title,
+            image=story.image,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
 class StoryDetailItemDTO(object):
     id = attr.ib(type=int)
     title = attr.ib(type=str)

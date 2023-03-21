@@ -3,7 +3,7 @@ from django.test import TestCase
 from account.models import User
 from story.constants import StoryLevel
 from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, \
-    StoryDetailItemDTO
+    StoryDetailItemDTO, StoryPopularListItemDTO
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
 
 
@@ -209,6 +209,29 @@ class StoryListItemDTOTestCase(TestCase):
         self.assertEqual(story_list_item['description'], self.story.description)
         self.assertEqual(story_list_item['image'], self.story.image)
         self.assertEqual(story_list_item['background_image'], self.story.background_image)
+
+
+class StoryPopularListItemDTOTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_story_list_item_dto(self):
+        # Given:
+        # When: dto 객체 생성
+        story_popular_list_item_dto = StoryPopularListItemDTO.of(self.story)
+        story_popular_list_item = story_popular_list_item_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(story_popular_list_item['id'], self.story.id)
+        self.assertEqual(story_popular_list_item['title'], self.story.title)
+        self.assertEqual(story_popular_list_item['image'], self.story.image)
 
 
 class StoryDetailItemDTOTestCase(TestCase):
