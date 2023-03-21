@@ -37,6 +37,7 @@ class Story(models.Model):
 
 class PopularStory(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    rank = models.IntegerField(verbose_name='순위', default=0)
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
