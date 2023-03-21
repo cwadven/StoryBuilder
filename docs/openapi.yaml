@@ -563,7 +563,7 @@ components:
           description: 'sheet_id'
         answer:
           type: string
-          example: '0503'
+          example: '마음의 눈으로 보시지요'
           description: '정답'
     SheetHintRequestBody:
       required:
@@ -805,7 +805,7 @@ components:
           example: 14
         answer_reply:
           type: string
-          example: '창우 너무 단순하게 비밀번호 짠거 아니야? 아까도 집 비밀번호도 그렇고! 설마 다음에도 나오는 모든 4자리 비밀번호 똑같은 거는 아니겠지?? 생각을 그만하고 안에 무엇이 들었는지 확인하자!'
+          example: '마음의 눈으로 보시지요.'
     SheetAnswerSubmitFailResponse:
       required:
         - message
