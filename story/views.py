@@ -13,6 +13,7 @@ from story.services import (
     get_running_sheet,
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
     create_story_like, delete_story_like, get_active_stories, get_active_story_by_id, get_active_popular_stories,
+    get_stories_order_by_fields,
 )
 
 
@@ -47,6 +48,15 @@ class StoryDetailAPIView(APIView):
 class StoryPopularListAPIView(APIView):
     def get(self, request):
         popular_stories = get_active_popular_stories()
+        if not popular_stories:
+            return Response(
+                data={
+                    'popular_stories': [
+                        StoryPopularListItemDTO.by_story(story).to_dict() for story in get_stories_order_by_fields('-like_count')
+                    ]
+                },
+                status=200
+            )
         return Response(
             data={
                 'popular_stories': [
