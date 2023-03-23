@@ -113,7 +113,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserLoginFailResponse'
-  /v1/story/:
+  /v1/story:
     get:
       tags:
         - Story Display
@@ -188,6 +188,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StoryStartFailResponse'
+  /v1/story/popular:
+    get:
+      tags:
+        - Story Display
+      summary: 스토리 인기 리스트 조회
+      description: 스토리 인기 리스트 조회
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of stories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  popular_stories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PopularStoryListItemDTO'
   /v1/story/{story_id}/play:
     get:
       tags:
@@ -923,6 +948,20 @@ components:
         - description
         - image
         - background_image
+    PopularStoryListItemDTO:
+      type: object
+      properties:
+        story_id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        image:
+          type: string
+      required:
+        - story_id
+        - title
+        - image
     StoryDetailItemDTO:
       type: object
       properties:
