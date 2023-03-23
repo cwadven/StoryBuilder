@@ -34,6 +34,14 @@ def get_active_popular_stories() -> List[PopularStory]:
     return list(qs)
 
 
+def get_stories_order_by_fields(*args) -> List[Story]:
+    qs = Story.objects.filter(
+        is_deleted=False,
+        displayable=True,
+    ).order_by(*args)
+    return list(qs)
+
+
 def get_active_story_by_id(story_id: int) -> Story:
     try:
         return Story.objects.get(
