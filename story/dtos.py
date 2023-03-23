@@ -98,14 +98,14 @@ class StoryListItemDTO(object):
 
 @attr.s
 class StoryPopularListItemDTO(object):
-    id = attr.ib(type=int)
+    story_id = attr.ib(type=int)
     title = attr.ib(type=str)
     image = attr.ib(type=str)
 
     @classmethod
     def of(cls, popular_story: PopularStory):
         return cls(
-            id=popular_story.story.id,
+            story_id=popular_story.story.id,
             title=popular_story.story.title,
             image=popular_story.story.image,
         )

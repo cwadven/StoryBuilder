@@ -235,7 +235,7 @@ class StoryPopularListItemDTOTestCase(TestCase):
         story_popular_list_item = story_popular_list_item_dto.to_dict()
 
         # Then: set dto
-        self.assertEqual(story_popular_list_item['id'], self.story.id)
+        self.assertEqual(story_popular_list_item['story_id'], self.story.id)
         self.assertEqual(story_popular_list_item['title'], self.story.title)
         self.assertEqual(story_popular_list_item['image'], self.story.image)
 
