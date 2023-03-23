@@ -15,7 +15,7 @@ class Story(models.Model):
     image = models.TextField(verbose_name='대표 이미지', blank=True, null=True)
     background_image = models.TextField(verbose_name='대표 배경 이미지', blank=True, null=True)
     played_count = models.IntegerField(verbose_name='플레이 횟수', default=0)
-    like_count = models.IntegerField(verbose_name='좋아요 횟수', default=0)
+    like_count = models.IntegerField(verbose_name='좋아요 횟수', default=0, db_index=True)
     view_count = models.IntegerField(verbose_name='조회 횟수', default=0)
     review_rate = models.IntegerField(verbose_name='평점', default=0)
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False)
