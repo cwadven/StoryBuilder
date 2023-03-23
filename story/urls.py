@@ -7,7 +7,7 @@ from story.views import (
     StoryLikeAPIView,
     StoryPlayAPIView,
     SheetPlayAPIView,
-    StoryPlayGetRecentUnsolvedSheetAPIView,
+    StoryPlayGetRecentUnsolvedSheetAPIView, StoryPopularListAPIView,
 )
 
 
@@ -16,6 +16,8 @@ app_name = 'story'
 urlpatterns = [
     path('', StoryListAPIView.as_view(), name='story_list'),
     path('<int:story_id>', StoryDetailAPIView.as_view(), name='story_detail'),
+
+    path('popular', StoryPopularListAPIView.as_view(), name='story_popular_list'),
 
     path('<int:story_id>/play', StoryPlayAPIView.as_view(), name='story_play'),
     path('<int:story_id>/recent-play-sheet', StoryPlayGetRecentUnsolvedSheetAPIView.as_view(), name='get_recent_play_sheet'),
