@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
     StoryDoesNotExists
+from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
 from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory
 
@@ -39,7 +40,7 @@ def get_stories_order_by_fields(*args) -> List[Story]:
         is_deleted=False,
         displayable=True,
     ).order_by(*args)
-    return list(qs)
+    return list(qs[:DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT])
 
 
 def get_active_story_by_id(story_id: int) -> Story:

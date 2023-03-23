@@ -775,12 +775,14 @@ class TestGetActiveStoryById(TestCase):
         self.story3.is_deleted = False
         self.story3.displayable = True
         self.story3.save()
+        for i in range(10):
+            Story.objects.create(is_deleted=False, displayable=True)
 
         # When: 조회
         order_by_like_count_active_stories = get_stories_order_by_fields('-like_count')
 
-        # Then: 3개의 Story 조회
-        self.assertEqual(len(order_by_like_count_active_stories), 3)
+        # Then: 최대 6개의 Story 조회
+        self.assertEqual(len(order_by_like_count_active_stories), 6)
         # And: like_count 내림차순 정렬
         self.assertEqual(order_by_like_count_active_stories[0].id, self.story2.id)
         self.assertEqual(order_by_like_count_active_stories[1].id, self.story3.id)
