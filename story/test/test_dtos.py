@@ -4,7 +4,7 @@ from account.models import User
 from story.constants import StoryLevel
 from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, \
     StoryDetailItemDTO, StoryPopularListItemDTO
-from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, PopularStory
 
 
 class DTOSheetAnswerResponseTestCase(TestCase):
@@ -221,11 +221,17 @@ class StoryPopularListItemDTOTestCase(TestCase):
             image='https://image.test',
             background_image='https://image.test',
         )
+        self.popular_story = PopularStory.objects.create(
+            story=self.story,
+            rank=1,
+            like_count=1,
+            base_past_second=1,
+        )
 
     def test_story_list_item_dto(self):
         # Given:
         # When: dto 객체 생성
-        story_popular_list_item_dto = StoryPopularListItemDTO.of(self.story)
+        story_popular_list_item_dto = StoryPopularListItemDTO.of(self.popular_story)
         story_popular_list_item = story_popular_list_item_dto.to_dict()
 
         # Then: set dto

@@ -2,7 +2,7 @@ import attr
 from typing import List, Dict
 
 from story.constants import StoryLevel
-from story.models import Sheet, UserSheetAnswerSolve, Story, UserStorySolve
+from story.models import Sheet, UserSheetAnswerSolve, Story, UserStorySolve, PopularStory
 
 
 @attr.s
@@ -103,11 +103,11 @@ class StoryPopularListItemDTO(object):
     image = attr.ib(type=str)
 
     @classmethod
-    def of(cls, story: Story):
+    def of(cls, popular_story: PopularStory):
         return cls(
-            id=story.id,
-            title=story.title,
-            image=story.image,
+            id=popular_story.story.id,
+            title=popular_story.story.title,
+            image=popular_story.story.image,
         )
 
     def to_dict(self):
