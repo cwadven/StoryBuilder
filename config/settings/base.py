@@ -137,6 +137,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 # 로거 설정
 LOGGING = {
     'version': 1,
