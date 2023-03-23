@@ -228,10 +228,21 @@ class StoryPopularListItemDTOTestCase(TestCase):
             base_past_second=1,
         )
 
-    def test_story_list_item_dto(self):
+    def test_popular_story_list_item_dto(self):
         # Given:
         # When: dto 객체 생성
         story_popular_list_item_dto = StoryPopularListItemDTO.of(self.popular_story)
+        story_popular_list_item = story_popular_list_item_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(story_popular_list_item['story_id'], self.story.id)
+        self.assertEqual(story_popular_list_item['title'], self.story.title)
+        self.assertEqual(story_popular_list_item['image'], self.story.image)
+
+    def test_popular_story_list_item_dto_by_story(self):
+        # Given:
+        # When: dto 객체 생성
+        story_popular_list_item_dto = StoryPopularListItemDTO.by_story(self.story)
         story_popular_list_item = story_popular_list_item_dto.to_dict()
 
         # Then: set dto
