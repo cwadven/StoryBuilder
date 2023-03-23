@@ -113,7 +113,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserLoginFailResponse'
-  /v1/story:
+  /v1/story/:
     get:
       tags:
         - Story Display

@@ -15,7 +15,7 @@ from story.services import (
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
-    get_active_popular_stories,
+    get_active_popular_stories, get_stories_order_by_fields,
 )
 
 
@@ -760,6 +760,33 @@ class TestGetActiveStoryById(TestCase):
         # Expect: is_deleted True
         with self.assertRaises(StoryDoesNotExists):
             get_active_story_by_id(self.story4.id)
+
+    def test_get_stories_order_by_fields(self):
+        # Given: like_count 적용
+        self.story1.like_count = 2
+        self.story1.is_deleted = False
+        self.story1.displayable = True
+        self.story1.save()
+        self.story2.like_count = 6
+        self.story2.is_deleted = False
+        self.story2.displayable = True
+        self.story2.save()
+        self.story3.like_count = 3
+        self.story3.is_deleted = False
+        self.story3.displayable = True
+        self.story3.save()
+        for i in range(10):
+            Story.objects.create(is_deleted=False, displayable=True, like_count=1)
+
+        # When: 조회
+        order_by_like_count_active_stories = get_stories_order_by_fields('-like_count')
+
+        # Then: 최대 6개의 Story 조회
+        self.assertEqual(len(order_by_like_count_active_stories), 6)
+        # And: like_count 내림차순 정렬
+        self.assertEqual(order_by_like_count_active_stories[0].id, self.story2.id)
+        self.assertEqual(order_by_like_count_active_stories[1].id, self.story3.id)
+        self.assertEqual(order_by_like_count_active_stories[2].id, self.story1.id)
 
 
 class GetActivePopularStoriesTestCase(TestCase):

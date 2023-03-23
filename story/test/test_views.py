@@ -980,12 +980,31 @@ class PopularStoryListAPIViewTestCase(LoginMixin, TestCase):
         # self.displayable_false_popular_story: story 가 displayable False
         # self.deleted_popular_story_by_story: story 가 is_deleted True
         # self.deleted_popular_story: popular story 가 is_deleted True
+
+        # When:
         response = self.c.get(reverse('story:story_popular_list'))
         content = json.loads(response.content)
 
         # Then: 정상 접근
         self.assertEqual(response.status_code, 200)
         # And: story list 반환
+        self.assertEqual(len(content['popular_stories']), 1)
+        self.assertEqual(content['popular_stories'][0]['story_id'], self.active_story.id)
+
+    def test_popular_story_list_api_when_popular_story_not_exists(self):
+        # Given: PopularStory 제거
+        PopularStory.objects.all().delete()
+        # And: active_story 에 like_count 1 추가
+        self.active_story.like_count = 1
+        self.active_story.save()
+
+        # When:
+        response = self.c.get(reverse('story:story_popular_list'))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: Story 에서 확인 후, story list 반환
         self.assertEqual(len(content['popular_stories']), 1)
         self.assertEqual(content['popular_stories'][0]['story_id'], self.active_story.id)
 

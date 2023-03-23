@@ -15,3 +15,6 @@ class StoryLevel(IntValueSelector):
     @classmethod
     def _missing_(cls, value):
         return cls.NOT_FOUND
+
+
+DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT = 6

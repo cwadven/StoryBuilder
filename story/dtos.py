@@ -110,6 +110,14 @@ class StoryPopularListItemDTO(object):
             image=popular_story.story.image,
         )
 
+    @classmethod
+    def by_story(cls, story: Story):
+        return cls(
+            story_id=story.id,
+            title=story.title,
+            image=story.image,
+        )
+
     def to_dict(self):
         return attr.asdict(self, recurse=True)
 
