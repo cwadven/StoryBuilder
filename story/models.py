@@ -35,6 +35,26 @@ class Story(models.Model):
         return f'{self.id} {self.title}'
 
 
+class PopularStory(models.Model):
+    """
+    인기 스토리
+    rank 순위
+    like_count 좋아요 개수 (base_past_second 기준 인기 스토리가 된 기준의 like_count)
+    base_past_second 기준 과거 초 (인기 스토리가 된 기준의 과거 초) ex) 10 -> 현재로 부터 10초 전, 기준 생성한 like_count 용으로 사용
+    is_deleted 삭제 여부
+    """
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    rank = models.IntegerField(verbose_name='순위', db_index=True)
+    like_count = models.IntegerField(verbose_name='좋아요 개수')
+    base_past_second = models.IntegerField(verbose_name='기준 과거 초')
+    is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False, db_index=True)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.id} {self.story.title}'
+
+
 class UserStorySolve(models.Model):
     STATUS_CHOICES = (
         ('solving', '진행중'),

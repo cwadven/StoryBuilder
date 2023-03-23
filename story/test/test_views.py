@@ -9,7 +9,8 @@ from account.models import User
 from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.constants import StoryLevel
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike, \
+    PopularStory
 
 
 def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
@@ -914,6 +915,79 @@ class StoryListAPIViewTestCase(LoginMixin, TestCase):
         # And: story list 반환
         self.assertEqual(len(content['stories']), 1)
         self.assertEqual(content['stories'][0]['id'], self.story2.id)
+
+
+class PopularStoryListAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(PopularStoryListAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.active_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.displayable_false_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            displayable=False,
+        )
+        self.deleted_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_deleted=True,
+        )
+        self.popular_story = PopularStory.objects.create(
+            story=self.active_story,
+            rank=1,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.displayable_false_popular_story = PopularStory.objects.create(
+            story=self.displayable_false_story,
+            rank=2,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.deleted_popular_story_by_story = PopularStory.objects.create(
+            story=self.deleted_story,
+            rank=3,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.deleted_popular_story = PopularStory.objects.create(
+            story=self.active_story,
+            rank=4,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=True,
+        )
+
+    def test_popular_story_list_api(self):
+        # Given: setUp 에서 4개 PopularStory 생성
+        # self.popular_story: story 정상
+        # self.displayable_false_popular_story: story 가 displayable False
+        # self.deleted_popular_story_by_story: story 가 is_deleted True
+        # self.deleted_popular_story: popular story 가 is_deleted True
+        response = self.c.get(reverse('story:story_popular_list'))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        # And: story list 반환
+        self.assertEqual(len(content['popular_stories']), 1)
+        self.assertEqual(content['popular_stories'][0]['story_id'], self.active_story.id)
 
 
 class StoryDetailAPIViewTestCase(LoginMixin, TestCase):

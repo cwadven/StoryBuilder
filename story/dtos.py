@@ -2,7 +2,7 @@ import attr
 from typing import List, Dict
 
 from story.constants import StoryLevel
-from story.models import Sheet, UserSheetAnswerSolve, Story, UserStorySolve
+from story.models import Sheet, UserSheetAnswerSolve, Story, UserStorySolve, PopularStory
 
 
 @attr.s
@@ -90,6 +90,24 @@ class StoryListItemDTO(object):
             description=story.description,
             image=story.image,
             background_image=story.background_image,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class StoryPopularListItemDTO(object):
+    story_id = attr.ib(type=int)
+    title = attr.ib(type=str)
+    image = attr.ib(type=str)
+
+    @classmethod
+    def of(cls, popular_story: PopularStory):
+        return cls(
+            story_id=popular_story.story.id,
+            title=popular_story.story.title,
+            image=popular_story.story.image,
         )
 
     def to_dict(self):

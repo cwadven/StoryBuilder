@@ -144,7 +144,7 @@ class SocialLoginTestCase(TestCase):
         body = {}
 
         # When
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
         response_data = json.loads(response.content.decode('utf-8'))
 
         # Then
@@ -173,7 +173,7 @@ class SocialLoginTestCase(TestCase):
         }
 
         # When: 소셜로그인에 성공했을 경우
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
 
         # Then: User 가 생성되어야합니다.
         self.assertEqual(response.status_code, 200)
@@ -210,7 +210,7 @@ class SocialLoginTestCase(TestCase):
         }
 
         # When: 소셜로그인에 성공했을 경우
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
 
         # Then: User 가 생성되어야합니다.
         self.assertEqual(response.status_code, 200)
@@ -242,14 +242,14 @@ class SocialLoginTestCase(TestCase):
             'provider': provider,
             'token': 'test_token',
         }
-        self.c.post(reverse('social_login'), body)
+        self.c.post(reverse('account:social_login'), body)
         self.assertTrue(User.objects.filter(username='12345').exists())
         user = User.objects.get(username='12345')
         user.user_status_id = 3
         user.save()
 
         # When: 계정을 생성합니다
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
         response_data = json.loads(response.content.decode('utf-8'))
 
         # Then: 정지된 계정이라는 에러가 나와야합니다.
@@ -278,14 +278,14 @@ class SocialLoginTestCase(TestCase):
             'provider': provider,
             'token': 'test_token',
         }
-        self.c.post(reverse('social_login'), data=body)
+        self.c.post(reverse('account:social_login'), data=body)
         self.assertTrue(User.objects.filter(username='12345').exists())
         user = User.objects.get(username='12345')
         user.user_status_id = 2
         user.save()
 
         # When: 계정을 생성합니다
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
         response_data = json.loads(response.content.decode('utf-8'))
 
         # Then: 탈퇴된 계정이라는 에러가 나와야합니다.
@@ -314,14 +314,14 @@ class SocialLoginTestCase(TestCase):
             'provider': provider,
             'token': 'test_token',
         }
-        self.c.post(reverse('social_login'), body)
+        self.c.post(reverse('account:social_login'), body)
         self.assertTrue(User.objects.filter(username='12345').exists())
         user = User.objects.get(username='12345')
         user.user_status_id = 4
         user.save()
 
         # When: 계정을 생성합니다
-        response = self.c.post(reverse('social_login'), body)
+        response = self.c.post(reverse('account:social_login'), body)
         response_data = json.loads(response.content.decode('utf-8'))
 
         # Then: 휴면 계정이라는 에러가 나와야합니다.
@@ -343,7 +343,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
 
     def test_sign_up_validation_success(self):
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: 성공
@@ -354,7 +354,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['email'] = 'something'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: email 문제로 에러 반환
@@ -366,7 +366,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['username'] = 'a'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: username 길이 문제로 에러 반환
@@ -384,7 +384,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['username'] = '한글'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: username 글자 문제로 에러 반환
@@ -399,7 +399,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['nickname'] = 'a'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 길이 문제로 에러 반환
@@ -417,7 +417,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['nickname'] = '특수문자!@#$%^&*()'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 글자 문제로 에러 반환
@@ -434,7 +434,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['username'] = 'test'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: username 중복 에러 반환
@@ -448,7 +448,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['nickname'] = 'test_token'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 중복 에러 반환
@@ -462,7 +462,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['email'] = 'aaaa@naver.com'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: nickname 중복 에러 반환
@@ -474,7 +474,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['password2'] = '12312312'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: password 확인 에러 반환
@@ -486,7 +486,7 @@ class SignUpValidationTestCase(LoginMixin, TestCase):
         self.body['password1'] = 'a'
 
         # When: 회원가입 검증 요청
-        response = self.c.post(reverse('sign_up_validation'), self.body)
+        response = self.c.post(reverse('account:sign_up_validation'), self.body)
         content = json.loads(response.content)
 
         # Then: password1 길이 문제로 에러 반환
@@ -524,7 +524,7 @@ class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
         }
 
         # When:
-        response = self.c.post(reverse('sign_up_check'), self.body)
+        response = self.c.post(reverse('account:sign_up_check'), self.body)
         content = json.loads(response.content)
 
         # Then: 성공 했다는 메시지 반환
@@ -539,7 +539,7 @@ class SignUpEmailTokenSendTestCase(LoginMixin, TestCase):
         mock_get_cache_value_by_key.return_value = None
 
         # When:
-        response = self.c.post(reverse('sign_up_check'), self.body)
+        response = self.c.post(reverse('account:sign_up_check'), self.body)
         content = json.loads(response.content)
 
         # Then: 성공 했다는 메시지 반환
@@ -561,7 +561,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         mock_increase_cache_int_value_by_key.return_value = 30
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 메크로 에러
@@ -582,7 +582,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         mock_get_cache_value_by_key.return_value = None
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 이메일 에러
@@ -608,7 +608,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         }
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 인증번호 에러
@@ -637,7 +637,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         self.body['one_time_token'] = '1234'
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 인증번호 에러
@@ -665,7 +665,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         User.objects.create_user(username='test')
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: username 에러
@@ -693,7 +693,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         User.objects.create_user(username='test2', nickname='test')
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 닉네임 중복 에러
@@ -721,7 +721,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         User.objects.create_user(username='test2', nickname='test2', email='test@test.com')
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: email 중복 에러
@@ -748,7 +748,7 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
         }
 
         # When:
-        response = self.c.post(reverse('sign_up_one_time_token'), self.body)
+        response = self.c.post(reverse('account:sign_up_one_time_token'), self.body)
         content = json.loads(response.content)
 
         # Then: 성공
@@ -774,7 +774,7 @@ class LoginTestCase(LoginMixin, TestCase):
     def test_login_user_should_success_when_username_and_password_exists(self):
         # Given:
         # When:
-        response = self.c.post(reverse('normal_login'), self.body)
+        response = self.c.post(reverse('account:normal_login'), self.body)
 
         # Then: 로그인 성공
         self.assertEqual(response.status_code, 200)
@@ -784,7 +784,7 @@ class LoginTestCase(LoginMixin, TestCase):
         self.body['password'] = 'wrong_password'
         
         # When:
-        response = self.c.post(reverse('normal_login'), self.body)
+        response = self.c.post(reverse('account:normal_login'), self.body)
         content = json.loads(response.content)
 
         # Then: 로그인 실패
