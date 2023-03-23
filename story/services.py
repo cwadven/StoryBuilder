@@ -39,6 +39,7 @@ def get_stories_order_by_fields(*args) -> List[Story]:
     qs = Story.objects.filter(
         is_deleted=False,
         displayable=True,
+        like_count__gt=0,
     ).order_by(*args)
     return list(qs[:DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT])
 

@@ -763,7 +763,7 @@ class TestGetActiveStoryById(TestCase):
 
     def test_get_stories_order_by_fields(self):
         # Given: like_count 적용
-        self.story1.like_count = 1
+        self.story1.like_count = 2
         self.story1.is_deleted = False
         self.story1.displayable = True
         self.story1.save()
@@ -776,7 +776,7 @@ class TestGetActiveStoryById(TestCase):
         self.story3.displayable = True
         self.story3.save()
         for i in range(10):
-            Story.objects.create(is_deleted=False, displayable=True)
+            Story.objects.create(is_deleted=False, displayable=True, like_count=1)
 
         # When: 조회
         order_by_like_count_active_stories = get_stories_order_by_fields('-like_count')
