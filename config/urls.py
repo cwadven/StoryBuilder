@@ -9,7 +9,7 @@ urlpatterns += [
     path('__debug__/', include('debug_toolbar.urls')),
 
     path('account/', include('account.urls')),
-    re_path(r'^v1/story/?$', include('story.urls')),
-    re_path(r'^v1/hint/?$', include('hint.urls')),
-    re_path(r'^v1/point/?$', include('point.urls')),
+    path('v1/story/', include('story.urls')),
+    path('v1/hint/', include('hint.urls')),
+    path('v1/point/', include('point.urls')),
 ]
