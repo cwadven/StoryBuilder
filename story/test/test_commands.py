@@ -151,7 +151,7 @@ class PopularStoryCommandTestCase(TestCase):
         StoryLike.objects.filter(story=self.story1).update(updated_at=datetime(2017, 1, 1))
 
         # When: update_popular_story command 실행 (second=50)
-        self.call_command(seconds=50)
+        self.call_command(second=50)
 
         # Then: 2개의 PopularStory 쌓임
         qs = PopularStory.objects.all().order_by('rank')

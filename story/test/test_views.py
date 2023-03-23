@@ -987,7 +987,7 @@ class PopularStoryListAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         # And: story list 반환
         self.assertEqual(len(content['popular_stories']), 1)
-        self.assertEqual(content['popular_stories'][0]['id'], self.active_story.id)
+        self.assertEqual(content['popular_stories'][0]['story_id'], self.active_story.id)
 
 
 class StoryDetailAPIViewTestCase(LoginMixin, TestCase):
