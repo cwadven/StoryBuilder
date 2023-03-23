@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 from typing import List, Optional
 
@@ -7,7 +8,7 @@ from django.db.models import Q
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
     StoryDoesNotExists
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory
 
 
 def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
@@ -21,6 +22,15 @@ def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
 
     if start_row is not None and end_row is not None:
         return list(qs[start_row:end_row])
+    return list(qs)
+
+
+def get_active_popular_stories() -> List[PopularStory]:
+    qs = PopularStory.objects.filter(
+        story__is_deleted=False,
+        story__displayable=True,
+        is_deleted=False,
+    ).order_by('rank')
     return list(qs)
 
 

@@ -7,7 +7,7 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
     StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription, StoryLike
+    StoryEmailSubscription, StoryLike, PopularStory
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
@@ -15,6 +15,7 @@ from story.services import (
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
+    get_active_popular_stories,
 )
 
 
@@ -759,3 +760,72 @@ class TestGetActiveStoryById(TestCase):
         # Expect: is_deleted True
         with self.assertRaises(StoryDoesNotExists):
             get_active_story_by_id(self.story4.id)
+
+
+class GetActivePopularStoriesTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.active_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.displayable_false_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            displayable=False,
+        )
+        self.deleted_story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_deleted=True,
+        )
+        self.popular_story = PopularStory.objects.create(
+            story=self.active_story,
+            rank=1,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.displayable_false_popular_story = PopularStory.objects.create(
+            story=self.displayable_false_story,
+            rank=2,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.deleted_popular_story_by_story = PopularStory.objects.create(
+            story=self.deleted_story,
+            rank=3,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=False,
+        )
+        self.deleted_popular_story = PopularStory.objects.create(
+            story=self.active_story,
+            rank=4,
+            like_count=1,
+            base_past_second=1,
+            is_deleted=True,
+        )
+
+    def test_get_active_popular_stories(self):
+        # Given: setUp 에서 4개 PopularStory 생성
+        # self.popular_story: story 정상
+        # self.displayable_false_popular_story: story 가 displayable False
+        # self.deleted_popular_story_by_story: story 가 is_deleted True
+        # self.deleted_popular_story: popular story 가 is_deleted True
+        active_popular_stories = get_active_popular_stories()
+
+        # Expect: 1개만 active
+        self.assertIsInstance(active_popular_stories, list)
+        self.assertTrue(len(active_popular_stories) == 1)
+        self.assertTrue(active_popular_stories[0].id, self.popular_story.id)
