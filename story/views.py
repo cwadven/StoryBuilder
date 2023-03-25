@@ -52,7 +52,8 @@ class StoryPopularListAPIView(APIView):
             return Response(
                 data={
                     'popular_stories': [
-                        StoryPopularListItemDTO.by_story(story).to_dict() for story in get_stories_order_by_fields('-like_count')
+                        StoryPopularListItemDTO.by_story(story).to_dict() for story in
+                        get_stories_order_by_fields(request.user, '-like_count')
                     ]
                 },
                 status=200

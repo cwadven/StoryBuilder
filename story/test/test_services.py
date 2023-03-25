@@ -779,7 +779,7 @@ class TestGetActiveStoryById(TestCase):
             Story.objects.create(is_deleted=False, displayable=True, like_count=1)
 
         # When: 조회
-        order_by_like_count_active_stories = get_stories_order_by_fields('-like_count')
+        order_by_like_count_active_stories = get_stories_order_by_fields(None, '-like_count')
 
         # Then: 최대 6개의 Story 조회
         self.assertEqual(len(order_by_like_count_active_stories), 6)

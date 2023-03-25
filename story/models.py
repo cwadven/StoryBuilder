@@ -5,6 +5,7 @@ from django.db import models
 
 from account.models import User
 from .constants import StoryLevel
+from .managers import StoryManager, PopularStoryManager
 from .task import send_user_sheet_solved_email
 
 
@@ -28,10 +29,12 @@ class Story(models.Model):
         default=StoryLevel.EASY.value,
         help_text='0: 하, 1: 중, 2: 상, 3: 최상',
     )
-    is_secret = models.BooleanField(verbose_name='비밀 여부', default=False)
+    is_secret = models.BooleanField(verbose_name='비밀 여부', default=False, db_index=True)
     secret_members = models.ManyToManyField(User, related_name='secret_stories')
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    objects = StoryManager()
 
     def __str__(self):
         return f'{self.id} {self.title}'
@@ -52,6 +55,8 @@ class PopularStory(models.Model):
     is_deleted = models.BooleanField(verbose_name='삭제 여부', default=False, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    objects = PopularStoryManager()
 
     def __str__(self):
         return f'{self.id} {self.story.title}'
