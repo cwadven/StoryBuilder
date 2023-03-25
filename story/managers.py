@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import Manager, Q, Exists, OuterRef
 
 
@@ -7,7 +8,7 @@ class StoryManager(Manager):
             is_deleted=False,
             displayable=True,
         )
-        if user:
+        if user and not isinstance(user, AnonymousUser):
             secret_member_condition = Exists(
                 user.secret_stories.filter(pk=OuterRef('pk'))
             )
@@ -27,7 +28,7 @@ class PopularStoryManager(Manager):
             story__displayable=True,
             is_deleted=False,
         )
-        if user:
+        if user and not isinstance(user, AnonymousUser):
             secret_member_condition = Exists(
                 user.secret_stories.filter(pk=OuterRef('story_id'))
             )
