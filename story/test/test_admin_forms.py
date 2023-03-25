@@ -31,6 +31,8 @@ class TestStoryAdminForm(TestCase):
             'view_count': 0,
             'review_rate': 0,
             'like_count': 0,
+            'is_secret': False,
+            'secret_members': [1],
             'playing_point': 0,
             'free_to_play_sheet_count': 0,
             'level': 0,

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from freezegun import freeze_time
 
 from account.models import User

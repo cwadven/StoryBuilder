@@ -1,1 +1,1 @@
-30 * * * * . /var/www/StoryBuilder/venv/bin/activate && cd /var/www/StoryBuilder && python manage.py update_popular_tag >> /var/log/update_popular_story.log 2>&1
+30 * * * * . /var/www/StoryBuilder/venv/bin/activate && cd /var/www/StoryBuilder && python manage.py update_popular_story >> /var/log/update_popular_story.log 2>&1

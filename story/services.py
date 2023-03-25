@@ -1,4 +1,3 @@
-from datetime import datetime
 import random
 from typing import List, Optional
 
@@ -12,11 +11,8 @@ from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory
 
 
-def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
-    qs = Story.objects.filter(
-        is_deleted=False,
-        displayable=True,
-    ).order_by('-id')
+def get_active_stories(search='', start_row=None, end_row=None, user=None) -> List[Story]:
+    qs = Story.objects.get_actives(user).order_by('-id')
 
     if search:
         qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
@@ -26,30 +22,20 @@ def get_active_stories(search='', start_row=None, end_row=None) -> List[Story]:
     return list(qs)
 
 
-def get_active_popular_stories() -> List[PopularStory]:
-    qs = PopularStory.objects.filter(
-        story__is_deleted=False,
-        story__displayable=True,
-        is_deleted=False,
-    ).order_by('rank')
+def get_active_popular_stories(user=None) -> List[PopularStory]:
+    qs = PopularStory.objects.get_actives(user).order_by('rank')
     return list(qs)
 
 
-def get_stories_order_by_fields(*args) -> List[Story]:
-    qs = Story.objects.filter(
-        is_deleted=False,
-        displayable=True,
-        like_count__gt=0,
-    ).order_by(*args)
+def get_stories_order_by_fields(user=None, *args) -> List[Story]:
+    qs = Story.objects.get_actives(user).filter(like_count__gt=0).order_by(*args)
     return list(qs[:DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT])
 
 
-def get_active_story_by_id(story_id: int) -> Story:
+def get_active_story_by_id(story_id: int, user=None) -> Story:
     try:
-        return Story.objects.get(
+        return Story.objects.get_actives(user=user).get(
             id=story_id,
-            is_deleted=False,
-            displayable=True,
         )
     except Story.DoesNotExist:
         raise StoryDoesNotExists()
