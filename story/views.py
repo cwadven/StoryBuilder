@@ -21,7 +21,7 @@ class StoryListAPIView(APIView):
     @pagination(default_size=10)
     def get(self, request, start_row, end_row):
         search = request.GET.get('search', '')
-        stories = get_active_stories(search, start_row, end_row)
+        stories = get_active_stories(search, start_row, end_row, user=request.user)
         return Response(
             data={
                 'stories': [StoryListItemDTO.of(story).to_dict() for story in stories]
@@ -32,7 +32,7 @@ class StoryListAPIView(APIView):
 
 class StoryDetailAPIView(APIView):
     def get(self, request, story_id):
-        story = get_active_story_by_id(story_id)
+        story = get_active_story_by_id(story_id, user=request.user)
         return Response(
             data=StoryDetailItemDTO.of(
                 story,
@@ -47,7 +47,7 @@ class StoryDetailAPIView(APIView):
 
 class StoryPopularListAPIView(APIView):
     def get(self, request):
-        popular_stories = get_active_popular_stories()
+        popular_stories = get_active_popular_stories(user=request.user)
         if not popular_stories:
             return Response(
                 data={
