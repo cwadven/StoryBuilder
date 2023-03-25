@@ -30,7 +30,7 @@ class Story(models.Model):
         help_text='0: 하, 1: 중, 2: 상, 3: 최상',
     )
     is_secret = models.BooleanField(verbose_name='비밀 여부', default=False, db_index=True)
-    secret_members = models.ManyToManyField(User, related_name='secret_stories')
+    secret_members = models.ManyToManyField(User, related_name='secret_stories', blank=True, null=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
 
