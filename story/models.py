@@ -28,6 +28,8 @@ class Story(models.Model):
         default=StoryLevel.EASY.value,
         help_text='0: 하, 1: 중, 2: 상, 3: 최상',
     )
+    is_secret = models.BooleanField(verbose_name='비밀 여부', default=False)
+    secret_members = models.ManyToManyField(User, related_name='secret_stories')
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
 
