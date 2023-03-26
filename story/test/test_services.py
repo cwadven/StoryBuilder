@@ -413,6 +413,11 @@ class ValidateUserPlayingSheetTestCase(LoginMixin, TestCase):
 
         # Expected: 에러 없이 성공
         validate_user_playing_sheet(self.user.id, self.final_sheet1)
+
+    def test_validate_user_playing_sheet_should_not_raise_error_when_sheet_is_start_sheet(self):
+        # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성
+        # Expected: 에러 없이 성공
+        validate_user_playing_sheet(self.user.id, self.start_sheet.id)
         
     def test_validate_user_playing_sheet_should_raise_error_when_answer_has_been_modify(self):
         # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성

@@ -73,14 +73,21 @@ def validate_user_playing_sheet(user_id: int, sheet_id: int):
     """
     check UserSheetAnswerSolve next_sheet_path of sheet exists
     And check if answer has been changed
+
+    And check if sheet is start then just return
     """
     try:
-        user_sheet_answer_solve = UserSheetAnswerSolve.objects.get(
+        if Sheet.objects.get(id=sheet_id).is_start:
+            return
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.select_related(
+            'next_sheet_path',
+            'sheet',
+        ).get(
             user_id=user_id,
             next_sheet_path__sheet_id=sheet_id,
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
         )
-    except UserSheetAnswerSolve.DoesNotExist:
+    except (UserSheetAnswerSolve.DoesNotExist, Sheet.DoesNotExist):
         raise SheetNotAccessibleException()
 
     if not (user_sheet_answer_solve.answer in get_sheet_answers(user_sheet_answer_solve.sheet_id)):
