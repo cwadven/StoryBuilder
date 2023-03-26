@@ -259,6 +259,41 @@ class GetSheetAnswerTestCase(TestCase):
         # And: next_sheet_path id 를 가져옵니다
         self.assertEqual(next_sheet_path_id, possible_next_sheet_path.id)
 
+    def test_get_valid_answer_info_with_random_quantity_should_success_when_answer_is_valid_and_english_different_lower_case(self):
+        # Given: SheetAnswer 에 final_sheet1 을 바라보는 NextSheetPath 를 추가합니다. quantity 10
+        possible_next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        # And: 정답을 대문자로 바꿔줍니다.
+        self.start_sheet_answer1.answer = 'TEST'
+        self.start_sheet_answer1.save()
+        # And: SheetAnswer 에 final_sheet2 을 바라보는 NextSheetPath 를 추가합니다. quantity 0
+        NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        # And: sheet answer response 를 가져옵니다.
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: 정답 및 랜덤 값들을 가져옵니다. (정답을 소문자로 설정)
+        is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer='test',
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다.
+        self.assertTrue(is_valid)
+        # And: 맞춘 정답의 id 를 가져옵니다.
+        self.assertEqual(sheet_answer_id, self.start_sheet_answer1.id)
+        # And: quantity 가 10 인 next_sheet_id 를 가져옵니다
+        # 0 은 가능성 이 없기 때문에 랜덤으로 안가져와 집니다.
+        self.assertEqual(next_sheet_id, possible_next_sheet_path.sheet_id)
+        # And: next_sheet_path id 를 가져옵니다
+        self.assertEqual(next_sheet_path_id, possible_next_sheet_path.id)
+
     def test_get_valid_answer_info_with_random_quantity_should_success_when_answer_is_valid_but_next_path_is_not_exists(self):
         # Given: NextSheetPath 가 없는 sheet 문제를 해결했을 경우
         sheet_answer_response = get_sheet_answer_with_next_path_responses(self.final_sheet1.id)
