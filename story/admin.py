@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription
+from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription, PopularStory
 
 
 class StoryAdmin(admin.ModelAdmin):
@@ -73,10 +73,10 @@ class NextSheetPathAdmin(admin.ModelAdmin):
         'id',
         'story_id',
         'story_title',
-        'next_sheet_path_sheet_id',
-        'sheet_title',
         'next_sheet_path_sheet_answer_id',
         'answer_answer',
+        'next_sheet_path_sheet_id',
+        'sheet_title',
         'quantity',
     ]
 
@@ -131,8 +131,38 @@ class StoryEmailSubscriptionAdmin(admin.ModelAdmin):
     ]
 
 
+class PopularStoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'story_id',
+        'story_title',
+        'rank',
+        'like_count',
+        'base_past_second',
+    ]
+
+    def story_id(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:story_story_change", args=[obj.sheet.story_id]),
+            obj.sheet.story_id
+        ))
+    story_id.short_description = 'Story ID'
+
+    def story_title(self, obj):
+        return obj.sheet.story.title
+    story_title.short_description = 'Story title'
+
+    def get_queryset(self, request):
+        return super(PopularStoryAdmin, self).get_queryset(
+            request
+        ).select_related(
+            'story',
+        )
+
+
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Sheet, SheetAdmin)
 admin.site.register(SheetAnswer, SheetAnswerAdmin)
 admin.site.register(NextSheetPath, NextSheetPathAdmin)
 admin.site.register(StoryEmailSubscription, StoryEmailSubscriptionAdmin)
+admin.site.register(PopularStory, PopularStoryAdmin)
