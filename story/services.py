@@ -110,7 +110,10 @@ def get_valid_answer_info_with_random_quantity(answer: str, answer_responses: Li
     """
     정답유무, sheet_answer_id, next_sheet_id(랜덤한 quantity로 구한 것)
     """
-    is_answer_valid = answer.replace(' ', '') in map(lambda answer_response: answer_response.answer.replace(' ', ''), answer_responses)
+    is_answer_valid = answer.lower().replace(' ', '') in map(
+        lambda answer_response: answer_response.answer.lower().replace(' ', ''),
+        answer_responses
+    )
     sheet_answer_id = None
 
     if is_answer_valid:
@@ -118,7 +121,7 @@ def get_valid_answer_info_with_random_quantity(answer: str, answer_responses: Li
         # 정답들 가져오기
         filtered_answer_responses = list(
             filter(
-                lambda answer_response: answer_response.answer.replace(' ', '') == answer.replace(' ', ''),
+                lambda answer_response: answer_response.answer.lower().replace(' ', '') == answer.lower().replace(' ', ''),
                 answer_responses
             )
         )
