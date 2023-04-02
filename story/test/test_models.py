@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from account.models import User
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription, StoryLike
+    StoryEmailSubscription, StoryLike, StorySlackSubscription
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -287,6 +287,31 @@ class StoryEmailSubscriptionMethodTestCase(TestCase):
 
         # Except: 있기 때문에 True 반환
         self.assertTrue(StoryEmailSubscription.has_respondent_user(self.story.id, self.user.id))
+
+
+class StorySlackSubscriptionMethodTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    @freeze_time('2022-05-31')
+    def test_has_respondent_user(self):
+        # Given: StorySlackSubscription 생성
+        StorySlackSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            slack_webhook_url='test_slack',
+            slack_channel_description='test_slack',
+        )
+
+        # Except: 있기 때문에 True 반환
+        self.assertTrue(StorySlackSubscription.has_respondent_user(self.story.id, self.user.id))
 
 
 class StoryLikeMethodTestCase(TestCase):
