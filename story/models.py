@@ -124,7 +124,7 @@ class NextSheetPath(models.Model):
 
     def __str__(self):
         return f'{self.id} {self.sheet_id} {self.answer_id} {self.quantity}'
-    
+
     class Meta:
         verbose_name = '정답에 의한 다음 Sheet 경로'
         verbose_name_plural = '정답에 의한 다음 Sheet 경로'
@@ -210,7 +210,6 @@ class UserSheetAnswerSolve(models.Model):
         return user_sheet_answer_solve, is_created
 
     def solved_sheet_action(self, solved_sheet_answer, next_sheet_path):
-        from .services import get_story_email_subscription_emails
         self.answer = solved_sheet_answer.answer
         self.sheet_question = solved_sheet_answer.sheet.question
         self.solved_sheet_version = solved_sheet_answer.sheet.version
@@ -231,6 +230,7 @@ class UserSheetAnswerSolve(models.Model):
             ]
         )
         if StoryEmailSubscription.has_respondent_user(self.story_id, self.user_id):
+            from .services import get_story_email_subscription_emails
             send_user_sheet_solved_email.apply_async(
                 (
                     self.id,
@@ -240,7 +240,19 @@ class UserSheetAnswerSolve(models.Model):
                     )
                 )
             )
-            notify_slack()
+        if StorySlackSubscription.has_respondent_user(self.story_id, self.user_id):
+            from .services import get_story_slack_subscription_slack_webhook_urls
+            for urls in get_story_slack_subscription_slack_webhook_urls(self.story_id, self.user_id):
+                notify_slack(
+                    channel_url=urls,
+                    text=f'story_id: {self.story_id}'
+                         f'story_title: {self.story.title}'
+                         f'sheet_id: {self.sheet_id}'
+                         f'sheet_title: {self.sheet.title}'
+                         f'sheet_question: {self.sheet.question}'
+                         f'username: {self.user.username}'
+                         f'user_answer: {self.answer}'
+                )
 
 
 class StoryEmailSubscription(models.Model):
