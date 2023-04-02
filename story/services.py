@@ -8,7 +8,8 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
     StoryDoesNotExists
 from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory, \
+    StorySlackSubscription
 
 
 def get_active_stories(search='', start_row=None, end_row=None, user=None) -> List[Story]:
@@ -213,6 +214,18 @@ def get_story_email_subscription_emails(story_id: int, user_id: int):
             respondent_user_id=user_id,
         ).values_list(
             'email',
+            flat=True
+        )
+    )
+
+
+def get_story_slack_subscription_slack_webhook_urls(story_id: int, user_id: int):
+    return list(
+        StorySlackSubscription.objects.filter(
+            story_id=story_id,
+            respondent_user_id=user_id,
+        ).values_list(
+            'slack_webhook_url',
             flat=True
         )
     )
