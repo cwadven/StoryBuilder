@@ -6,7 +6,7 @@ from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription, PopularStory, \
-    UserSheetAnswerSolve
+    UserSheetAnswerSolve, StorySlackSubscription
 
 
 class StoryAdmin(admin.ModelAdmin):
@@ -123,6 +123,16 @@ class StoryEmailSubscriptionAdmin(admin.ModelAdmin):
     ]
 
 
+class StorySlackSubscriptionAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'story',
+        'respondent_user',
+        'slack_webhook_url',
+        'slack_channel_description',
+    ]
+
+
 class PopularStoryAdmin(admin.ModelAdmin):
     list_display = [
         'id',
@@ -225,5 +235,6 @@ admin.site.register(Sheet, SheetAdmin)
 admin.site.register(SheetAnswer, SheetAnswerAdmin)
 admin.site.register(NextSheetPath, NextSheetPathAdmin)
 admin.site.register(StoryEmailSubscription, StoryEmailSubscriptionAdmin)
+admin.site.register(StorySlackSubscription, StorySlackSubscriptionAdmin)
 admin.site.register(PopularStory, PopularStoryAdmin)
 admin.site.register(UserSheetAnswerSolve, UserSheetAnswerSolveAdmin)

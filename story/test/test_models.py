@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from account.models import User
 from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription, StoryLike
+    StoryEmailSubscription, StoryLike, StorySlackSubscription
 
 
 class UserSheetAnswerSolveTestCase(TestCase):
@@ -118,6 +118,35 @@ class UserSheetAnswerSolveTestCase(TestCase):
 
         # Then: 호출이 됐는지 확인
         mock_send_user_sheet_solved_email.assert_called_once()
+
+    @freeze_time('2022-05-31')
+    @patch('story.models.notify_slack')
+    def test_solved_sheet_action_when_success_then_send_user_sheet_solved_slack_web_hook(self, mock_notify_slack):
+        # Given: 해결하지 못한 UserSheetAnswerSolve 생성
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+        )
+        # And: StorySlackSubscription 생성
+        StorySlackSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            slack_webhook_url='test',
+            slack_channel_description='test',
+        )
+
+        # When: solved_sheet_action 실행
+        user_sheet_answer_solve.solved_sheet_action(
+            solved_sheet_answer=self.start_sheet_answer1,
+            next_sheet_path=self.next_sheet_path,
+        )
+
+        # Then: 호출이 됐는지 확인
+        mock_notify_slack.assert_called_once()
 
     @freeze_time('2022-05-31')
     def test_generate_cls_if_first_time_should_create_user_sheet_answer_solve_when_not_exists(self):
@@ -287,6 +316,31 @@ class StoryEmailSubscriptionMethodTestCase(TestCase):
 
         # Except: 있기 때문에 True 반환
         self.assertTrue(StoryEmailSubscription.has_respondent_user(self.story.id, self.user.id))
+
+
+class StorySlackSubscriptionMethodTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    @freeze_time('2022-05-31')
+    def test_has_respondent_user(self):
+        # Given: StorySlackSubscription 생성
+        StorySlackSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            slack_webhook_url='test_slack',
+            slack_channel_description='test_slack',
+        )
+
+        # Except: 있기 때문에 True 반환
+        self.assertTrue(StorySlackSubscription.has_respondent_user(self.story.id, self.user.id))
 
 
 class StoryLikeMethodTestCase(TestCase):

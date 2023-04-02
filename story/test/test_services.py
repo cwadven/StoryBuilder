@@ -7,7 +7,7 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
     StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription, StoryLike, PopularStory
+    StoryEmailSubscription, StoryLike, PopularStory, StorySlackSubscription
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
@@ -15,7 +15,7 @@ from story.services import (
     get_sheet_answer_with_next_path_responses, get_running_sheet, validate_user_playing_sheet,
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
-    get_active_popular_stories, get_stories_order_by_fields,
+    get_active_popular_stories, get_stories_order_by_fields, get_story_slack_subscription_slack_webhook_urls,
 )
 
 
@@ -412,7 +412,12 @@ class ValidateUserPlayingSheetTestCase(LoginMixin, TestCase):
         )
 
         # Expected: 에러 없이 성공
-        validate_user_playing_sheet(self.user.id, self.final_sheet1)
+        validate_user_playing_sheet(self.user.id, self.final_sheet1.id)
+
+    def test_validate_user_playing_sheet_should_not_raise_error_when_sheet_is_start_sheet(self):
+        # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성
+        # Expected: 에러 없이 성공
+        validate_user_playing_sheet(self.user.id, self.start_sheet.id)
         
     def test_validate_user_playing_sheet_should_raise_error_when_answer_has_been_modify(self):
         # Given: final_sheet1 으로 가기 위해서 문제 해결을 한 것 처럼 UserSheetAnswerSolve 생성
@@ -432,12 +437,12 @@ class ValidateUserPlayingSheetTestCase(LoginMixin, TestCase):
 
         # Expected: 에러 반환
         with self.assertRaises(SheetNotAccessibleException):
-            validate_user_playing_sheet(self.user.id, self.final_sheet1)
+            validate_user_playing_sheet(self.user.id, self.final_sheet1.id)
 
     def test_validate_user_playing_sheet_should_raise_error_when_user_not_solved(self):
         # Expected: 사용자가 final_sheet1 로 가는 문제를 풀적이 없기 때문에 에러 반환
         with self.assertRaises(SheetNotAccessibleException):
-            validate_user_playing_sheet(self.user.id, self.final_sheet1)
+            validate_user_playing_sheet(self.user.id, self.final_sheet1.id)
 
 
 class GetSheetSolvedUserSheetAnswerTestCase(LoginMixin, TestCase):
@@ -600,6 +605,34 @@ class GetStoryEmailSubscriptionEmailsTestCase(LoginMixin, TestCase):
         self.assertEqual(len(story_email_subscription_emails), 2)
         self.assertIn(test_emails[0], story_email_subscription_emails)
         self.assertIn(test_emails[1], story_email_subscription_emails)
+
+
+class GetStorySlackSubscriptionWebHookUrlTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+
+    def test_get_story_slack_subscription_slack_webhook_urls(self):
+        # Given: StorySlackSubscription 생성
+        StorySlackSubscription.objects.create(
+            story_id=self.story.id,
+            respondent_user_id=self.user.id,
+            slack_webhook_url='test_web_hook_url',
+        )
+
+        # When: 함수 실행
+        story_slack_subscription_web_hook_urls = get_story_slack_subscription_slack_webhook_urls(
+            self.story.id, self.user.id
+        )
+
+        # Then:
+        self.assertEqual(story_slack_subscription_web_hook_urls[0], 'test_web_hook_url')
 
 
 class CreateStoryLikeTestCase(TestCase):

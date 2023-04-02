@@ -8,7 +8,8 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
     StoryDoesNotExists
 from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
 from story.dtos import SheetAnswerResponseDTO
-from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory
+from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory, \
+    StorySlackSubscription
 
 
 def get_active_stories(search='', start_row=None, end_row=None, user=None) -> List[Story]:
@@ -73,14 +74,21 @@ def validate_user_playing_sheet(user_id: int, sheet_id: int):
     """
     check UserSheetAnswerSolve next_sheet_path of sheet exists
     And check if answer has been changed
+
+    And check if sheet is start then just return
     """
     try:
-        user_sheet_answer_solve = UserSheetAnswerSolve.objects.get(
+        if Sheet.objects.get(id=sheet_id).is_start:
+            return
+        user_sheet_answer_solve = UserSheetAnswerSolve.objects.select_related(
+            'next_sheet_path',
+            'sheet',
+        ).get(
             user_id=user_id,
             next_sheet_path__sheet_id=sheet_id,
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
         )
-    except UserSheetAnswerSolve.DoesNotExist:
+    except (UserSheetAnswerSolve.DoesNotExist, Sheet.DoesNotExist):
         raise SheetNotAccessibleException()
 
     if not (user_sheet_answer_solve.answer in get_sheet_answers(user_sheet_answer_solve.sheet_id)):
@@ -206,6 +214,18 @@ def get_story_email_subscription_emails(story_id: int, user_id: int):
             respondent_user_id=user_id,
         ).values_list(
             'email',
+            flat=True
+        )
+    )
+
+
+def get_story_slack_subscription_slack_webhook_urls(story_id: int, user_id: int):
+    return list(
+        StorySlackSubscription.objects.filter(
+            story_id=story_id,
+            respondent_user_id=user_id,
+        ).values_list(
+            'slack_webhook_url',
             flat=True
         )
     )

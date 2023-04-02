@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import models
 
 from account.models import User
+from common_library import notify_slack
 from .constants import StoryLevel
 from .managers import StoryManager, PopularStoryManager
 from .task import send_user_sheet_solved_email
@@ -123,7 +124,7 @@ class NextSheetPath(models.Model):
 
     def __str__(self):
         return f'{self.id} {self.sheet_id} {self.answer_id} {self.quantity}'
-    
+
     class Meta:
         verbose_name = '정답에 의한 다음 Sheet 경로'
         verbose_name_plural = '정답에 의한 다음 Sheet 경로'
@@ -209,7 +210,6 @@ class UserSheetAnswerSolve(models.Model):
         return user_sheet_answer_solve, is_created
 
     def solved_sheet_action(self, solved_sheet_answer, next_sheet_path):
-        from .services import get_story_email_subscription_emails
         self.answer = solved_sheet_answer.answer
         self.sheet_question = solved_sheet_answer.sheet.question
         self.solved_sheet_version = solved_sheet_answer.sheet.version
@@ -230,6 +230,7 @@ class UserSheetAnswerSolve(models.Model):
             ]
         )
         if StoryEmailSubscription.has_respondent_user(self.story_id, self.user_id):
+            from .services import get_story_email_subscription_emails
             send_user_sheet_solved_email.apply_async(
                 (
                     self.id,
@@ -239,6 +240,19 @@ class UserSheetAnswerSolve(models.Model):
                     )
                 )
             )
+        if StorySlackSubscription.has_respondent_user(self.story_id, self.user_id):
+            from .services import get_story_slack_subscription_slack_webhook_urls
+            for urls in get_story_slack_subscription_slack_webhook_urls(self.story_id, self.user_id):
+                notify_slack(
+                    channel_url=urls,
+                    text=f'story_id: {self.story_id}\n'
+                         f'story_title: {self.story.title}\n'
+                         f'sheet_id: {self.sheet_id}\n'
+                         f'sheet_title: {self.sheet.title}\n'
+                         f'sheet_question: {self.sheet.question}\n'
+                         f'username: {self.user.username}\n'
+                         f'user_answer: {self.answer}\n'
+                )
 
 
 class StoryEmailSubscription(models.Model):
@@ -259,6 +273,32 @@ class StoryEmailSubscription(models.Model):
     class Meta:
         verbose_name = 'Story 관전을 위한 이메일'
         verbose_name_plural = 'Story 관전을 위한 이메일'
+
+    @classmethod
+    def has_respondent_user(cls, story_id, user_id):
+        return cls.objects.filter(story_id=story_id, respondent_user=user_id).exists()
+
+
+class StorySlackSubscription(models.Model):
+    """
+    story: 사용자가 풀고 있는 스토리
+    respondent_user: Story 에서 행동에 대한 관찰할 user
+    slack_webhook_url: Slack Webhook URL
+    slack_channel_description: Slack Webhook 소개 채널
+    """
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True)
+    respondent_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    slack_webhook_url = models.CharField(verbose_name='웹훅 url', max_length=300)
+    slack_channel_description = models.CharField(verbose_name='웹훅을 쏠 channel 소개', max_length=300)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.id} {self.story_id} {self.respondent_user_id} {self.slack_channel_description}'
+
+    class Meta:
+        verbose_name = 'Story 관전을 위한 Slack 웹훅'
+        verbose_name_plural = 'Story 관전을 위한 Slack 웹훅'
 
     @classmethod
     def has_respondent_user(cls, story_id, user_id):
