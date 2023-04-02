@@ -245,13 +245,13 @@ class UserSheetAnswerSolve(models.Model):
             for urls in get_story_slack_subscription_slack_webhook_urls(self.story_id, self.user_id):
                 notify_slack(
                     channel_url=urls,
-                    text=f'story_id: {self.story_id}'
-                         f'story_title: {self.story.title}'
-                         f'sheet_id: {self.sheet_id}'
-                         f'sheet_title: {self.sheet.title}'
-                         f'sheet_question: {self.sheet.question}'
-                         f'username: {self.user.username}'
-                         f'user_answer: {self.answer}'
+                    text=f'story_id: {self.story_id}\n'
+                         f'story_title: {self.story.title}\n'
+                         f'sheet_id: {self.sheet_id}\n'
+                         f'sheet_title: {self.sheet.title}\n'
+                         f'sheet_question: {self.sheet.question}\n'
+                         f'username: {self.user.username}\n'
+                         f'user_answer: {self.answer}\n'
                 )
 
 
