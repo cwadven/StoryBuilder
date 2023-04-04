@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from hint.models import SheetHint
 
 from common_library import generate_presigned_url, upload_file_to_presigned_url
+from story.models import SheetAnswer
 
 
 class SheetHintInlineFormset(forms.models.BaseInlineFormSet):
@@ -39,3 +40,9 @@ class SheetHintAdminForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class SheetAnswerAdminForm(forms.ModelForm):
+    class Meta:
+        model = SheetAnswer
+        fields = '__all__'

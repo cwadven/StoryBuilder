@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm
+from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm, SheetAnswerAdminForm
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription, PopularStory, \
@@ -32,6 +32,12 @@ class SheetHintInline(admin.TabularInline):
     ]
 
 
+class SheetAnswerInline(admin.TabularInline):
+    form = SheetAnswerAdminForm
+    model = SheetAnswer
+    extra = 0
+
+
 class SheetAdmin(admin.ModelAdmin):
     list_display = [
         'id',
@@ -43,6 +49,7 @@ class SheetAdmin(admin.ModelAdmin):
         'updated_at',
     ]
     inlines = [
+        SheetAnswerInline,
         SheetHintInline,
     ]
     form = SheetAdminForm
