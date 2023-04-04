@@ -10,3 +10,6 @@ class UserPoint(models.Model):
     is_active = models.BooleanField(verbose_name='유효성', default=True, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    def __str__(self):
+        return f'{self.user} - {self.point} - is_active: {self.is_active}'
