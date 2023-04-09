@@ -7,7 +7,7 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
     StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, UserStorySolve, \
-    StoryEmailSubscription, StoryLike, PopularStory, StorySlackSubscription
+    StoryEmailSubscription, StoryLike, PopularStory, StorySlackSubscription, UserSheetAnswerSolveHistory
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answers,
@@ -16,6 +16,7 @@ from story.services import (
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
     get_active_popular_stories, get_stories_order_by_fields, get_story_slack_subscription_slack_webhook_urls,
+    reset_user_story_sheet_answer_solves,
 )
 
 
@@ -924,3 +925,86 @@ class GetActivePopularStoriesTestCase(TestCase):
         self.assertIsInstance(active_popular_stories, list)
         self.assertTrue(len(active_popular_stories) == 1)
         self.assertTrue(active_popular_stories[0].id, self.popular_story.id)
+
+
+class ResetUserStorySheetAnswerSolve(LoginMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1,
+        )
+        self.user_story_solve = UserStorySolve.objects.get_or_create(
+            story_id=self.story.id,
+            user=self.user,
+        )
+
+    def test_reset_user_story_sheet_answer_solves_should_return_false_when_user_sheet_answer_solve_not_exists(self):
+        # Given: setUp 에서 생성한 UserSheetAnswerSolve 삭제
+        UserSheetAnswerSolve.objects.all().delete()
+
+        # Expect: False 반환
+        self.assertFalse(reset_user_story_sheet_answer_solves(self.user.id, self.story.id))
+
+    def test_reset_user_story_sheet_answer_solves_should_return_true_when_user_sheet_answer_solve_exists(self):
+        # Given:
+        data_dict = {}
+        for user_sheet_answer_solve in UserSheetAnswerSolve.objects.filter(id=self.user_sheet_answer_solve.id).values():
+            for key, value in user_sheet_answer_solve.items():
+                data_dict[key] = value
+
+        # When:
+        is_reset = reset_user_story_sheet_answer_solves(self.user.id, self.story.id)
+
+        # Then: True 반환
+        self.assertTrue(is_reset)
+        self.assertFalse(UserSheetAnswerSolve.objects.filter(user=self.user, story=self.story).exists())
+        # And: UserSheetAnswerSolveHistory 생성
+        self.assertTrue(UserSheetAnswerSolveHistory.objects.filter(user=self.user, story=self.story).exists())
+        u_s_a_s_h = UserSheetAnswerSolveHistory.objects.filter(user=self.user, story=self.story)[0]
+        # And: 기존에 없어서 group_id 는 1
+        self.assertEqual(u_s_a_s_h.group_id, 1)
+        # And: 데이터가 기존과 같은지 확인
+        for key, value in data_dict.items():
+            self.assertEqual(getattr(u_s_a_s_h, key), value)

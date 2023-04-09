@@ -4,6 +4,9 @@ from .base import *
 from .ENV import env_production
 
 
+DEBUG = False
+ALLOWED_HOSTS = ['puzztory.com']
+
 SECRET_KEY = env_production['SECRET_KEY']
 KAKAO_API_KEY = env_production['KAKAO_API_KEY']
 KAKAO_SECRET_KEY = env_production['KAKAO_SECRET_KEY']

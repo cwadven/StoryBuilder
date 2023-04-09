@@ -13,7 +13,7 @@ from story.services import (
     get_running_sheet,
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
     create_story_like, delete_story_like, get_active_stories, get_active_story_by_id, get_active_popular_stories,
-    get_stories_order_by_fields,
+    get_stories_order_by_fields, reset_user_story_sheet_answer_solves,
 )
 
 
@@ -207,6 +207,15 @@ class SheetAnswerCheckAPIView(APIView):
             return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
 
         return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
+
+
+class ResetStorySheetSolveAPIView(APIView):
+    @custom_login_required_for_method
+    def delete(self, request, story_id):
+        is_reset = reset_user_story_sheet_answer_solves(request.user.id, story_id)
+        if not is_reset:
+            return Response({'message': '스토리를 플레이 하신 기록이 없으십니다.'}, status=400)
+        return Response(status=200)
 
 
 class StoryLikeAPIView(APIView):
