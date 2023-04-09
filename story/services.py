@@ -4,12 +4,13 @@ from typing import List, Optional
 from django.db import transaction
 from django.db.models import Q
 
+from common_library import get_max_int_from_queryset
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
     StoryDoesNotExists
 from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
 from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory, \
-    StorySlackSubscription
+    StorySlackSubscription, UserSheetAnswerSolveHistory
 
 
 def get_active_stories(search='', start_row=None, end_row=None, user=None) -> List[Story]:
@@ -261,3 +262,40 @@ def update_story_total_like_count(story_id: int):
     story = Story.objects.get(id=story_id)
     story.like_count = StoryLike.get_active_story_like_count(story_id)
     story.save(update_fields=['like_count'])
+
+
+@transaction.atomic
+def reset_user_story_sheet_answer_solves(user_id: int, story_id: int):
+    """
+    유저의 모든 시트 답안을 백업 후,
+    유저의 모든 시트 답안을 초기화 합니다.
+    """
+    user_sheet_answer_solves = UserSheetAnswerSolve.objects.filter(
+        user_id=user_id,
+        story_id=story_id,
+    )
+    user_sheet_answer_solves_values = user_sheet_answer_solves.values()
+
+    user_sheet_answer_solve_history_qs = UserSheetAnswerSolveHistory.objects.filter(
+        user_id=user_id,
+        story_id=story_id,
+    )
+    max_group_id = get_max_int_from_queryset(user_sheet_answer_solve_history_qs, 'group_id')
+
+    if user_sheet_answer_solves:
+        bulk_create_user_sheet_answer_solve_history_list = []
+        for user_sheet_answer_solve_value in user_sheet_answer_solves_values:
+            user_sheet_answer_solve_history = UserSheetAnswerSolveHistory()
+            for key, value in user_sheet_answer_solve_value.items():
+                setattr(user_sheet_answer_solve_history, key, value)
+            setattr(user_sheet_answer_solve_history, 'group_id', max_group_id + 1 if max_group_id else 1)
+            bulk_create_user_sheet_answer_solve_history_list.append(
+                user_sheet_answer_solve_history
+            )
+        UserSheetAnswerSolveHistory.objects.bulk_create(
+            bulk_create_user_sheet_answer_solve_history_list
+        )
+        user_sheet_answer_solves.delete()
+        return True
+
+    return False
