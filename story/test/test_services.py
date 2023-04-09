@@ -989,6 +989,10 @@ class ResetUserStorySheetAnswerSolve(LoginMixin, TestCase):
 
     def test_reset_user_story_sheet_answer_solves_should_return_true_when_user_sheet_answer_solve_exists(self):
         # Given:
+        data_dict = {}
+        for user_sheet_answer_solve in UserSheetAnswerSolve.objects.filter(id=self.user_sheet_answer_solve.id).values():
+            for key, value in user_sheet_answer_solve.items():
+                data_dict[key] = value
 
         # When:
         is_reset = reset_user_story_sheet_answer_solves(self.user.id, self.story.id)
@@ -998,5 +1002,9 @@ class ResetUserStorySheetAnswerSolve(LoginMixin, TestCase):
         self.assertFalse(UserSheetAnswerSolve.objects.filter(user=self.user, story=self.story).exists())
         # And: UserSheetAnswerSolveHistory 생성
         self.assertTrue(UserSheetAnswerSolveHistory.objects.filter(user=self.user, story=self.story).exists())
+        u_s_a_s_h = UserSheetAnswerSolveHistory.objects.filter(user=self.user, story=self.story)[0]
         # And: 기존에 없어서 group_id 는 1
-        self.assertEqual(UserSheetAnswerSolveHistory.objects.filter(user=self.user, story=self.story)[0].group_id, 1)
+        self.assertEqual(u_s_a_s_h.group_id, 1)
+        # And: 데이터가 기존과 같은지 확인
+        for key, value in data_dict.items():
+            self.assertEqual(getattr(u_s_a_s_h, key), value)
