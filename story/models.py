@@ -130,7 +130,7 @@ class NextSheetPath(models.Model):
         verbose_name_plural = '정답에 의한 다음 Sheet 경로'
 
 
-class UserSheetAnswerSolve(models.Model):
+class UserSheetAnswerSolveBaseModel(models.Model):
     """
     story: 사용자가 풀고 있는 스토리
     user_story_solve: 사용자가 풀고 있는 스토리에 관한 풀었던 정보
@@ -168,6 +168,11 @@ class UserSheetAnswerSolve(models.Model):
     start_time = models.DateTimeField(null=True)
     solved_time = models.DateTimeField(null=True)
 
+    class Meta:
+        abstract = True
+
+
+class UserSheetAnswerSolve(UserSheetAnswerSolveBaseModel):
     @classmethod
     def get_previous_user_sheet_answer_solves_with_current_sheet_id(cls, user_id: int, current_sheet_id: int):
         return list(
@@ -253,6 +258,22 @@ class UserSheetAnswerSolve(models.Model):
                          f'username: {self.user.username}\n'
                          f'user_answer: {self.answer}\n'
                 )
+
+
+class UserSheetAnswerSolveHistory(UserSheetAnswerSolveBaseModel):
+    group_id = models.IntegerField(
+        null=True,
+        db_index=True,
+        blank=True,
+        help_text='한 싸이클에 대한 UserSheetAnswerSolve 를 구분하기 위한 id',
+    )
+
+    def __str__(self):
+        return f'{self.id} - {self.user.username} - {self.story_id}'
+
+    class Meta:
+        verbose_name = '유저 풀이 히스토리'
+        verbose_name_plural = '유저 풀이 히스토리'
 
 
 class StoryEmailSubscription(models.Model):
