@@ -6,7 +6,7 @@ from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm, SheetAn
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription, PopularStory, \
-    UserSheetAnswerSolve, StorySlackSubscription
+    UserSheetAnswerSolve, StorySlackSubscription, UserSheetAnswerSolveHistory
 
 
 class StoryAdmin(admin.ModelAdmin):
@@ -237,6 +237,85 @@ class UserSheetAnswerSolveAdmin(admin.ModelAdmin):
         )
 
 
+class UserSheetAnswerSolveHistoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'group_id',
+        'user_nickname',
+        'story_title',
+        'sheet_title',
+        'next_sheet_path_sheet_title',
+        'sheet_question',
+        'user_answer',
+        'solved_sheet_answer_answer',
+        'solving_status',
+        'start_time',
+        'solved_time',
+    ]
+
+    def user_nickname(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:account_user_change", args=[obj.user_id]),
+            obj.user.nickname,
+        ))
+
+    user_nickname.short_description = 'nickname'
+
+    def story_title(self, obj):
+        return mark_safe('<a href="{}">[{}] {}</a>'.format(
+            reverse("admin:story_story_change", args=[obj.story_id]),
+            obj.story_id,
+            obj.story.title,
+        ))
+
+    story_title.short_description = 'Story title'
+
+    def sheet_title(self, obj):
+        return mark_safe('<a href="{}">[{}] {}</a>'.format(
+            reverse("admin:story_sheet_change", args=[obj.sheet_id]),
+            obj.sheet.id,
+            obj.sheet.title,
+        ))
+
+    sheet_title.short_description = 'Sheet title'
+
+    def next_sheet_path_sheet_title(self, obj):
+        if obj.next_sheet_path and obj.next_sheet_path.sheet:
+            return mark_safe('<a href="{}">[{}] {}</a>'.format(
+                reverse("admin:story_sheet_change", args=[obj.next_sheet_path.sheet_id]),
+                obj.next_sheet_path.sheet_id,
+                obj.next_sheet_path.sheet.title,
+            ))
+
+    next_sheet_path_sheet_title.short_description = '다음 Sheet title'
+
+    def user_answer(self, obj):
+        return obj.answer
+
+    user_answer.short_description = '유저가 작성한 정답'
+
+    def solved_sheet_answer_answer(self, obj):
+        if obj.solved_sheet_answer:
+            return mark_safe('<a href="{}">[{}] {}</a>'.format(
+                reverse("admin:story_sheetanswer_change", args=[obj.solved_sheet_answer.id]),
+                obj.solved_sheet_answer_id,
+                obj.solved_sheet_answer.answer,
+            ))
+
+    solved_sheet_answer_answer.short_description = '유저가 선택한 Sheet 정답'
+
+    def get_queryset(self, request):
+        return super(UserSheetAnswerSolveHistoryAdmin, self).get_queryset(
+            request
+        ).select_related(
+            'user',
+            'story',
+            'sheet',
+            'next_sheet_path__sheet',
+            'solved_sheet_answer',
+        )
+
+
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Sheet, SheetAdmin)
 admin.site.register(SheetAnswer, SheetAnswerAdmin)
@@ -245,3 +324,4 @@ admin.site.register(StoryEmailSubscription, StoryEmailSubscriptionAdmin)
 admin.site.register(StorySlackSubscription, StorySlackSubscriptionAdmin)
 admin.site.register(PopularStory, PopularStoryAdmin)
 admin.site.register(UserSheetAnswerSolve, UserSheetAnswerSolveAdmin)
+admin.site.register(UserSheetAnswerSolveHistory, UserSheetAnswerSolveHistoryAdmin)
