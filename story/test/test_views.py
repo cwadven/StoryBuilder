@@ -917,6 +917,106 @@ class StoryListAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content['stories'][0]['id'], self.story2.id)
 
 
+class ResetStorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(ResetStorySheetSolveAPIViewTestCase, self).setUp()
+        self.user = User.objects.all()[0]
+        self.login()
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.start_sheet_answer2 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test2',
+            answer_reply='test_reply2',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.final_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='test_title2',
+            question='test_question2',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.start_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.start_sheet_answer_next_sheet_path2 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_story_solve = UserStorySolve.objects.get_or_create(
+            story_id=self.story.id,
+            user=self.c.user,
+        )
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.c.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1.answer,
+        )
+
+    def test_reset_story_sheet_solve_should_success_when_solve_exists(self):
+        # Given:
+        # When: solve_history 요청
+        response = self.c.delete(reverse('story:solve_history', args=[self.story.id]))
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+
+    def test_reset_story_sheet_solve_should_fail_when_solve_not_exists(self):
+        # Given: UserSheetAnswerSolve 제거
+        UserSheetAnswerSolve.objects.all().delete()
+
+        # When: solve_history 요청
+        response = self.c.delete(reverse('story:solve_history', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 없어서 실패
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content['message'], '스토리를 플레이 하신 기록이 없으십니다.')
+
+
 class PopularStoryListAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
         super(PopularStoryListAPIViewTestCase, self).setUp()

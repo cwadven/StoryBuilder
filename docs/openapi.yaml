@@ -213,6 +213,34 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PopularStoryListItemDTO'
+  /v1/story/{story_id}/solve-history:
+    delete:
+      tags:
+        - Story History
+      summary: 스토리 플레이 히스토리 제거
+      description: 스토리 플레이 히스토리 제거
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryHistoryDeleteFailResponse'
   /v1/story/{story_id}/play:
     get:
       tags:
@@ -747,6 +775,14 @@ components:
         message:
           type: string
           example: '스토리를 불러올 수 없습니다.'
+    StoryHistoryDeleteFailResponse:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: '스토리를 플레이 하신 기록이 없으십니다.'
     SheetPlaySuccessResponse:
       required:
         - sheet_id
