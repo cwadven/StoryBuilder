@@ -269,7 +269,7 @@ class UserSheetAnswerSolveHistory(UserSheetAnswerSolveBaseModel):
     )
 
     def __str__(self):
-        return f'{self.id} - {self.user.username} - {self.story_id}'
+        return f'{self.id} - {self.user_id} - {self.story_id}'
 
     class Meta:
         verbose_name = '유저 풀이 히스토리'
