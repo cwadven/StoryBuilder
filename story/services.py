@@ -168,6 +168,7 @@ def get_sheet_answer_with_next_path_responses(sheet_id: int) -> List[SheetAnswer
             'id',
             'answer',
             'answer_reply',
+            'is_always_correct',
             'nextsheetpath',
             'next_sheet_paths__nextsheetpath__sheet_id',
             'next_sheet_paths__nextsheetpath__quantity',

@@ -190,13 +190,20 @@ class GetSheetAnswerTestCase(TestCase):
         self.assertTrue(self.start_sheet_answer2.answer in answers)
 
     def test_get_sheet_answer_with_next_path_responses_should_success(self):
-        # Given:
+        # Given: is_always_correct start_sheet_answer1 은 False, start_sheet_answer2 는 True 입니다.
+        self.start_sheet_answer1.is_always_correct = False
+        self.start_sheet_answer1.save()
+        self.start_sheet_answer2.is_always_correct = True
+        self.start_sheet_answer2.save()
+
         # When: Sheet의 정답을 SheetAnswerResponse 형태로 가져옵니다.
         sheet_answer_responses = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
 
         # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
         self.assertEqual(sheet_answer_responses[0].id, self.start_sheet_answer1.id)
+        self.assertFalse(sheet_answer_responses[0].is_always_correct)
         self.assertEqual(sheet_answer_responses[1].id, self.start_sheet_answer2.id)
+        self.assertTrue(sheet_answer_responses[1].is_always_correct)
 
     def test_get_sheet_answer_with_next_path_responses_should_fail_when_sheet_is_deleted(self):
         # Given: Sheet 가 삭제됐을 경우
