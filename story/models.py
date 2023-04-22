@@ -99,6 +99,7 @@ class SheetAnswer(models.Model):
     sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, null=True)
     answer = models.TextField(verbose_name='정답')
     answer_reply = models.TextField(verbose_name='정답 후 반응', blank=True, null=True)
+    is_always_correct = models.BooleanField(verbose_name='항상 정답 여부', default=False, help_text='어떤 정답이든 성공합니다.')
     next_sheet_paths = models.ManyToManyField(
         to=Sheet,
         through='NextSheetPath',
