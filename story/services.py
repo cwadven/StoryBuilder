@@ -347,9 +347,9 @@ def create_wrong_answer(user_id: int, story_id: int, sheet_id: int, wrong_answer
     )
 
 
-def get_user_sheet_answer_solve_histories(user_id: int, story_id: int):
+def get_user_sheet_answer_solve_histories(user_id: int, story_id: int) -> List[UserSheetAnswerSolveHistoryItemDTO]:
     return [
-        UserSheetAnswerSolveHistoryItemDTO.of(user_sheet_answer_solve_history).to_dict()
+        UserSheetAnswerSolveHistoryItemDTO.of(user_sheet_answer_solve_history)
         for user_sheet_answer_solve_history in UserSheetAnswerSolveHistory.objects.select_related(
             'sheet',
         ).filter(
