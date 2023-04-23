@@ -362,6 +362,7 @@ class UserSheetAnswerSolveHistoryItemDTOTestCase(TestCase):
         user_sheet_answer_solve_history_item = user_sheet_answer_solve_history_item_dto.to_dict()
 
         # Then: set dto
+        self.assertEqual(user_sheet_answer_solve_history_item['group_id'], self.user_sheet_answer_solve_history.group_id)
         self.assertEqual(user_sheet_answer_solve_history_item['sheet_title'], self.user_sheet_answer_solve_history.sheet.title)
         self.assertEqual(user_sheet_answer_solve_history_item['sheet_question'], self.user_sheet_answer_solve_history.sheet.question)
         self.assertEqual(user_sheet_answer_solve_history_item['user_answer'], self.user_sheet_answer_solve_history.answer)

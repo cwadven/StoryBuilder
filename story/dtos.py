@@ -162,6 +162,7 @@ class StoryDetailItemDTO(object):
 
 @attr.s
 class UserSheetAnswerSolveHistoryItemDTO(object):
+    group_id = attr.ib(type=int)
     sheet_title = attr.ib(type=str)
     sheet_question = attr.ib(type=str)
     user_answer = attr.ib(type=str)
@@ -174,6 +175,7 @@ class UserSheetAnswerSolveHistoryItemDTO(object):
         start_time = user_sheet_answer_solve_history.start_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.start_time else ''
         solved_time = user_sheet_answer_solve_history.solved_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.solved_time else ''
         return cls(
+            group_id=user_sheet_answer_solve_history.group_id,
             sheet_title=user_sheet_answer_solve_history.sheet.title,
             sheet_question=user_sheet_answer_solve_history.sheet.question,
             user_answer=user_sheet_answer_solve_history.answer,
