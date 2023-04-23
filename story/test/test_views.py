@@ -10,7 +10,7 @@ from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.constants import StoryLevel
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike, \
-    PopularStory, WrongAnswer
+    PopularStory, WrongAnswer, UserSheetAnswerSolveHistory
 
 
 def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
@@ -924,11 +924,11 @@ class StoryListAPIViewTestCase(LoginMixin, TestCase):
         self.assertEqual(content['stories'][0]['id'], self.story2.id)
 
 
-class ResetStorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
+class StorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
-        super(ResetStorySheetSolveAPIViewTestCase, self).setUp()
+        super(StorySheetSolveAPIViewTestCase, self).setUp()
         self.user = User.objects.all()[0]
-        self.login()
+        self.login(self.user)
         self.story = Story.objects.create(
             author=self.user,
             title='test_story',
@@ -992,7 +992,31 @@ class ResetStorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
             story_id=self.story.id,
             user=self.c.user,
         )
-        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+        self.middle_sheet = Sheet.objects.create(
+            story=self.story,
+            title='middle_sheet_title',
+            question='middle_sheet_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=False,
+        )
+        self.middle_sheet_answer = SheetAnswer.objects.create(
+            sheet=self.middle_sheet,
+            answer='middle_sheet test',
+            answer_reply='middle_sheet test_reply',
+        )
+        self.next_sheet_path_to_middle = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.middle_sheet,
+            quantity=10,
+        )
+        self.next_sheet_path_to_final = NextSheetPath.objects.create(
+            answer=self.middle_sheet_answer,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_sheet_answer_solve1 = UserSheetAnswerSolve.objects.create(
             user=self.c.user,
             story=self.story,
             sheet=self.start_sheet,
@@ -1001,6 +1025,20 @@ class ResetStorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
             solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
             next_sheet_path=self.next_sheet_path,
             answer=self.start_sheet_answer1.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        self.user_sheet_answer_solve2 = UserSheetAnswerSolve.objects.create(
+            user=self.c.user,
+            story=self.story,
+            sheet=self.middle_sheet,
+            solved_sheet_version=self.middle_sheet.version,
+            solved_answer_version=self.middle_sheet_answer.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path_to_middle,
+            answer=self.middle_sheet_answer.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
         )
 
     def test_reset_story_sheet_solve_should_success_when_solve_exists(self):
@@ -1022,6 +1060,69 @@ class ResetStorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
         # Then: 없어서 실패
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content['message'], '스토리를 플레이 하신 기록이 없으십니다.')
+
+    def test_story_sheet_solve_history_get_api(self):
+        # Given: history 한번 생성
+        self.c.delete(reverse('story:solve_history', args=[self.story.id]))
+        # And: 한번 더 생성
+        UserSheetAnswerSolve.objects.create(
+            user=self.c.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=self.start_sheet.version,
+            solved_answer_version=self.start_sheet_answer1.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path,
+            answer=self.start_sheet_answer1.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        UserSheetAnswerSolve.objects.create(
+            user=self.c.user,
+            story=self.story,
+            sheet=self.middle_sheet,
+            solved_sheet_version=self.middle_sheet.version,
+            solved_answer_version=self.middle_sheet_answer.version,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[1][0],
+            next_sheet_path=self.next_sheet_path_to_middle,
+            answer=self.middle_sheet_answer.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        self.c.delete(reverse('story:solve_history', args=[self.story.id]))
+        
+        # When:
+        response = self.c.get(reverse('story:solve_history', args=[self.story.id]))
+        content = json.loads(response.content)
+
+        # Then: 정상 접근
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(content), 2)
+        self.assertEqual(content[0]['group_id'], 2)
+        self.assertEqual(content[1]['group_id'], 1)
+        self.assertEqual(
+            content,
+            [
+                {
+                    'group_id': 2,
+                    'sheet_answer_solve': [
+                        {'group_id': 2, 'sheet_title': 'test_title', 'sheet_question': 'test_question',
+                         'user_answer': 'test', 'solving_status': 'solved', 'start_time': '2022-01-01 00:00:00', 'solved_time': '2022-01-01 00:00:00'},
+                        {'group_id': 2, 'sheet_title': 'middle_sheet_title', 'sheet_question': 'middle_sheet_question',
+                         'user_answer': 'middle_sheet test', 'solving_status': 'solved', 'start_time': '2022-01-01 00:00:00', 'solved_time': '2022-01-01 00:00:00'}
+                    ]
+                },
+                {
+                    'group_id': 1,
+                    'sheet_answer_solve': [
+                        {'group_id': 1, 'sheet_title': 'test_title', 'sheet_question': 'test_question',
+                         'user_answer': 'test', 'solving_status': 'solved', 'start_time': '2022-01-01 00:00:00', 'solved_time': '2022-01-01 00:00:00'},
+                        {'group_id': 1, 'sheet_title': 'middle_sheet_title', 'sheet_question': 'middle_sheet_question',
+                         'user_answer': 'middle_sheet test', 'solving_status': 'solved', 'start_time': '2022-01-01 00:00:00', 'solved_time': '2022-01-01 00:00:00'}
+                    ]
+                }
+            ]
+        )
 
 
 class PopularStoryListAPIViewTestCase(LoginMixin, TestCase):

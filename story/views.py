@@ -1,11 +1,11 @@
+from collections import defaultdict
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method, pagination
-from config.common.exception_codes import SheetDoesNotExists
 from story.constants import StoryErrorMessage
 from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, StoryDetailItemDTO, \
-    StoryPopularListItemDTO
+    StoryPopularListItemDTO, GroupedSheetAnswerSolveDTO, UserSheetAnswerSolveHistoryItemDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story, WrongAnswer
 from story.services import (
     get_running_start_sheet_by_story,
@@ -215,6 +215,15 @@ class SheetAnswerCheckAPIView(APIView):
 
 
 class StorySheetSolveAPIView(APIView):
+    @custom_login_required_for_method
+    def get(self, request, story_id):
+        user_sheet_answer_solve_histories = get_user_sheet_answer_solve_histories(request.user.id, story_id)
+        output_data = [
+            grouped_dto.to_dict()
+            for grouped_dto in GroupedSheetAnswerSolveDTO.from_histories(user_sheet_answer_solve_histories)
+        ]
+        return Response(status=200, data=output_data)
+
     @custom_login_required_for_method
     def delete(self, request, story_id):
         is_reset = reset_user_story_sheet_answer_solves(request.user.id, story_id)
