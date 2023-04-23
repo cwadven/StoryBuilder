@@ -1,4 +1,5 @@
 import attr
+from collections import defaultdict
 from typing import List
 
 from story.constants import StoryLevel
@@ -183,6 +184,24 @@ class UserSheetAnswerSolveHistoryItemDTO(object):
             start_time=start_time,
             solved_time=solved_time,
         )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class GroupedSheetAnswerSolveDTO(object):
+    group_id = attr.ib(type=int)
+    sheet_answer_solve = attr.ib(type=List[UserSheetAnswerSolveHistoryItemDTO])
+
+    @classmethod
+    def from_histories(cls, user_sheet_answer_solve_history_items: List[UserSheetAnswerSolveHistoryItemDTO]):
+        grouped_data = defaultdict(list)
+
+        for history_item in user_sheet_answer_solve_history_items:
+            grouped_data[history_item.group_id].append(history_item.to_dict())
+
+        return [cls(group_id=group_id, sheet_answer_solve=solve_list) for group_id, solve_list in grouped_data.items()]
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)
