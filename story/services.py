@@ -356,6 +356,6 @@ def get_user_sheet_answer_solve_histories(user_id: int, story_id: int) -> List[U
             story_id=story_id,
         ).order_by(
             '-group_id',
-            '-id',
+            'id',
         )
     ]
