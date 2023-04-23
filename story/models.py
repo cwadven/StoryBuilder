@@ -350,3 +350,18 @@ class StoryLike(models.Model):
         if isinstance(user, AnonymousUser):
             return False
         return cls.objects.filter(user=user, story_id=story_id, is_deleted=False).exists()
+
+
+class WrongAnswer(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE)
+    answer = models.CharField(verbose_name='틀린 답', max_length=100)
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '틀린 답'
+        verbose_name_plural = '틀린 답'
+
+    def __str__(self):
+        return f'{self.id} {self.user_id} - {self.story_id} - {self.sheet_id} - 틀린 답: {self.answer}'

@@ -6,7 +6,7 @@ from hint.admin_forms import SheetHintInlineFormset, SheetHintAdminForm, SheetAn
 from hint.models import SheetHint
 from story.admin_forms import StoryAdminForm, SheetAdminForm
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, StoryEmailSubscription, PopularStory, \
-    UserSheetAnswerSolve, StorySlackSubscription, UserSheetAnswerSolveHistory
+    UserSheetAnswerSolve, StorySlackSubscription, UserSheetAnswerSolveHistory, WrongAnswer
 
 
 class StoryAdmin(admin.ModelAdmin):
@@ -316,6 +316,42 @@ class UserSheetAnswerSolveHistoryAdmin(admin.ModelAdmin):
         )
 
 
+class WrongAnswerAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'user_nickname',
+        'story_title',
+        'sheet_title',
+        'answer',
+        'created_at',
+    ]
+
+    def user_nickname(self, obj):
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:account_user_change", args=[obj.user_id]),
+            obj.user.nickname if obj.user else '',
+        ))
+    user_nickname.short_description = 'nickname'
+
+    def story_title(self, obj):
+        return mark_safe('<a href="{}">[{}] {}</a>'.format(
+            reverse("admin:story_story_change", args=[obj.story_id]),
+            obj.story_id,
+            obj.story.title,
+        ))
+
+    story_title.short_description = 'Story title'
+
+    def sheet_title(self, obj):
+        return mark_safe('<a href="{}">[{}] {}</a>'.format(
+            reverse("admin:story_sheet_change", args=[obj.sheet_id]),
+            obj.sheet.id,
+            obj.sheet.title,
+        ))
+
+    sheet_title.short_description = 'Sheet title'
+
+
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Sheet, SheetAdmin)
 admin.site.register(SheetAnswer, SheetAnswerAdmin)
@@ -325,3 +361,4 @@ admin.site.register(StorySlackSubscription, StorySlackSubscriptionAdmin)
 admin.site.register(PopularStory, PopularStoryAdmin)
 admin.site.register(UserSheetAnswerSolve, UserSheetAnswerSolveAdmin)
 admin.site.register(UserSheetAnswerSolveHistory, UserSheetAnswerSolveHistoryAdmin)
+admin.site.register(WrongAnswer, WrongAnswerAdmin)
