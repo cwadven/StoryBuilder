@@ -117,36 +117,71 @@ def get_sheet_answers(sheet_id: int) -> set:
 
 def get_valid_answer_info_with_random_quantity(answer: str, answer_responses: List[SheetAnswerResponseDTO]) -> (bool, int, int, int):
     """
-    정답유무, sheet_answer_id, next_sheet_id(랜덤한 quantity로 구한 것)
+    is_answer_valid: 정답 유무
+    sheet_answer_id: quantity 를 통해 무작위로 결정된 SheetAnswer id
+    next_sheet_path_id: quantity 를 통해 무작위로 결정된 NextSheetPath id
+    next_sheet_id: quantity 를 통해 무작위로 결정된 다음 Sheet id
     """
-    is_answer_valid = answer.lower().replace(' ', '') in map(
-        lambda answer_response: answer_response.answer.lower().replace(' ', ''),
-        answer_responses
-    )
+    not_always_correct_answer_responses = [response for response in answer_responses if not response.is_always_correct]
+    always_correct_answer_responses = [response for response in answer_responses if response.is_always_correct]
+    matched_with_answer_of_answer_responses = [
+        response for response in not_always_correct_answer_responses if
+        response.answer.lower().replace(' ', '') == answer.lower().replace(' ', '')
+    ]
+
+    is_answer_valid = bool(len(matched_with_answer_of_answer_responses))
     sheet_answer_id = None
 
+    # 정답이 있는 경우
     if is_answer_valid:
         quantity_next_sheet_id_and_next_sheet_path_ids = []
         # 정답들 가져오기
-        filtered_answer_responses = list(
-            filter(
-                lambda answer_response: answer_response.answer.lower().replace(' ', '') == answer.lower().replace(' ', ''),
-                answer_responses
-            )
-        )
-        for filtered_answer_response in filtered_answer_responses:
-            if filtered_answer_response.next_sheet_quantity:
+        for matched_with_answer_of_answer_response in matched_with_answer_of_answer_responses:
+            if matched_with_answer_of_answer_response.next_sheet_quantity:
                 quantity_next_sheet_id_and_next_sheet_path_ids += [
-                   [filtered_answer_response.next_sheet_path_id, filtered_answer_response.next_sheet_id]
-                ] * filtered_answer_response.next_sheet_quantity
+                    [
+                        matched_with_answer_of_answer_response.id,
+                        matched_with_answer_of_answer_response.next_sheet_path_id,
+                        matched_with_answer_of_answer_response.next_sheet_id
+                    ]
+                ] * matched_with_answer_of_answer_response.next_sheet_quantity
+
         # 셔플하기
         random.shuffle(quantity_next_sheet_id_and_next_sheet_path_ids)
+
         # 값 가져오기
-        first_filtered_answer_response = next(iter(filtered_answer_responses), None)
-        sheet_answer_id = first_filtered_answer_response.id if first_filtered_answer_response else None
-        next_sheet_path_id, next_sheet_id = next(iter(quantity_next_sheet_id_and_next_sheet_path_ids), (None, None))
-        # 정답유무, sheet_answer_id, next_sheet_path_id, next_sheet_id
+        sheet_answer_id, next_sheet_path_id, next_sheet_id = next(iter(quantity_next_sheet_id_and_next_sheet_path_ids), (None, None, None))
+
+        # 정답에 경로가 없을 경우, 정답 id 만 정의
+        if not sheet_answer_id:
+            sheet_answer_id = matched_with_answer_of_answer_responses[0].id
+
         return is_answer_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id
+
+    # 항상 정답인 것이 있는 경우
+    if always_correct_answer_responses:
+        quantity_next_sheet_id_and_next_sheet_path_ids = []
+        for always_correct_answer_response in always_correct_answer_responses:
+            if always_correct_answer_response.next_sheet_quantity:
+                quantity_next_sheet_id_and_next_sheet_path_ids += [
+                    [
+                        always_correct_answer_response.id,
+                        always_correct_answer_response.next_sheet_path_id,
+                        always_correct_answer_response.next_sheet_id,
+                    ]
+                ] * always_correct_answer_response.next_sheet_quantity
+
+        # 셔플하기
+        random.shuffle(quantity_next_sheet_id_and_next_sheet_path_ids)
+
+        # 값 가져오기
+        sheet_answer_id, next_sheet_path_id, next_sheet_id = next(iter(quantity_next_sheet_id_and_next_sheet_path_ids), (None, None, None))
+
+        if not sheet_answer_id:
+            sheet_answer_id = always_correct_answer_responses[0].id
+
+        return True, sheet_answer_id, next_sheet_path_id, next_sheet_id
+
     return is_answer_valid, sheet_answer_id, None, None
 
 
@@ -168,6 +203,7 @@ def get_sheet_answer_with_next_path_responses(sheet_id: int) -> List[SheetAnswer
             'id',
             'answer',
             'answer_reply',
+            'is_always_correct',
             'nextsheetpath',
             'next_sheet_paths__nextsheetpath__sheet_id',
             'next_sheet_paths__nextsheetpath__quantity',

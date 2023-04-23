@@ -190,13 +190,20 @@ class GetSheetAnswerTestCase(TestCase):
         self.assertTrue(self.start_sheet_answer2.answer in answers)
 
     def test_get_sheet_answer_with_next_path_responses_should_success(self):
-        # Given:
+        # Given: is_always_correct start_sheet_answer1 은 False, start_sheet_answer2 는 True 입니다.
+        self.start_sheet_answer1.is_always_correct = False
+        self.start_sheet_answer1.save()
+        self.start_sheet_answer2.is_always_correct = True
+        self.start_sheet_answer2.save()
+
         # When: Sheet의 정답을 SheetAnswerResponse 형태로 가져옵니다.
         sheet_answer_responses = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
 
         # When: Sheet의 정답을 SheetAnswerResponse 형태로 요청합니다.
         self.assertEqual(sheet_answer_responses[0].id, self.start_sheet_answer1.id)
+        self.assertFalse(sheet_answer_responses[0].is_always_correct)
         self.assertEqual(sheet_answer_responses[1].id, self.start_sheet_answer2.id)
+        self.assertTrue(sheet_answer_responses[1].is_always_correct)
 
     def test_get_sheet_answer_with_next_path_responses_should_fail_when_sheet_is_deleted(self):
         # Given: Sheet 가 삭제됐을 경우
@@ -343,6 +350,62 @@ class GetSheetAnswerTestCase(TestCase):
         # And: 정답을 맞추지 못해 None 입니다.
         self.assertIsNone(next_sheet_id)
         # And: 정답을 맞추지 못해 None 입니다.
+        self.assertIsNone(next_sheet_path_id)
+
+    def test_get_valid_answer_info_with_random_quantity_should_success_when_always_correct_answer_sheet_exists(self):
+        # Given: 항상 정답 처리되는 정답을 가진 sheet answer 를 만듭니다.
+        self.start_sheet_answer1.is_always_correct = True
+        self.start_sheet_answer1.save()
+        # And: SheetAnswer 에 final_sheet1 을 바라보는 NextSheetPath 를 추가합니다. quantity 10
+        next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        # And: SheetAnswer 에 final_sheet2 을 바라보는 NextSheetPath 를 추가합니다. quantity 0
+        NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet2,
+            quantity=0,
+        )
+        # And: sheet answer response 를 가져옵니다.
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: 항상 정답인 것을 가져옵니다.
+        is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer='wrong_answer',
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다
+        self.assertTrue(is_valid)
+        # And: self.start_sheet_answer1 가 quantity 가 높아서 가져옵니다
+        self.assertEqual(sheet_answer_id, self.start_sheet_answer1.id)
+        # And: next_sheet_id 를 가져옵니다
+        self.assertEqual(next_sheet_id, next_sheet_path1.sheet_id)
+        # And: next_sheet_path_id 를 가져옵니다
+        self.assertEqual(next_sheet_path_id, next_sheet_path1.id)
+
+    def test_get_valid_answer_info_with_random_quantity_should_success_when_always_correct_answer_sheet_exists_but_not_have_next_path(self):
+        # Given: 항상 정답 처리되는 정답을 가진 sheet answer 를 만듭니다.
+        self.start_sheet_answer1.is_always_correct = True
+        self.start_sheet_answer1.save()
+        # And: sheet answer response 를 가져옵니다.
+        sheet_answer_response = get_sheet_answer_with_next_path_responses(self.start_sheet.id)
+
+        # When: 항상 정답인 것을 가져옵니다.
+        is_valid, sheet_answer_id, next_sheet_path_id, next_sheet_id = get_valid_answer_info_with_random_quantity(
+            answer='wrong_answer',
+            answer_responses=sheet_answer_response,
+        )
+
+        # Then: 정답이 맞습니다
+        self.assertTrue(is_valid)
+        # And: self.start_sheet_answer1 가 quantity 가 높아서 가져옵니다
+        self.assertEqual(sheet_answer_id, self.start_sheet_answer1.id)
+        # And: next_sheet_id 를 가져옵니다
+        self.assertIsNone(next_sheet_id)
+        # And: next_sheet_path_id 를 가져옵니다
         self.assertIsNone(next_sheet_path_id)
 
 
