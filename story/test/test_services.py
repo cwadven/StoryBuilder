@@ -16,7 +16,7 @@ from story.services import (
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
     get_active_popular_stories, get_stories_order_by_fields, get_story_slack_subscription_slack_webhook_urls,
-    reset_user_story_sheet_answer_solves,
+    reset_user_story_sheet_answer_solves, create_wrong_answer,
 )
 
 
@@ -1071,3 +1071,70 @@ class ResetUserStorySheetAnswerSolve(LoginMixin, TestCase):
         # And: 데이터가 기존과 같은지 확인
         for key, value in data_dict.items():
             self.assertEqual(getattr(u_s_a_s_h, key), value)
+
+
+class CreateWrongAnswerTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.start_sheet_answer2 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test2',
+            answer_reply='test_reply2',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.final_sheet1_answer1 = SheetAnswer.objects.create(
+            sheet=self.final_sheet1,
+            answer='final_sheet_answer1',
+            answer_reply='final_sheet_answer1',
+        )
+        self.final_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='test_title2',
+            question='test_question2',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+
+    def test_create_wrong_answer(self):
+        # Given:
+        wrong_answer_text = 'wrong_answer_text'
+
+        # When: Sheet의 정답을 가져옵니다.
+        wrong_answer = create_wrong_answer(self.user.id, self.story.id, self.start_sheet.id, wrong_answer_text)
+
+        # Then: WrongAnswer 생성
+        self.assertEqual(wrong_answer.user_id, self.user.id)
+        self.assertEqual(wrong_answer.story_id, self.story.id)
+        self.assertEqual(wrong_answer.sheet_id, self.start_sheet.id)
+        self.assertEqual(wrong_answer.answer, wrong_answer_text)

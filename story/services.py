@@ -10,7 +10,7 @@ from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesN
 from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
 from story.dtos import SheetAnswerResponseDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory, \
-    StorySlackSubscription, UserSheetAnswerSolveHistory
+    StorySlackSubscription, UserSheetAnswerSolveHistory, WrongAnswer
 
 
 def get_active_stories(search='', start_row=None, end_row=None, user=None) -> List[Story]:
@@ -335,3 +335,12 @@ def reset_user_story_sheet_answer_solves(user_id: int, story_id: int):
         return True
 
     return False
+
+
+def create_wrong_answer(user_id: int, story_id: int, sheet_id: int, wrong_answer: str):
+    return WrongAnswer.objects.create(
+        user_id=user_id,
+        story_id=story_id,
+        sheet_id=sheet_id,
+        answer=wrong_answer,
+    )
