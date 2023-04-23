@@ -13,8 +13,8 @@ class SheetHintInlineFormset(forms.models.BaseInlineFormSet):
         for form in self.forms:
             if form.cleaned_data['is_deleted'] or form.cleaned_data['DELETE']:
                 continue
-            sequence = form.cleaned_data['sequence']
-            if int(sequence) in sequences:
+            sequence = form.cleaned_data.get('sequence', 1)
+            if int(sequence or 1) in sequences:
                 raise ValidationError('동일한 sequence 를 가진 Sheet Hint 가 있습니다.')
             sequences.append(sequence)
 
