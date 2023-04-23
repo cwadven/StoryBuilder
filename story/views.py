@@ -2,10 +2,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method, pagination
+from config.common.exception_codes import SheetDoesNotExists
 from story.constants import StoryErrorMessage
 from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, StoryDetailItemDTO, \
     StoryPopularListItemDTO
-from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story
+from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story, WrongAnswer
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
@@ -13,7 +14,7 @@ from story.services import (
     get_running_sheet,
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
     create_story_like, delete_story_like, get_active_stories, get_active_story_by_id, get_active_popular_stories,
-    get_stories_order_by_fields, reset_user_story_sheet_answer_solves,
+    get_stories_order_by_fields, reset_user_story_sheet_answer_solves, create_wrong_answer,
 )
 
 
@@ -166,11 +167,12 @@ class SheetAnswerCheckAPIView(APIView):
     @mandatories('sheet_id', 'answer')
     @custom_login_required_for_method
     def post(self, request, m):
-        sheet_id = m['sheet_id']
-        answer_responses = get_sheet_answer_with_next_path_responses(sheet_id)
+        sheet = get_running_sheet(m['sheet_id'])
+
+        answer_responses = get_sheet_answer_with_next_path_responses(sheet.id)
         answer_reply = None
 
-        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet_id)
+        solved_user_sheet_answer = get_sheet_solved_user_sheet_answer(request.user.id, sheet.id)
         if solved_user_sheet_answer:
             return Response({'message': StoryErrorMessage.ALREADY_SOLVED.label}, status=400)
 
@@ -178,6 +180,8 @@ class SheetAnswerCheckAPIView(APIView):
             answer=m['answer'],
             answer_responses=answer_responses
         )
+        if not is_valid:
+            create_wrong_answer(request.user.id, int(sheet.story_id), sheet.id, m['answer'])
 
         # 나중에 Service 레이어로 위치 변환
         try:

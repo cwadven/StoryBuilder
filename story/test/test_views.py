@@ -10,7 +10,7 @@ from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.constants import StoryLevel
 from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike, \
-    PopularStory
+    PopularStory, WrongAnswer
 
 
 def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
@@ -460,9 +460,9 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertTrue(content.get('is_solved'))
 
 
-class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
+class SheetAnswerCheckAPIViewTestCase(LoginMixin, TestCase):
     def setUp(self):
-        super(SheetAnswerCheckAPIViewViewTestCase, self).setUp()
+        super(SheetAnswerCheckAPIViewTestCase, self).setUp()
         self.user = User.objects.all()[0]
         self.login()
         self.story = Story.objects.create(
@@ -628,6 +628,13 @@ class SheetAnswerCheckAPIViewViewTestCase(LoginMixin, TestCase):
         # And: 정답이 아니어서 None 반환
         self.assertIsNone(content.get('next_sheet_id'))
         self.assertIsNone(content.get('answer_reply'))
+        # And: Wrong Answer 생성
+        wrong_answer_qs = WrongAnswer.objects.filter(user=self.c.user, sheet=self.start_sheet)
+        self.assertEqual(wrong_answer_qs.count(), 1)
+        self.assertEqual(wrong_answer_qs[0].user_id, self.c.user.id)
+        self.assertEqual(wrong_answer_qs[0].story_id, self.story.id)
+        self.assertEqual(wrong_answer_qs[0].sheet_id, self.request_data['sheet_id'])
+        self.assertEqual(wrong_answer_qs[0].answer, self.request_data['answer'])
 
     def test_get_story_next_sheet_should_fail_when_sheet_is_deleted(self):
         # Given: sheet 삭제 됐을 경우
