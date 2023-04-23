@@ -1,11 +1,11 @@
+from collections import defaultdict
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method, pagination
-from config.common.exception_codes import SheetDoesNotExists
 from story.constants import StoryErrorMessage
 from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, StoryDetailItemDTO, \
-    StoryPopularListItemDTO
+    StoryPopularListItemDTO, GroupedSheetAnswerSolveDTO, UserSheetAnswerSolveHistoryItemDTO
 from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story, WrongAnswer
 from story.services import (
     get_running_start_sheet_by_story,
@@ -15,6 +15,7 @@ from story.services import (
     validate_user_playing_sheet, get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id,
     create_story_like, delete_story_like, get_active_stories, get_active_story_by_id, get_active_popular_stories,
     get_stories_order_by_fields, reset_user_story_sheet_answer_solves, create_wrong_answer,
+    get_user_sheet_answer_solve_histories,
 )
 
 
@@ -213,7 +214,16 @@ class SheetAnswerCheckAPIView(APIView):
         return Response({'is_valid': is_valid, 'next_sheet_id': next_sheet_id, 'answer_reply': answer_reply}, status=200)
 
 
-class ResetStorySheetSolveAPIView(APIView):
+class StorySheetSolveAPIView(APIView):
+    @custom_login_required_for_method
+    def get(self, request, story_id):
+        user_sheet_answer_solve_histories = get_user_sheet_answer_solve_histories(request.user.id, story_id)
+        output_data = [
+            grouped_dto.to_dict()
+            for grouped_dto in GroupedSheetAnswerSolveDTO.from_histories(user_sheet_answer_solve_histories)
+        ]
+        return Response(status=200, data=output_data)
+
     @custom_login_required_for_method
     def delete(self, request, story_id):
         is_reset = reset_user_story_sheet_answer_solves(request.user.id, story_id)

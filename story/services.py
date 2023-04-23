@@ -8,7 +8,7 @@ from common_library import get_max_int_from_queryset
 from config.common.exception_codes import StartingSheetDoesNotExists, SheetDoesNotExists, SheetNotAccessibleException, \
     StoryDoesNotExists
 from story.constants import DEFAULT_POPULAR_KILL_SWITCH_STORY_COUNT
-from story.dtos import SheetAnswerResponseDTO
+from story.dtos import SheetAnswerResponseDTO, UserSheetAnswerSolveHistoryItemDTO
 from story.models import Sheet, UserSheetAnswerSolve, StoryEmailSubscription, StoryLike, Story, PopularStory, \
     StorySlackSubscription, UserSheetAnswerSolveHistory, WrongAnswer
 
@@ -344,3 +344,18 @@ def create_wrong_answer(user_id: int, story_id: int, sheet_id: int, wrong_answer
         sheet_id=sheet_id,
         answer=wrong_answer,
     )
+
+
+def get_user_sheet_answer_solve_histories(user_id: int, story_id: int) -> List[UserSheetAnswerSolveHistoryItemDTO]:
+    return [
+        UserSheetAnswerSolveHistoryItemDTO.of(user_sheet_answer_solve_history)
+        for user_sheet_answer_solve_history in UserSheetAnswerSolveHistory.objects.select_related(
+            'sheet',
+        ).filter(
+            user_id=user_id,
+            story_id=story_id,
+        ).order_by(
+            '-group_id',
+            'id',
+        )
+    ]

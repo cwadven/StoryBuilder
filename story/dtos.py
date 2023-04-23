@@ -1,8 +1,9 @@
 import attr
+from collections import defaultdict
 from typing import List
 
 from story.constants import StoryLevel
-from story.models import Sheet, UserSheetAnswerSolve, Story, PopularStory
+from story.models import Sheet, UserSheetAnswerSolve, Story, PopularStory, UserSheetAnswerSolveHistory
 
 
 @attr.s
@@ -155,6 +156,52 @@ class StoryDetailItemDTO(object):
             level=StoryLevel(story.level).selector,
             is_liked=is_liked,
         )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class UserSheetAnswerSolveHistoryItemDTO(object):
+    group_id = attr.ib(type=int)
+    sheet_title = attr.ib(type=str)
+    sheet_question = attr.ib(type=str)
+    user_answer = attr.ib(type=str)
+    solving_status = attr.ib(type=str)
+    start_time = attr.ib(type=str)
+    solved_time = attr.ib(type=str)
+
+    @classmethod
+    def of(cls, user_sheet_answer_solve_history: UserSheetAnswerSolveHistory):
+        start_time = user_sheet_answer_solve_history.start_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.start_time else ''
+        solved_time = user_sheet_answer_solve_history.solved_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.solved_time else ''
+        return cls(
+            group_id=user_sheet_answer_solve_history.group_id,
+            sheet_title=user_sheet_answer_solve_history.sheet.title,
+            sheet_question=user_sheet_answer_solve_history.sheet.question,
+            user_answer=user_sheet_answer_solve_history.answer,
+            solving_status=user_sheet_answer_solve_history.solving_status,
+            start_time=start_time,
+            solved_time=solved_time,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class GroupedSheetAnswerSolveDTO(object):
+    group_id = attr.ib(type=int)
+    sheet_answer_solve = attr.ib(type=List[UserSheetAnswerSolveHistoryItemDTO])
+
+    @classmethod
+    def from_histories(cls, user_sheet_answer_solve_history_items: List[UserSheetAnswerSolveHistoryItemDTO]):
+        grouped_data = defaultdict(list)
+
+        for history_item in user_sheet_answer_solve_history_items:
+            grouped_data[history_item.group_id].append(history_item.to_dict())
+
+        return [cls(group_id=group_id, sheet_answer_solve=solve_list) for group_id, solve_list in grouped_data.items()]
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)

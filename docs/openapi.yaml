@@ -214,6 +214,33 @@ paths:
                     items:
                       $ref: '#/components/schemas/PopularStoryListItemDTO'
   /v1/story/{story_id}/solve-history:
+    get:
+      tags:
+        - Story History
+      summary: 스토리 플레이 히스토리 조회
+      description: 스토리 플레이 히스토리 조회
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupedSheetAnswerSolve'
     delete:
       tags:
         - Story History
@@ -964,6 +991,42 @@ components:
         message:
           type: string
           example: '최근에 해결 못한 sheet 가 없습니다.'
+    GroupedSheetAnswerSolve:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          example: 2
+        sheet_answer_solve:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSheetAnswerSolveHistoryItem'
+    UserSheetAnswerSolveHistoryItem:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          example: 2
+        sheet_title:
+          type: string
+          example: 오늘을 맑은 날
+        sheet_question:
+          type: string
+          example: 오늘은 맑은 날이라고 합니다.\r\n그러면 이 맑은 날의 기준은 어떻게 될까요?
+        user_answer:
+          type: string
+          example: 123123
+        solving_status:
+          type: string
+          example: solving
+        start_time:
+          type: string
+          format: date-time
+          example: '2023-04-24 00:43:55'
+        solved_time:
+          type: string
+          format: date-time
+          example: '2023-04-24 00:43:56'
     StoryListItemDTO:
       type: object
       properties:

@@ -1,5 +1,4 @@
-from unittest.mock import MagicMock
-
+from datetime import datetime
 from django.test import TestCase
 
 from account.models import User
@@ -16,7 +15,7 @@ from story.services import (
     get_sheet_solved_user_sheet_answer, get_recent_played_sheet_by_story_id, get_story_email_subscription_emails,
     create_story_like, update_story_total_like_count, delete_story_like, get_active_stories, get_active_story_by_id,
     get_active_popular_stories, get_stories_order_by_fields, get_story_slack_subscription_slack_webhook_urls,
-    reset_user_story_sheet_answer_solves, create_wrong_answer,
+    reset_user_story_sheet_answer_solves, create_wrong_answer, get_user_sheet_answer_solve_histories,
 )
 
 
@@ -1138,3 +1137,177 @@ class CreateWrongAnswerTestCase(TestCase):
         self.assertEqual(wrong_answer.story_id, self.story.id)
         self.assertEqual(wrong_answer.sheet_id, self.start_sheet.id)
         self.assertEqual(wrong_answer.answer, wrong_answer_text)
+
+
+class GetUserSheetAnswerSolveHistoriesTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.middle_sheet = Sheet.objects.create(
+            story=self.story,
+            title='middle_sheet_title',
+            question='middle_sheet_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=False,
+        )
+        self.middle_sheet_answer = SheetAnswer.objects.create(
+            sheet=self.middle_sheet,
+            answer='middle_sheet test',
+            answer_reply='middle_sheet test_reply',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path_to_middle = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.middle_sheet,
+            quantity=10,
+        )
+        self.next_sheet_path_to_final = NextSheetPath.objects.create(
+            answer=self.middle_sheet_answer,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_sheet_answer_solve_start_sheet = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_middle,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
+        )
+        self.user_sheet_answer_solve_middle_sheet = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.middle_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_final,
+            solved_sheet_answer=self.middle_sheet_answer,
+            answer=self.middle_sheet_answer.answer,
+        )
+        self.user_sheet_answer_solve_start_sheet_history1 = UserSheetAnswerSolveHistory.objects.create(
+            group_id=1,
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_middle,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        self.user_sheet_answer_solve_middle_sheet_history1 = UserSheetAnswerSolveHistory.objects.create(
+            group_id=1,
+            user=self.user,
+            story=self.story,
+            sheet=self.middle_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_final,
+            solved_sheet_answer=self.middle_sheet_answer,
+            answer=self.middle_sheet_answer.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        self.user_sheet_answer_solve_start_sheet_history2 = UserSheetAnswerSolveHistory.objects.create(
+            group_id=2,
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_final,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+        self.user_sheet_answer_solve_middle_sheet_history2 = UserSheetAnswerSolveHistory.objects.create(
+            group_id=2,
+            user=self.user,
+            story=self.story,
+            sheet=self.middle_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path_to_final,
+            solved_sheet_answer=self.middle_sheet_answer,
+            answer=self.middle_sheet_answer.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+
+    def test_get_user_sheet_answer_solve_histories(self):
+        # Given:
+        # When: Sheet의 정답을 가져옵니다.
+        user_sheet_answer_solve_histories = get_user_sheet_answer_solve_histories(self.user.id, self.story.id)
+
+        # Then: 역정렬 순서가 같아야합니다.
+        # 1. group_id
+        # 2. id
+        self.assertEqual(user_sheet_answer_solve_histories[0].group_id, self.user_sheet_answer_solve_start_sheet_history2.group_id)
+        self.assertEqual(user_sheet_answer_solve_histories[0].sheet_title, self.user_sheet_answer_solve_start_sheet_history2.sheet.title)
+        self.assertEqual(user_sheet_answer_solve_histories[0].sheet_question, self.user_sheet_answer_solve_start_sheet_history2.sheet.question)
+        self.assertEqual(user_sheet_answer_solve_histories[0].user_answer, self.user_sheet_answer_solve_start_sheet_history2.answer)
+        self.assertEqual(user_sheet_answer_solve_histories[0].solving_status, self.user_sheet_answer_solve_start_sheet_history2.solving_status)
+        self.assertEqual(user_sheet_answer_solve_histories[0].start_time, self.user_sheet_answer_solve_start_sheet_history2.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[0].solved_time, self.user_sheet_answer_solve_start_sheet_history2.solved_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[1].group_id, self.user_sheet_answer_solve_middle_sheet_history2.group_id)
+        self.assertEqual(user_sheet_answer_solve_histories[1].sheet_title, self.user_sheet_answer_solve_middle_sheet_history2.sheet.title)
+        self.assertEqual(user_sheet_answer_solve_histories[1].sheet_question, self.user_sheet_answer_solve_middle_sheet_history2.sheet.question)
+        self.assertEqual(user_sheet_answer_solve_histories[1].user_answer, self.user_sheet_answer_solve_middle_sheet_history2.answer)
+        self.assertEqual(user_sheet_answer_solve_histories[1].solving_status, self.user_sheet_answer_solve_middle_sheet_history2.solving_status)
+        self.assertEqual(user_sheet_answer_solve_histories[1].start_time, self.user_sheet_answer_solve_middle_sheet_history2.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[1].solved_time, self.user_sheet_answer_solve_middle_sheet_history2.solved_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[2].group_id, self.user_sheet_answer_solve_start_sheet_history1.group_id)
+        self.assertEqual(user_sheet_answer_solve_histories[2].sheet_title, self.user_sheet_answer_solve_start_sheet_history1.sheet.title)
+        self.assertEqual(user_sheet_answer_solve_histories[2].sheet_question, self.user_sheet_answer_solve_start_sheet_history1.sheet.question)
+        self.assertEqual(user_sheet_answer_solve_histories[2].user_answer, self.user_sheet_answer_solve_start_sheet_history1.answer)
+        self.assertEqual(user_sheet_answer_solve_histories[2].solving_status, self.user_sheet_answer_solve_start_sheet_history1.solving_status)
+        self.assertEqual(user_sheet_answer_solve_histories[2].start_time, self.user_sheet_answer_solve_start_sheet_history1.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[2].solved_time, self.user_sheet_answer_solve_start_sheet_history1.solved_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[3].group_id, self.user_sheet_answer_solve_middle_sheet_history1.group_id)
+        self.assertEqual(user_sheet_answer_solve_histories[3].sheet_title, self.user_sheet_answer_solve_middle_sheet_history1.sheet.title)
+        self.assertEqual(user_sheet_answer_solve_histories[3].sheet_question, self.user_sheet_answer_solve_middle_sheet_history1.sheet.question)
+        self.assertEqual(user_sheet_answer_solve_histories[3].user_answer, self.user_sheet_answer_solve_middle_sheet_history1.answer)
+        self.assertEqual(user_sheet_answer_solve_histories[3].solving_status, self.user_sheet_answer_solve_middle_sheet_history1.solving_status)
+        self.assertEqual(user_sheet_answer_solve_histories[3].start_time, self.user_sheet_answer_solve_middle_sheet_history1.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_histories[3].solved_time, self.user_sheet_answer_solve_middle_sheet_history1.solved_time.strftime('%Y-%m-%d %H:%M:%S'))
