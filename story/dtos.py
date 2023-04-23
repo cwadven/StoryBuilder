@@ -2,7 +2,7 @@ import attr
 from typing import List
 
 from story.constants import StoryLevel
-from story.models import Sheet, UserSheetAnswerSolve, Story, PopularStory
+from story.models import Sheet, UserSheetAnswerSolve, Story, PopularStory, UserSheetAnswerSolveHistory
 
 
 @attr.s
@@ -154,6 +154,32 @@ class StoryDetailItemDTO(object):
             free_to_play_sheet_count=story.free_to_play_sheet_count,
             level=StoryLevel(story.level).selector,
             is_liked=is_liked,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class UserSheetAnswerSolveHistoryItemDTO(object):
+    sheet_title = attr.ib(type=str)
+    sheet_question = attr.ib(type=str)
+    user_answer = attr.ib(type=str)
+    solving_status = attr.ib(type=str)
+    start_time = attr.ib(type=str)
+    solved_time = attr.ib(type=str)
+
+    @classmethod
+    def of(cls, user_sheet_answer_solve_history: UserSheetAnswerSolveHistory):
+        start_time = user_sheet_answer_solve_history.start_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.start_time else ''
+        solved_time = user_sheet_answer_solve_history.solved_time.strftime('%Y-%m-%d %H:%M:%S') if user_sheet_answer_solve_history.solved_time else ''
+        return cls(
+            sheet_title=user_sheet_answer_solve_history.sheet.title,
+            sheet_question=user_sheet_answer_solve_history.sheet.question,
+            user_answer=user_sheet_answer_solve_history.answer,
+            solving_status=user_sheet_answer_solve_history.solving_status,
+            start_time=start_time,
+            solved_time=solved_time,
         )
 
     def to_dict(self):

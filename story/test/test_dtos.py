@@ -1,10 +1,13 @@
+from datetime import datetime
+
 from django.test import TestCase
 
 from account.models import User
 from story.constants import StoryLevel
 from story.dtos import SheetAnswerResponseDTO, PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, \
-    StoryDetailItemDTO, StoryPopularListItemDTO
-from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, PopularStory
+    StoryDetailItemDTO, StoryPopularListItemDTO, UserSheetAnswerSolveHistoryItemDTO
+from story.models import Sheet, Story, SheetAnswer, NextSheetPath, UserSheetAnswerSolve, PopularStory, \
+    UserSheetAnswerSolveHistory
 
 
 class DTOSheetAnswerResponseTestCase(TestCase):
@@ -286,3 +289,82 @@ class StoryDetailItemDTOTestCase(TestCase):
         self.assertEqual(story_list_item['free_to_play_sheet_count'], self.story.free_to_play_sheet_count)
         self.assertEqual(story_list_item['level'], StoryLevel(self.story.level).selector)
         self.assertEqual(story_list_item['is_liked'], is_liked)
+
+
+class UserSheetAnswerSolveHistoryItemDTOTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.final_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='test_title1',
+            question='test_question1',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.next_sheet_path = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.final_sheet1,
+            quantity=10,
+        )
+        self.user_sheet_answer_solve = UserSheetAnswerSolve.objects.create(
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
+        )
+        self.user_sheet_answer_solve_history = UserSheetAnswerSolveHistory.objects.create(
+            group_id=1,
+            user=self.user,
+            story=self.story,
+            sheet=self.start_sheet,
+            solved_sheet_version=1,
+            solved_answer_version=1,
+            solving_status=UserSheetAnswerSolve.SOLVING_STATUS_CHOICES[0][0],
+            next_sheet_path=self.next_sheet_path,
+            solved_sheet_answer=self.start_sheet_answer1,
+            answer=self.start_sheet_answer1.answer,
+            start_time=datetime(2022, 1, 1),
+            solved_time=datetime(2022, 1, 1),
+        )
+
+    def test_user_sheet_answer_solve_history_item_dto(self):
+        # Given
+        # When: dto 객체 생성
+        user_sheet_answer_solve_history_item_dto = UserSheetAnswerSolveHistoryItemDTO.of(self.user_sheet_answer_solve_history)
+        user_sheet_answer_solve_history_item = user_sheet_answer_solve_history_item_dto.to_dict()
+
+        # Then: set dto
+        self.assertEqual(user_sheet_answer_solve_history_item['sheet_title'], self.user_sheet_answer_solve_history.sheet.title)
+        self.assertEqual(user_sheet_answer_solve_history_item['sheet_question'], self.user_sheet_answer_solve_history.sheet.question)
+        self.assertEqual(user_sheet_answer_solve_history_item['user_answer'], self.user_sheet_answer_solve_history.answer)
+        self.assertEqual(user_sheet_answer_solve_history_item['solving_status'], self.user_sheet_answer_solve_history.solving_status)
+        self.assertEqual(user_sheet_answer_solve_history_item['start_time'], self.user_sheet_answer_solve_history.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(user_sheet_answer_solve_history_item['solved_time'], self.user_sheet_answer_solve_history.solved_time.strftime('%Y-%m-%d %H:%M:%S'))
