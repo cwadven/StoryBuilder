@@ -89,54 +89,91 @@ class KakaoSocialType(SocialType):
     def redirect_uri(self):
         return self._redirect_uri
 
+    @staticmethod
+    def _get_birth_day(data: dict) -> datetime:
+        birth = None
+        if 'kakao_account' in data.keys():
+            try:
+                birth = data['kakao_account']['birthyear'] + data['kakao_account']['birthday']
+                birth = datetime.strptime(birth, '%Y%m%d')
+            except KeyError:
+                pass
+        return birth
+
+    @staticmethod
+    def _get_gender(data: dict):
+        gender = None
+        if 'kakao_account' in data.keys():
+            try:
+                gender = data['kakao_account']['gender']
+            except KeyError:
+                pass
+        return gender
+
+    @staticmethod
+    def _get_phone(data: dict):
+        phone = None
+        if 'kakao_account' in data.keys():
+            try:
+                phone = data['kakao_account']['phone_number'].replace(
+                    '+82 ',
+                    '0'
+                ).replace(
+                    '-',
+                    ''
+                ).replace(
+                    ' ',
+                    '',
+                )
+            except KeyError:
+                pass
+        return phone
+
+    @staticmethod
+    def _get_email(data: dict):
+        email = None
+        if 'kakao_account' in data.keys():
+            try:
+                email = data['kakao_account']['email']
+            except KeyError:
+                pass
+        return email
+
+    @staticmethod
+    def _get_name(data: dict):
+        name = None
+        if 'kakao_account' in data.keys():
+            try:
+                name = data['kakao_account']['profile']['nickname']
+            except KeyError:
+                pass
+        return name
+
     def get_user_info_with_access_token(self, access_token: str) -> dict:
         headers = {
             'Authorization': 'Bearer ' + access_token
         }
         data = requests.get(
-            self.redirect_uri,
+            self.request_user_info_path,
             headers=headers
         )
         if data.status_code != 200:
             raise LoginFailedException()
         else:
             data = json.loads(data.text)
-            birth = None
-            if 'kakao_account' in data.keys():
-                try:
-                    birth = data['kakao_account']['birthyear'] + data['kakao_account']['birthday']
-                    birth = datetime.strptime(birth, '%Y%m%d')
-
-                    return_data = {
-                        'id': data['id'],
-                        'gender': data['kakao_account']['gender'] if data['kakao_account']['gender'] else None,
-                        'phone': data['kakao_account']['phone_number'].replace('+82 ', '0').replace('-', '').replace(
-                            ' ', ''
-                        ) if data['kakao_account']['phone_number'] else None,
-                        'birth': birth,
-                        'email': data['kakao_account']['email'] if data['kakao_account']['email'] else None,
-                        'name': data['kakao_account']['profile']['nickname'] if data['kakao_account']['profile'][
-                            'nickname'] else None,
-                    }
-                except:
-                    return_data = {
-                        'id': data['id'],
-                        'gender': None,
-                        'phone': None,
-                        'birth': birth,
-                        'email': None,
-                        'name': None,
-                    }
-            else:
-                return_data = {
-                    'id': data['id'],
-                    'gender': None,
-                    'phone': None,
-                    'birth': birth,
-                    'email': None,
-                    'name': None,
-                }
-            return return_data
+            birth = self._get_birth_day(data)
+            gender = self._get_gender(data)
+            phone = self._get_phone(data)
+            email = self._get_email(data)
+            name = self._get_name(data)
+            return {
+                'id': data['id'],
+                'gender': birth,
+                'phone': gender,
+                'birth': phone,
+                'email': email,
+                'name': name,
+            }
 
 
 class NaverSocialType(SocialType):
@@ -172,7 +209,7 @@ class NaverSocialType(SocialType):
             'Authorization': 'Bearer ' + access_token
         }
         data = requests.get(
-            self.redirect_uri,
+            self.request_user_info_path,
             headers=headers
         )
         if data.status_code != 200:
@@ -238,7 +275,7 @@ class GoogleSocialType(SocialType):
 
     def get_user_info_with_access_token(self, access_token: str) -> dict:
         data = requests.get(
-            self.redirect_uri,
+            self.request_user_info_path,
             params={
                 'access_token': access_token
             }
@@ -277,5 +314,5 @@ class SocialLoginController:
         self.social_type = social_type
 
     def validate(self, code):
-        access_token = self.social_type.get_access_token_by_code(code)
-        return self.social_type.get_user_info_with_access_token(access_token)
+        # access_token = self.social_type.get_access_token_by_code(code)
+        return self.social_type.get_user_info_with_access_token(code)

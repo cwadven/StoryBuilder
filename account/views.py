@@ -134,7 +134,7 @@ class SocialLoginView(APIView):
 
         context = {
             'accessToken': get_login_token(user),
-            'isCreated': is_created,
+            'is_created': is_created,
         }
 
         return Response(context, status=200)
