@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 
 from banner.models import BannerType, Banner
-from banner.services import get_active_banners, get_active_banner
-from config.common.exception_codes import BannerDoesNotExists
+from banner.services import get_active_banners
 
 
 class GetActiveBannersTestCase(TestCase):
@@ -44,22 +43,3 @@ class GetActiveBannersTestCase(TestCase):
         active_banners = get_active_banners(now=now, order_by=['-sequence'])
         # Expected: sequence 역정렬 순으로 생성
         self.assertEqual(list(active_banners), [self.banner1, self.banner2])
-
-    def test_get_active_banner_should_return_banner(self):
-        # Given:
-        now = datetime.now()
-
-        # When:
-        active_banner = get_active_banner(banner_id=self.banner1.id, now=now)
-
-        # Then: banner1 반환
-        self.assertEqual(active_banner.id, self.banner1.id)
-
-    def test_get_active_banner_should_raise_error_when_banner_not_exists(self):
-        # Given: banner1 비 활성화
-        self.banner1.is_active = False
-        self.banner1.save()
-
-        # Expected: BannerDoesNotExists 에러 반환
-        with self.assertRaises(BannerDoesNotExists):
-            get_active_banner(banner_id=self.banner1.id)
