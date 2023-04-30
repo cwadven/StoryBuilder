@@ -37,8 +37,8 @@ class Banner(models.Model):
             return '비활성'
 
         if not self.end_time:
-            return '활성'
+            return '진행중'
         elif self.end_time >= datetime.now():
-            return '활성'
+            return '진행중'
         else:
             return '비활성'

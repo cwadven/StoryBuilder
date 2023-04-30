@@ -22,7 +22,7 @@ class BannerTestCase(TestCase):
             is_active=True,
         )
         # Expected:
-        self.assertEqual(active_banner_no_end_time.status, '활성')
+        self.assertEqual(active_banner_no_end_time.status, '진행중')
 
         # Given: Test active banner (with end time)
         active_banner_with_end_time = Banner.objects.create(
@@ -37,7 +37,7 @@ class BannerTestCase(TestCase):
             is_active=True,
         )
         # Expected:
-        self.assertEqual(active_banner_with_end_time.status, '활성')
+        self.assertEqual(active_banner_with_end_time.status, '진행중')
 
         # Given: Test inactive banner (is_active True)
         inactive_banner = Banner.objects.create(
