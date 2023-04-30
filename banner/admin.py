@@ -23,6 +23,7 @@ class BannerAdmin(admin.ModelAdmin):
         'start_time',
         'end_time',
         'is_active',
+        'status',
     ]
 
     def get_queryset(self, request):
