@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from banner.managers import BannerManager
@@ -28,3 +30,15 @@ class Banner(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+
+    @property
+    def status(self):
+        if not self.is_active:
+            return '비활성'
+
+        if not self.end_time:
+            return '활성'
+        elif self.end_time >= datetime.now():
+            return '활성'
+        else:
+            return '비활성'
