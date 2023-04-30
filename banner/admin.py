@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
+from banner.admin_forms import BannerAdminForm
 from banner.models import BannerType, Banner
 
 
@@ -25,6 +26,7 @@ class BannerAdmin(admin.ModelAdmin):
         'is_active',
         'status',
     ]
+    form = BannerAdminForm
 
     def get_queryset(self, request):
         return super(BannerAdmin, self).get_queryset(
