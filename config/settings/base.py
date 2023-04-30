@@ -36,6 +36,7 @@ PROJECT_APPS = [
     'story',
     'hint',
     'point',
+    'banner',
 ]
 
 PROJECT_SETTING_APPS = [
