@@ -42,3 +42,13 @@ class BannerManagerTestCase(TestCase):
         # Expected:
         activate_banners = Banner.objects.get_activate(now=now)
         self.assertNotIn(inactive_banner, activate_banners)
+
+    def test_banner_manager_get_activate_should_return_when_end_time_is_none(self):
+        # Given: Banner end_time None
+        self.banner.end_time = None
+        self.banner.save()
+        now = datetime.now()
+
+        activate_banners = Banner.objects.get_activate(now=now)
+        # Expected:
+        self.assertIn(self.banner, activate_banners)

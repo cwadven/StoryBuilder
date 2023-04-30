@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Manager
+from django.db.models import Manager, Q
 
 
 class BannerManager(Manager):
@@ -11,6 +11,6 @@ class BannerManager(Manager):
         return self.select_related(
             'banner_type',
         ).filter(
+            Q(end_time__gte=now) | Q(end_time__isnull=True),
             is_active=True,
-            end_time__gte=now,
         )
