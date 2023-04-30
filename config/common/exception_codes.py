@@ -102,3 +102,9 @@ class NotEnoughUserPoints(APIException):
     status_code = 400
     default_detail = '유저의 포인트가 부족합니다.'
     default_code = 'not-enough-user-points'
+
+
+class BannerDoesNotExists(APIException):
+    status_code = 400
+    default_detail = '존재하지 않은 배너 입니다.'
+    default_code = 'banner-does-not-exists'
