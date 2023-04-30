@@ -485,6 +485,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetUserTotalPointSuccessResponse'
+  /v1/banner:
+    get:
+      tags:
+        - Banner
+      summary: Get active banners
+      description: Returns a list of active banners.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  banners:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BannerListItemDTO'
   /v1/story/{story_id}/like:
     post:
       tags:
@@ -1104,6 +1122,24 @@ components:
         - free_to_play_sheet_count
         - level
         - is_liked
+    BannerListItemDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the banner.
+        title:
+          type: string
+          description: The title of the banner.
+        background_image:
+          type: string
+          description: The URL of the background image for the banner.
+        background_color:
+          type: string
+          description: The background color for the banner.
+        banner_type_name:
+          type: string
+          description: The name of the banner type.
   securitySchemes:
     petstore_auth:
       type: oauth2
