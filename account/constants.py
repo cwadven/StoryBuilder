@@ -58,6 +58,16 @@ class UserTypeEnum(IntValueSelector):
     NORMAL_USER = (3, '일반')
 
 
+class UserStatusEnum(IntValueSelector):
+    """
+    데이터베이스에 1, 2, 3, 4 로 UserStatus 와 의미가 같아야 합니다.
+    """
+    NORMAL_USER = (1, '정상')
+    LEAVE_USER = (2, '탈퇴')
+    BLACK_USER = (3, '정지')
+    DORMANT_USER = (4, '휴면')
+
+
 SIGNUP_MACRO_VALIDATION_KEY = '{}:signup:count'
 SIGNUP_MACRO_COUNT = 30
 SIGNUP_MACRO_EXPIRE_SECONDS = 60 * 60 * 24
