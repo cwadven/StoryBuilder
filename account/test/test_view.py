@@ -79,6 +79,7 @@ class SocialLoginTestCase(TestCase):
             'birth': None,
             'email': None,
             'name': None,
+            'nickname': None,
         })
 
     @patch('account.helpers.social_login_helpers.requests.post')
@@ -110,6 +111,7 @@ class SocialLoginTestCase(TestCase):
         self.assertEqual(data.get('birth'), None)
         self.assertEqual(data.get('email'), None)
         self.assertEqual(data.get('name'), None)
+        self.assertEqual(data.get('nickname'), None)
 
     @patch('account.helpers.social_login_helpers.requests.post')
     @patch('account.helpers.social_login_helpers.requests.get')
@@ -138,6 +140,7 @@ class SocialLoginTestCase(TestCase):
         self.assertEqual(data.get('birth'), None)
         self.assertEqual(data.get('email'), None)
         self.assertEqual(data.get('name'), None)
+        self.assertEqual(data.get('nickname'), None)
 
     def test_kakao_social_login_without_mandatory_key(self):
         # Given: 필수 항목을 보내지 않은 경우

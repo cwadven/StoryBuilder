@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from django.conf import settings
 
-from config.common.exception_codes import LoginFailedException
+from config.common.exception_codes import LoginFailedException, SocialLoginTokenErrorException
 
 
 class SocialType(ABC):
@@ -58,7 +58,10 @@ class SocialType(ABC):
         if access_data.status_code != 200:
             raise LoginFailedException()
 
-        return json.loads(access_data.text)['access_token']
+        try:
+            return json.loads(access_data.text)['access_token']
+        except KeyError:
+            raise SocialLoginTokenErrorException()
 
 
 class KakaoSocialType(SocialType):
@@ -173,6 +176,7 @@ class KakaoSocialType(SocialType):
                 'birth': phone,
                 'email': email,
                 'name': name,
+                'nickname': None,
             }
 
 
@@ -182,7 +186,6 @@ class NaverSocialType(SocialType):
         self._request_user_info_path = 'https://openapi.naver.com/v1/nid/me'
         self._client_id = settings.NAVER_API_KEY
         self._secret = settings.NAVER_SECRET_KEY
-        self._redirect_uri = ''
 
     @property
     def request_access_token_path(self):
@@ -204,6 +207,52 @@ class NaverSocialType(SocialType):
     def redirect_uri(self):
         return self._redirect_uri
 
+    @staticmethod
+    def _get_birth_day(data_response: dict) -> datetime:
+        birth = None
+        try:
+            birth = data_response['birthyear'] + data_response['birthday']
+            birth = datetime.strptime(birth, '%Y%m%d')
+        except KeyError:
+            pass
+        return birth
+
+    @staticmethod
+    def _get_gender(data_response: dict):
+        gender = None
+        try:
+            gender = data_response['gender']
+        except KeyError:
+            pass
+        return gender
+
+    @staticmethod
+    def _get_phone(data_response: dict):
+        phone = None
+        try:
+            phone = data_response['phone_number'].replace('-', '').replace(' ', '')
+        except KeyError:
+            pass
+        return phone
+
+    @staticmethod
+    def _get_email(data_response: dict):
+        email = None
+        try:
+            email = data_response['email']
+        except KeyError:
+            pass
+        return email
+
+    @staticmethod
+    def _get_name(data_response: dict):
+        name = None
+        try:
+            name = data_response['name']
+        except KeyError:
+            pass
+        return name
+
     def get_user_info_with_access_token(self, access_token: str) -> dict:
         headers = {
             'Authorization': 'Bearer ' + access_token
@@ -216,33 +265,20 @@ class NaverSocialType(SocialType):
             raise LoginFailedException()
 
         data = json.loads(data.text)['response']
-        birth = None
-
-        try:
-            birth = data['birthyear'] + data['birthday']
-            birth = datetime.strptime(birth, '%Y%m-%d')
-
-            return_data = {
-                'id': data['id'],
-                'gender': data['gender'] if data['gender'] else None,
-                'phone': data['phone_number'].replace('-', '').replace(' ', '') if data['phone_number'] else None,
-                'birth': birth,
-                'email': data['email'] if data['email'] else None,
-                'name': data['name'] if data['name'] else None,
-                'nickname': data['nickname'] if data['nickname'] else None,
-            }
-        except:
-            return_data = {
-                'id': data['id'],
-                'gender': None,
-                'phone': None,
-                'birth': birth,
-                'email': None,
-                'name': None,
-                'nickname': None,
-            }
-
-        return return_data
+        birth = self._get_birth_day(data)
+        gender = self._get_gender(data)
+        phone = self._get_phone(data)
+        email = self._get_email(data)
+        name = self._get_name(data)
+        return {
+            'id': data['id'],
+            'gender': birth,
+            'phone': gender,
+            'birth': phone,
+            'email': email,
+            'name': name,
+            'nickname': None,
+        }
 
 
 class GoogleSocialType(SocialType):
@@ -314,5 +350,5 @@ class SocialLoginController:
         self.social_type = social_type
 
     def validate(self, code):
-        # access_token = self.social_type.get_access_token_by_code(code)
-        return self.social_type.get_user_info_with_access_token(code)
+        access_token = self.social_type.get_access_token_by_code(code)
+        return self.social_type.get_user_info_with_access_token(access_token)
