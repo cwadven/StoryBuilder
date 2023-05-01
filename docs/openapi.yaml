@@ -44,6 +44,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserSignUpValidationFailResponse'
+  /account/social-login:
+    post:
+      tags:
+        - User
+      summary: 소셜 로그인
+      description: 소셜 로그인
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSocialLoginRequestBody'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignUpValidationSuccessResponse'
+        '400':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignUpValidationFailResponse'
   /account/sign-up-check:
     post:
       tags:
@@ -594,6 +619,19 @@ components:
         message:
           type: string
           example: '로그인이 필요합니다.'
+    UserSocialLoginRequestBody:
+      required:
+        - provider
+        - token
+      type: object
+      properties:
+        provider:
+          type: integer
+          description: '2 카카오, 3 네이버, 4 구글'
+          example: 2
+        token:
+          type: string
+          example: 'tokentoken'
     UserSignUpValidationRequestBody:
       required:
         - username
