@@ -13,6 +13,12 @@ class LoginFailedException(APIException):
     default_code = 'login-error'
 
 
+class SocialLoginTokenErrorException(APIException):
+    status_code = 400
+    default_detail = '소셜 로그인에 발급된 토큰에 문제가 있습니다.'
+    default_code = 'social-token-error'
+
+
 class BlackUserException(APIException):
     status_code = 400
     default_detail = '정지된 유저입니다.'
