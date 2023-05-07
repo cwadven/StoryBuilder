@@ -5,7 +5,7 @@ from .ENV import env_production
 
 
 DEBUG = False
-ALLOWED_HOSTS = ['puzztory.com', 'api.puzztory.com']
+ALLOWED_HOSTS = ['puzztory.com', 'api.puzztory.com', 'dev-api.puzztory.com']
 
 SECRET_KEY = env_production['SECRET_KEY']
 KAKAO_API_KEY = env_production['KAKAO_API_KEY']
