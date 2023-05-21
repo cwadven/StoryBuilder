@@ -13,4 +13,5 @@ urlpatterns += [
     path('v1/hint/', include('hint.urls')),
     path('v1/point/', include('point.urls')),
     path('v1/banner/', include('banner.urls')),
+    path('v1/payment/', include('payment.urls')),
 ]
