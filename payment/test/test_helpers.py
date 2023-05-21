@@ -4,9 +4,40 @@ from unittest.mock import patch, Mock, MagicMock
 from payment.helpers import KakaoPay, KakaoPayPointHandler
 
 
+class KakaoPayPointHandlerTestCase(TestCase):
+    def setUp(self):
+        pass
+
+    @patch('payment.helpers.KakaoPayPointHandler.approval_url', new_callable=Mock)
+    @patch('payment.helpers.KakaoPayPointHandler.cancel_url', new_callable=Mock)
+    @patch('payment.helpers.KakaoPayPointHandler.fail_url', new_callable=Mock)
+    def test_kakao_pay_point_handler(self, mock_fail_url, mock_cancel_url, mock_approval_url):
+        # Given: kakao pay point handler 객체 생성
+        order_id = 1
+        kakao_pay_point_handler = KakaoPayPointHandler(order_id=order_id)
+        # And: mock_approval_url
+        mock_fail_url.return_value = f'http://localhost:9000/v1/payment/test_fail/{order_id}'
+        mock_cancel_url.return_value = f'http://localhost:9000/v1/payment/test_cancle/{order_id}'
+        mock_approval_url.return_value = f'http://localhost:9000/v1/payment/test_success/{order_id}'
+
+        # Expected:
+        self.assertEqual(
+            kakao_pay_point_handler.approval_url,
+            f'http://localhost:9000/v1/payment/test_success/{order_id}'
+        )
+        self.assertEqual(
+            kakao_pay_point_handler.cancel_url,
+            f'http://localhost:9000/v1/payment/test_cancel/{order_id}'
+        )
+        self.assertEqual(
+            kakao_pay_point_handler.fail_url,
+            f'http://localhost:9000/v1/payment/test_fail/{order_id}'
+        )
+
+
 class KakaoPayTestCase(TestCase):
     def setUp(self):
-        self.kakao_pay_handler = KakaoPayPointHandler()
+        self.kakao_pay_handler = KakaoPayPointHandler(order_id=1)
 
     @patch('payment.helpers.requests.post')
     def test_ready_to_pay(self, mock_kakao_pay_ready):

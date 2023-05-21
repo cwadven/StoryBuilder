@@ -88,7 +88,7 @@ class KakaoPayHandler(ABC):
 
 
 class KakaoPayPointHandler(KakaoPayHandler):
-    def __init__(self):
-        self.approval_url = 'http://localhost:9000/v1/payment/test_success'
-        self.cancel_url = 'http://localhost:9000/v1/payment/test_cancel'
-        self.fail_url = 'http://localhost:9000/v1/payment/test_fail'
+    def __init__(self, order_id: int):
+        self.approval_url = f'http://localhost:9000/v1/payment/test_success/{order_id}'
+        self.cancel_url = f'http://localhost:9000/v1/payment/test_cancel/{order_id}'
+        self.fail_url = f'http://localhost:9000/v1/payment/test_fail/{order_id}'
