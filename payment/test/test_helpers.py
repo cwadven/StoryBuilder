@@ -18,12 +18,12 @@ class KakaoPayPointHandlerTestCase(TestCase):
         # And: mock_approval_url
         mock_fail_url.return_value = f'http://localhost:9000/v1/payment/test_fail/{order_id}'
         mock_cancel_url.return_value = f'http://localhost:9000/v1/payment/test_cancle/{order_id}'
-        mock_approval_url.return_value = f'http://localhost:9000/v1/payment/test_success/{order_id}'
+        mock_approval_url.return_value = f'http://localhost:9000/v1/payment/point/approve/{order_id}'
 
         # Expected:
         self.assertEqual(
             kakao_pay_point_handler.approval_url,
-            f'http://localhost:9000/v1/payment/test_success/{order_id}'
+            f'http://localhost:9000/v1/payment/point/approve/{order_id}'
         )
         self.assertEqual(
             kakao_pay_point_handler.cancel_url,
