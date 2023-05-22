@@ -1,5 +1,31 @@
 from django.db import models
 
+from payment.consts import OrderStatus, ProductType
+
+
+class Order(models.Model):
+    """
+    total_actual_price: 제품 금액, 수수류, 배달비 등
+    total_discount_price: 쿠폰, 포인트 등
+    total_user_paid_price: 사용자 결제한 금액
+    """
+    user = models.ForeignKey('account.User', on_delete=models.CASCADE)
+    product_id = models.BigIntegerField(verbose_name='상품 ID', db_index=True)
+    product_type = models.CharField(verbose_name='상품 타입', max_length=20, db_index=True, choices=ProductType.choices())
+    tid = models.CharField(verbose_name='결제 고유 번호', max_length=50, db_index=True)
+    total_price = models.IntegerField(verbose_name='총 결제 금액', default=0, db_index=True)
+    product_price = models.IntegerField(verbose_name='제품 결제 금액', default=0, db_index=True)
+    total_discount_price = models.IntegerField(verbose_name='총 할인 금액', default=0, db_index=True)
+    product_discount_price = models.IntegerField(verbose_name='제품 할인 금액', default=0, db_index=True)
+    refund_price = models.IntegerField(verbose_name='환불 금액', default=0, db_index=True)
+    item_quantity = models.IntegerField(verbose_name='제품 수량', default=0, db_index=True)
+    status = models.CharField(verbose_name='결제 상태', max_length=20, db_index=True, choices=OrderStatus.choices())
+    payment = models.CharField(verbose_name='결제 수단', max_length=20, db_index=True)
+    user_notification_sent = models.BooleanField(verbose_name='고객 알림 전송 여부', default=False)
+    success_time = models.DateTimeField(verbose_name='결제 성공 시간', null=True, blank=True, db_index=True)
+    refund_time = models.DateTimeField(verbose_name='환불 시간', null=True, blank=True, db_index=True)
+    request_time = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+
 
 class Product(models.Model):
     title = models.CharField(verbose_name='상품명', max_length=120, db_index=True)
