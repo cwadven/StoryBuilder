@@ -5,6 +5,7 @@ from payment.consts import OrderStatus, ProductType
 
 class Order(models.Model):
     """
+    tid 아직 없을 수 있습니다.
     total_actual_price: 제품 금액, 수수류, 배달비 등
     total_discount_price: 쿠폰, 포인트 등
     total_user_paid_price: 사용자 결제한 금액
@@ -12,7 +13,7 @@ class Order(models.Model):
     user = models.ForeignKey('account.User', on_delete=models.CASCADE)
     product_id = models.BigIntegerField(verbose_name='상품 ID', db_index=True)
     product_type = models.CharField(verbose_name='상품 타입', max_length=20, db_index=True, choices=ProductType.choices())
-    tid = models.CharField(verbose_name='결제 고유 번호', max_length=50, db_index=True)
+    tid = models.CharField(verbose_name='결제 고유 번호', max_length=50, db_index=True, null=True, blank=True)
     total_price = models.IntegerField(verbose_name='총 결제 금액', default=0, db_index=True)
     product_price = models.IntegerField(verbose_name='제품 결제 금액', default=0, db_index=True)
     total_discount_price = models.IntegerField(verbose_name='총 할인 금액', default=0, db_index=True)
