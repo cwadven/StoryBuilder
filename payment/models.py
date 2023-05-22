@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 
 from payment.consts import OrderStatus, ProductType, PaymentType
 
@@ -26,6 +27,22 @@ class Order(models.Model):
     has_refund = models.BooleanField(verbose_name='환불 여부', default=False)
     refund_time = models.DateTimeField(verbose_name='환불 시간', null=True, blank=True, db_index=True)
     request_time = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+
+    @transaction.atomic
+    def approved(self, payment: str):
+        """
+        결제 승인
+        """
+        now = timezone.now()
+        self.status = OrderStatus.SUCCESS.value
+        self.payment = payment
+        self.success_time = now
+        self.save(update_fields=['status', 'payment', 'success_time'])
+
+        self.items.update(
+            status=OrderStatus.SUCCESS.value,
+            success_time=now,
+        )
 
 
 class OrderItem(models.Model):
@@ -77,6 +94,7 @@ class PointProduct(Product):
     def __str__(self):
         return f'{self.title} - {self.price} - {self.point}'
 
+    @transaction.atomic
     def create_order(self, user_id: int, payment: str, quantity: int) -> Order:
         bulk_order_items = []
 
