@@ -24,7 +24,6 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'user_id',
-        'product_id',
         'product_type',
         'tid',
         'total_price',

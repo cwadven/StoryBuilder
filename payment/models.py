@@ -11,7 +11,6 @@ class Order(models.Model):
     total_user_paid_price: 사용자 결제한 금액
     """
     user_id = models.BigIntegerField(verbose_name='User ID', db_index=True)
-    product_id = models.BigIntegerField(verbose_name='상품 ID', db_index=True)
     product_type = models.CharField(verbose_name='상품 타입', max_length=20, db_index=True, choices=ProductType.choices())
     tid = models.CharField(verbose_name='결제 고유 번호', max_length=50, db_index=True, null=True, blank=True)
     total_price = models.IntegerField(verbose_name='총 결제 금액', default=0, db_index=True)
@@ -86,6 +85,20 @@ class PointProduct(Product):
         total_discount_price = total_product_discount_price
         total_user_paid_price = total_price - total_discount_price
 
+        bulk_order_items.append(
+            OrderItem(
+                user_id=user_id,
+                product_id=self.id,
+                product_type=ProductType.POINT.value,
+                product_price=self.price,
+                discount_price=0,
+                user_paid_price=self.price,
+                refund_price=0,
+                item_quantity=1,
+                status=OrderStatus.READY.value,
+            )
+        )
+
         for additional_point_product in self.additionalpointproduct_set.all():
             total_price += additional_point_product.price
             total_product_price += additional_point_product.price
@@ -109,7 +122,6 @@ class PointProduct(Product):
             )
         order = Order.objects.create(
             user_id=user_id,
-            product_id=self.id,
             product_type=ProductType.POINT.value,
             tid=None,
             total_price=total_price,
