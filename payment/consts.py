@@ -12,3 +12,9 @@ class OrderStatus(StrValueLabel):
 class ProductType(StrValueLabel):
     POINT = ('POINT', '포인트')
     ADDITIONAL_POINT = ('ADDITIONAL_POINT', '포인트')
+
+
+class PaymentType(StrValueLabel):
+    KAKAOPAY = ('KAKAOPAY', '카카오페이')
+    KAKAOPAY_CARD = ('KAKAOPAY_CARD', '카카오페이-카드')
+    KAKAOPAY_MONEY = ('KAKAOPAY_MONEY', '카카오페이-머니')

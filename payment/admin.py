@@ -9,7 +9,7 @@ class PointProductAdmin(admin.ModelAdmin):
         'id',
         'title',
         'description',
-        'amount',
+        'price',
         'is_active',
         'start_time',
         'end_time',

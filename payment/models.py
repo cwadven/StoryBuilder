@@ -1,6 +1,6 @@
 from django.db import models
 
-from payment.consts import OrderStatus, ProductType
+from payment.consts import OrderStatus, ProductType, PaymentType
 
 
 class Order(models.Model):
@@ -21,7 +21,7 @@ class Order(models.Model):
     total_product_discount_price = models.IntegerField(verbose_name='제품 할인 금액', default=0, db_index=True)
     total_refund_price = models.IntegerField(verbose_name='환불 금액', default=0, db_index=True)
     status = models.CharField(verbose_name='결제 상태', max_length=20, db_index=True, choices=OrderStatus.choices())
-    payment = models.CharField(verbose_name='결제 수단', max_length=20, db_index=True)
+    payment = models.CharField(verbose_name='결제 수단', max_length=20, db_index=True, choices=PaymentType.choices())
     user_notification_sent = models.BooleanField(verbose_name='고객 알림 전송 여부', default=False)
     success_time = models.DateTimeField(verbose_name='결제 성공 시간', null=True, blank=True, db_index=True)
     has_refund = models.BooleanField(verbose_name='환불 여부', default=False)
@@ -49,7 +49,7 @@ class Product(models.Model):
     title = models.CharField(verbose_name='상품명', max_length=120, db_index=True)
     description = models.TextField(verbose_name='상품 설명', null=True, blank=True)
     image = models.TextField(verbose_name='상품 이미지', null=True, blank=True)
-    amount = models.IntegerField(verbose_name='가격 정보', db_index=True)
+    price = models.IntegerField(verbose_name='가격 정보', db_index=True)
     is_active = models.BooleanField(verbose_name='활성화', default=True, db_index=True)
     start_time = models.DateTimeField(verbose_name='시작 시간', null=True, blank=True, db_index=True)
     end_time = models.DateTimeField(verbose_name='끝 시간', null=True, blank=True, db_index=True)
@@ -65,20 +65,74 @@ class Product(models.Model):
         abstract = True
 
     def __str__(self):
-        return f'{self.title} - {self.amount}'
+        return f'{self.title} - {self.price}'
+
+    def create_order(self, user_id: int, payment: str):
+        pass
 
 
 class PointProduct(Product):
     point = models.IntegerField(verbose_name='포인트', db_index=True)
 
     def __str__(self):
-        return f'{self.title} - {self.amount} - {self.point}'
+        return f'{self.title} - {self.price} - {self.point}'
+
+    def create_order(self, user_id: int, payment: str) -> Order:
+        bulk_order_items = []
+
+        total_product_price = self.price
+        total_price = total_product_price
+        total_product_discount_price = 0
+        total_discount_price = total_product_discount_price
+        total_user_paid_price = total_price - total_discount_price
+
+        for additional_point_product in self.additionalpointproduct_set.all():
+            total_price += additional_point_product.price
+            total_product_price += additional_point_product.price
+            product_discount_price = 0
+            total_discount_price += product_discount_price
+            total_product_discount_price += product_discount_price
+            total_user_paid_price += additional_point_product.price - product_discount_price
+
+            bulk_order_items.append(
+                OrderItem(
+                    user_id=user_id,
+                    product_id=additional_point_product.id,
+                    product_type=ProductType.ADDITIONAL_POINT.value,
+                    product_price=additional_point_product.price,
+                    discount_price=0,
+                    user_paid_price=additional_point_product.price,
+                    refund_price=0,
+                    item_quantity=1,
+                    status=OrderStatus.READY.value,
+                )
+            )
+        order = Order.objects.create(
+            user_id=user_id,
+            product_id=self.id,
+            product_type=ProductType.POINT.value,
+            tid=None,
+            total_price=total_price,
+            total_product_price=total_product_price,
+            total_user_paid_price=total_user_paid_price,
+            total_discount_price=total_discount_price,
+            total_product_discount_price=total_product_discount_price,
+            status=OrderStatus.READY.value,
+            payment=payment,
+        )
+        for bulk_order_item in bulk_order_items:
+            bulk_order_item.order_id = order.id
+
+        OrderItem.objects.bulk_create(bulk_order_items)
+        return order
 
 
 class AdditionalPointProduct(models.Model):
     point_product = models.ForeignKey(PointProduct, on_delete=models.CASCADE)
     description = models.CharField(verbose_name='추가 포인트 주는 이유', max_length=120)
+    price = models.IntegerField(verbose_name='가격 정보', default=0)
     point = models.IntegerField(verbose_name='추가 포인트')
+    is_active = models.BooleanField(verbose_name='활성화', default=True, db_index=True)
     start_time = models.DateTimeField(verbose_name='유효한 시작 시간', null=True, blank=True, db_index=True)
     end_time = models.DateTimeField(verbose_name='유효한 끝 시간', null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
