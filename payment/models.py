@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.utils import timezone
 
-from payment.consts import OrderStatus, ProductType, PaymentType
+from payment.consts import OrderStatus, ProductType, PaymentType, PointGivenStatus
 
 
 class Order(models.Model):
@@ -104,6 +104,8 @@ class PointProduct(Product):
         total_discount_price = total_product_discount_price
         total_user_paid_price = total_price - total_discount_price
 
+        total_point = self.point * quantity
+
         bulk_order_items.append(
             OrderItem(
                 user_id=user_id,
@@ -126,6 +128,7 @@ class PointProduct(Product):
             total_discount_price += product_discount_price
             total_product_discount_price += product_discount_price
             total_user_paid_price += products_price - product_discount_price
+            total_point += additional_point_product.point * quantity
 
             bulk_order_items.append(
                 OrderItem(
@@ -156,6 +159,11 @@ class PointProduct(Product):
             bulk_order_item.order_id = order.id
 
         OrderItem.objects.bulk_create(bulk_order_items)
+        OrderGivePoint.ready(
+            order_id=order.id,
+            user_id=user_id,
+            point=total_point,
+        )
         return order
 
 
@@ -169,6 +177,24 @@ class AdditionalPointProduct(models.Model):
     end_time = models.DateTimeField(verbose_name='유효한 끝 시간', null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+
+class OrderGivePoint(models.Model):
+    order_id = models.BigIntegerField(verbose_name='주문 아이디', db_index=True)
+    user_id = models.BigIntegerField(verbose_name='유저 아이디', db_index=True)
+    point = models.BigIntegerField(verbose_name='포인트', db_index=True)
+    status = models.CharField(verbose_name='포인트 지급 상태', max_length=20, db_index=True, choices=PointGivenStatus.choices())
+    created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    @classmethod
+    def ready(cls, order_id: int, user_id: int, point: int) -> 'OrderGivePoint':
+        return cls.objects.create(
+            order_id=order_id,
+            user_id=user_id,
+            point=point,
+            status=PointGivenStatus.READY.value,
+        )
 
 
 # class Product(models.Model):

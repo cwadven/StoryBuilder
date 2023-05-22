@@ -5,7 +5,7 @@ from freezegun import freeze_time
 
 from account.models import User
 from payment.consts import PaymentType, OrderStatus, ProductType
-from payment.models import PointProduct, Order, AdditionalPointProduct, OrderItem
+from payment.models import PointProduct, Order, AdditionalPointProduct, OrderItem, OrderGivePoint
 
 
 @freeze_time('2022-01-01')
@@ -28,7 +28,7 @@ class PointProductMethodTestCase(TestCase):
         quantity = 2
 
         # When: create_order 실행
-        self.point_product_1000.create_order(self.user.id, PaymentType.KAKAOPAY_CARD.value, quantity)
+        order = self.point_product_1000.create_order(self.user.id, PaymentType.KAKAOPAY_CARD.value, quantity)
 
         # Then: Order 주문 생성
         self.assertTrue(
@@ -57,6 +57,10 @@ class PointProductMethodTestCase(TestCase):
                 status=OrderStatus.READY.value,
             ).exists()
         )
+        # And: OrderGivePoint 생성
+        order_give_point = OrderGivePoint.objects.get(order_id=order.id)
+        self.assertEqual(order_give_point.user_id, self.user.id)
+        self.assertEqual(order_give_point.point, self.point_product_1000.point * quantity)
 
     def test_point_product_create_order_when_additional_point_exists(self):
         # Given: AdditionalPointProduct 생성
@@ -72,7 +76,7 @@ class PointProductMethodTestCase(TestCase):
         )
 
         # When: create_order 실행
-        self.point_product_1000.create_order(self.user.id, PaymentType.KAKAOPAY_CARD.value, quantity)
+        order = self.point_product_1000.create_order(self.user.id, PaymentType.KAKAOPAY_CARD.value, quantity)
 
         # Then: Order 주문 생성
         self.assertTrue(
@@ -112,6 +116,13 @@ class PointProductMethodTestCase(TestCase):
                 item_quantity=quantity,
                 status=OrderStatus.READY.value,
             ).exists()
+        )
+        # And: OrderGivePoint 생성
+        order_give_point = OrderGivePoint.objects.get(order_id=order.id)
+        self.assertEqual(order_give_point.user_id, self.user.id)
+        self.assertEqual(
+            order_give_point.point,
+            self.point_product_1000.point * quantity + additional_point_product.point * quantity
         )
 
 
