@@ -4,8 +4,9 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from account.models import User
-from payment.consts import PaymentType, OrderStatus, ProductType
+from payment.consts import PaymentType, OrderStatus, ProductType, PointGivenStatus
 from payment.models import PointProduct, Order, AdditionalPointProduct, OrderItem, OrderGivePoint
+from point.models import UserPoint
 
 
 @freeze_time('2022-01-01')
@@ -244,5 +245,49 @@ class OrderMethodTestCase(TestCase):
                 item_quantity=quantity,
                 status=OrderStatus.SUCCESS.value,
                 success_time=datetime(2022, 1, 1),
+            ).exists()
+        )
+
+
+@freeze_time('2022-01-01')
+class OrderGivePointMethodTestCase(TestCase):
+    def setUp(self):
+        pass
+
+    def test_ready(self):
+        # Given:
+        order_id = 1
+        user_id = 1
+        point = 1000
+
+        # When:
+        order_give_point = OrderGivePoint.ready(order_id, user_id, point)
+
+        # Then:
+        self.assertEqual(order_give_point.order_id, order_id)
+        self.assertEqual(order_give_point.user_id, user_id)
+        self.assertEqual(order_give_point.point, point)
+        self.assertEqual(order_give_point.status, PointGivenStatus.READY.value)
+
+    def test_give(self):
+        # Given: OrderGivePoint 생성
+        order_id = 1
+        user_id = 1
+        point = 1000
+        order_give_point = OrderGivePoint.ready(order_id, user_id, point)
+
+        # When: give
+        order_give_point.give()
+
+        # Then: OrderGivePoint SUCCESS 변경
+        order_give_point = OrderGivePoint.objects.get(id=order_give_point.id)
+        self.assertEqual(order_give_point.status, PointGivenStatus.SUCCESS.value)
+        self.assertEqual(order_give_point.updated_at, datetime(2022, 1, 1))
+        # And: UserPoint 생성
+        self.assertTrue(
+            UserPoint.objects.filter(
+                user_id=user_id,
+                point=point,
+                description='포인트 구매',
             ).exists()
         )

@@ -18,3 +18,10 @@ class PaymentType(StrValueLabel):
     KAKAOPAY = ('KAKAOPAY', '카카오페이')
     KAKAOPAY_CARD = ('KAKAOPAY_CARD', '카카오페이-카드')
     KAKAOPAY_MONEY = ('KAKAOPAY_MONEY', '카카오페이-머니')
+
+
+class PointGivenStatus(StrValueLabel):
+    READY = ('READY', '지급 준비중')
+    SUCCESS = ('SUCCESS', '지급 완료')
+    FAIL = ('FAIL', '지급 실패')
+    CANCEL = ('CANCEL', '지급 취소')

@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from payment.consts import OrderStatus, ProductType, PaymentType, PointGivenStatus
+from point.services import give_point
 
 
 class Order(models.Model):
@@ -195,6 +196,12 @@ class OrderGivePoint(models.Model):
             point=point,
             status=PointGivenStatus.READY.value,
         )
+
+    @transaction.atomic
+    def give(self):
+        self.status = PointGivenStatus.SUCCESS.value
+        self.save(update_fields=['status', 'updated_at'])
+        give_point(self.user_id, self.point, '포인트 구매')
 
 
 # class Product(models.Model):
