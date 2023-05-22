@@ -37,7 +37,8 @@ class OrderItem(models.Model):
     discount_price = models.IntegerField(verbose_name='총 할인 금액', default=0, db_index=True)
     user_paid_price = models.IntegerField(verbose_name='사용자 결제 금액', default=0, db_index=True)
     refund_price = models.IntegerField(verbose_name='환불 금액', default=0, db_index=True)
-    item_quantity = models.IntegerField(verbose_name='제품 수량', default=0, db_index=True)
+    item_quantity = models.IntegerField(verbose_name='제품 구매 수량', default=0, db_index=True)
+    refund_quantity = models.IntegerField(verbose_name='제품 환불 수량', default=0, db_index=True)
     status = models.CharField(verbose_name='결제 상태', max_length=20, db_index=True, choices=OrderStatus.choices())
     success_time = models.DateTimeField(verbose_name='결제 성공 시간', null=True, blank=True, db_index=True)
     refund_time = models.DateTimeField(verbose_name='환불 시간', null=True, blank=True, db_index=True)
@@ -66,7 +67,7 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.title} - {self.price}'
 
-    def create_order(self, user_id: int, payment: str):
+    def create_order(self, user_id: int, payment: str, quantity: int):
         pass
 
 
@@ -76,10 +77,10 @@ class PointProduct(Product):
     def __str__(self):
         return f'{self.title} - {self.price} - {self.point}'
 
-    def create_order(self, user_id: int, payment: str) -> Order:
+    def create_order(self, user_id: int, payment: str, quantity: int) -> Order:
         bulk_order_items = []
 
-        total_product_price = self.price
+        total_product_price = self.price * quantity
         total_price = total_product_price
         total_product_discount_price = 0
         total_discount_price = total_product_discount_price
@@ -90,33 +91,34 @@ class PointProduct(Product):
                 user_id=user_id,
                 product_id=self.id,
                 product_type=ProductType.POINT.value,
-                product_price=self.price,
+                product_price=self.price * quantity,
                 discount_price=0,
-                user_paid_price=self.price,
+                user_paid_price=self.price * quantity,
                 refund_price=0,
-                item_quantity=1,
+                item_quantity=quantity,
                 status=OrderStatus.READY.value,
             )
         )
 
         for additional_point_product in self.additionalpointproduct_set.all():
-            total_price += additional_point_product.price
-            total_product_price += additional_point_product.price
+            products_price = additional_point_product.price * quantity
+            total_product_price += products_price
+            total_price += products_price
             product_discount_price = 0
             total_discount_price += product_discount_price
             total_product_discount_price += product_discount_price
-            total_user_paid_price += additional_point_product.price - product_discount_price
+            total_user_paid_price += products_price - product_discount_price
 
             bulk_order_items.append(
                 OrderItem(
                     user_id=user_id,
                     product_id=additional_point_product.id,
                     product_type=ProductType.ADDITIONAL_POINT.value,
-                    product_price=additional_point_product.price,
-                    discount_price=0,
-                    user_paid_price=additional_point_product.price,
+                    product_price=products_price,
+                    discount_price=product_discount_price,
+                    user_paid_price=products_price,
                     refund_price=0,
-                    item_quantity=1,
+                    item_quantity=quantity,
                     status=OrderStatus.READY.value,
                 )
             )
