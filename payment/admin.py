@@ -23,19 +23,22 @@ class PointProductAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'id',
+        'user_id',
         'product_id',
         'product_type',
         'tid',
         'total_price',
-        'product_price',
+        'total_product_price',
+        'total_user_paid_price',
         'total_discount_price',
-        'product_discount_price',
-        'refund_price',
+        'total_product_discount_price',
+        'total_refund_price',
         'status',
+        'payment',
         'success_time',
+        'has_refund',
         'refund_time',
     ]
-    form = PointProductAdminForm
 
 
 admin.site.register(PointProduct, PointProductAdmin)
