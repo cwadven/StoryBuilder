@@ -1,4 +1,4 @@
-from django.db.models import Manager
+from django.db.models import Manager, Q
 from django.utils import timezone
 
 
@@ -8,9 +8,8 @@ class ProductManager(Manager):
             now = timezone.now()
 
         return self.filter(
+            (Q(start_time__lte=now, end_time__gte=now) | Q(end_time__isnull=True)),
             is_active=True,
-            start_time__lte=now,
-            end_time__gte=now,
             quantity__gt=0,
             is_sold_out=False,
         )

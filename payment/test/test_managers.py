@@ -46,21 +46,45 @@ class TestProductManager(TestCase):
 
     def test_get_actives(self):
         # Test get_actives method
+        # When: 실행
         active_products = PointProduct.objects.get_actives()
+
+        # Then:
+        self.assertEqual(active_products.count(), 1)
+        self.assertEqual(active_products.first(), self.active_product)
+
+    def test_get_active_products_when_end_date_is_not_exists(self):
+        # Given: end_time Null 생성
+        self.active_product.end_time = None
+        self.active_product.save()
+
+        # When: 실행
+        active_products = PointProduct.objects.get_actives()
+
+        # Then:
         self.assertEqual(active_products.count(), 1)
         self.assertEqual(active_products.first(), self.active_product)
 
     def test_inactive_product_future(self):
         # Check that the product with future start time is not included
+        # When: 실행
         active_products = PointProduct.objects.get_actives()
+
+        # Then:
         self.assertNotIn(self.inactive_product_future, active_products)
 
     def test_inactive_product_past(self):
         # Check that the product with past end time is not included
+        # When: 실행
         active_products = PointProduct.objects.get_actives()
+
+        # Then:
         self.assertNotIn(self.inactive_product_past, active_products)
 
     def test_inactive_product_sold_out(self):
         # Check that the sold out product is not included
+        # When: 실행
         active_products = PointProduct.objects.get_actives()
+
+        # Then:
         self.assertNotIn(self.inactive_product_sold_out, active_products)
