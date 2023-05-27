@@ -8,6 +8,11 @@ class StrValueLabel(str, Enum):
         self.label = label
         return self
 
+    @classmethod
+    def choices(cls):
+        # noinspection PyTypeChecker
+        return [(e.value, e.label) for e in cls]
+
 
 class IntValueSelector(int, Enum):
     def __new__(cls, value, selector):

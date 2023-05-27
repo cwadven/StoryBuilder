@@ -4,7 +4,7 @@ from account.models import User
 from config.common.exception_codes import NotEnoughUserPoints
 from config.test_helper.helper import LoginMixin
 from point.models import UserPoint
-from point.services import get_user_available_total_point, use_point
+from point.services import get_user_available_total_point, use_point, give_point
 
 
 class UserPointTestCase(LoginMixin, TestCase):
@@ -73,3 +73,14 @@ class UserPointTestCase(LoginMixin, TestCase):
         self.assertEqual(get_user_available_total_point(self.user.id), 0)
         # And: -100
         self.assertEqual(UserPoint.objects.get(id=user_point.id).point, -100)
+
+    def test_give_point(self):
+        description = 'aaaa'
+        point = 100
+
+        user_point = give_point(self.user.id, point, description)
+
+        user_point = UserPoint.objects.get(id=user_point.id)
+        self.assertEqual(user_point.user_id, self.user.id)
+        self.assertEqual(user_point.description, description)
+        self.assertEqual(user_point.point, point)

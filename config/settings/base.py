@@ -37,6 +37,7 @@ PROJECT_APPS = [
     'hint',
     'point',
     'banner',
+    'payment',
 ]
 
 PROJECT_SETTING_APPS = [

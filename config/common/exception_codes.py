@@ -114,3 +114,15 @@ class BannerDoesNotExists(APIException):
     status_code = 400
     default_detail = '존재하지 않은 배너 입니다.'
     default_code = 'banner-does-not-exists'
+
+
+class PointProductNotExists(APIException):
+    status_code = 400
+    default_detail = '유효하지 않은 포인트 상품 입니다.'
+    default_code = '유효하지 않은 포인트 상품 입니다.'
+
+
+class OrderNotExists(APIException):
+    status_code = 400
+    default_detail = '유효하지 주문 입니다.'
+    default_code = '유효하지 주문 입니다.'

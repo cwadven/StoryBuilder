@@ -5,6 +5,8 @@ from .base import *
 SECRET_KEY = 'development_secret_key'
 KAKAO_API_KEY = 'development_KAKAO_API_KEY'
 KAKAO_SECRET_KEY = 'development_KAKAO_SECRET_KEY'
+KAKAO_PAY_API_KEY = 'development_KAKAO_PAY_API_KEY'
+KAKAO_PAY_CID = 'TC0ONETIME'
 NAVER_API_KEY = 'development_NAVER_API_KEY'
 NAVER_SECRET_KEY = 'development_NAVER_SECRET_KEY'
 GOOGLE_CLIENT_ID = 'development_GOOGLE_CLIENT_ID'

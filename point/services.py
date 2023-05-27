@@ -26,3 +26,11 @@ def use_point(user_id: int, point: int, description: str):
         point=-point,
         description=description,
     )
+
+
+def give_point(user_id: int, point: int, description: str):
+    return UserPoint.objects.create(
+        user_id=user_id,
+        point=point,
+        description=description,
+    )
