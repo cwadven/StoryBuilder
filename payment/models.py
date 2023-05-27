@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from payment.consts import OrderStatus, ProductType, PaymentType, PointGivenStatus
+from payment.managers import ProductManager
 from point.services import give_point
 
 
@@ -78,6 +79,8 @@ class Product(models.Model):
     review_rate = models.FloatField(verbose_name='리뷰 평점', default=0, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    objects = ProductManager()
 
     class Meta:
         abstract = True
