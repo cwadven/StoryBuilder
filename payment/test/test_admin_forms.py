@@ -21,7 +21,6 @@ class TestPointProductAdminForm(TestCase):
             'title': 'test2',
             'description': 'test2',
             'image': '',
-            'amount': 1000,
             'point': 1000,
             'is_active': True,
             'start_time': '2022-01-10',
@@ -31,6 +30,7 @@ class TestPointProductAdminForm(TestCase):
             'review_rate': 0,
             'bought_count': 0,
             'review_count': 0,
+            'price': 1000,
             '_save': 'Save',
         }
         im = Image.new(mode='RGB', size=(200, 200))
@@ -59,6 +59,7 @@ class TestPointProductAdminForm(TestCase):
         form = PointProductAdminForm(self.form_data, file_form_data)
 
         # Then: 정상적으로 데이터 생성가능 하도록 True
+        print(form.errors)
         self.assertTrue(form.is_valid())
         instance = form.save()
 
