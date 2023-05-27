@@ -59,7 +59,6 @@ class TestPointProductAdminForm(TestCase):
         form = PointProductAdminForm(self.form_data, file_form_data)
 
         # Then: 정상적으로 데이터 생성가능 하도록 True
-        print(form.errors)
         self.assertTrue(form.is_valid())
         instance = form.save()
 
