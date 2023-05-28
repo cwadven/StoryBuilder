@@ -66,7 +66,7 @@ class PointProductItemDTO(object):
     def of(cls, point_product: PointProduct) -> 'PointProductItemDTO':
         additional_products = []
         total_price = point_product.price
-        total_point = point_product.price
+        total_point = point_product.point
         for additional_product in point_product.additionalpointproduct_set.get_actives():
             total_price += additional_product.price
             total_point += additional_product.point

@@ -14,7 +14,7 @@ class PointProductItemDTOTestCase(TestCase):
             start_time=timezone.now() - timezone.timedelta(hours=1),
             end_time=timezone.now() + timezone.timedelta(hours=1),
             quantity=10,
-            point=1000,
+            point=2000,
         )
         self.active_additional_product = AdditionalPointProduct.objects.create(
             point_product=self.active_product,
