@@ -18,6 +18,8 @@ tags:
     description: Sheet 힌트
   - name: Point
     description: 포인트 관련
+  - name: Payment
+    description: 결제 관련
 paths:
   /account/sign-up-validation:
     post:
@@ -510,6 +512,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetUserTotalPointSuccessResponse'
+  /v1/payment/point/buy:
+    post:
+      tags:
+        - Payment
+      summary: 카카오페이 결제 준비
+      description: 유저가 구매할 포인트 결제를 준비합니다.
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Order creation details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  description: The ID of the product.
+                  example: 1
+                quantity:
+                  type: integer
+                  description: The quantity of the product to order.
+                  default: 1
+                payment_type:
+                  type: string
+                  description: The type of payment to use.
+                  example: KAKAO
+              required:
+                - product_id
+                - payment_type
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPointProductRequestSuccessResponse'
+  /v1/payment/point/approve/{order_id}:
+    get:
+      tags:
+        - Payment
+      summary: 카카오페이 결제 성공
+      description: 유저가 구매를 성공하는 경우.
+      parameters:
+        - name: order_id
+          in: path
+          description: ID of the order to be approved
+          required: true
+          schema:
+            type: integer
+        - name: pg_token
+          in: query
+          description: Token for payment gateway
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Approval confirmation message.
+                    example: "결제가 완료되었습니다."
   /v1/banner:
     get:
       tags:
@@ -1057,6 +1132,18 @@ components:
         total_point:
           type: integer
           example: 100
+    PostPointProductRequestSuccessResponse:
+      required:
+        - tid
+        - next_redirect_mobile_url
+      type: object
+      properties:
+        tid:
+          type: string
+          description: Transaction ID from Kakao Pay.
+        next_redirect_mobile_url:
+          type: string
+          description: The next redirect URL for mobile.
     GetRecentStorySheetPlayedSuccessResponse:
       required:
         - recent_sheet_id
