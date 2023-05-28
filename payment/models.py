@@ -58,6 +58,18 @@ class Order(models.Model):
             status=OrderStatus.CANCEL.value,
         )
 
+    @transaction.atomic
+    def fail(self):
+        """
+        결제 실패
+        """
+        self.status = OrderStatus.FAIL.value
+        self.save(update_fields=['status'])
+
+        self.items.update(
+            status=OrderStatus.FAIL.value,
+        )
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='주문', on_delete=models.CASCADE, related_name='items')
@@ -221,6 +233,11 @@ class OrderGivePoint(models.Model):
     @transaction.atomic
     def cancel(self) -> None:
         self.status = PointGivenStatus.CANCEL.value
+        self.save(update_fields=['status', 'updated_at'])
+
+    @transaction.atomic
+    def fail(self) -> None:
+        self.status = PointGivenStatus.FAIL.value
         self.save(update_fields=['status', 'updated_at'])
 
 

@@ -92,3 +92,24 @@ class KakaoPayCancelForBuyPointAPIView(APIView):
             data={'message': '결제가 취소되었습니다.'},
             status=200
         )
+
+
+class KakaoPayFailForBuyPointAPIView(APIView):
+    def get(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            raise OrderNotExists()
+
+        order.fail()
+
+        try:
+            order_give_point = OrderGivePoint.objects.get(order_id=order.id)
+            order_give_point.fail()
+        except OrderGivePoint.DoesNotExist:
+            raise OrderNotExists()
+
+        return Response(
+            data={'message': '결제가 실패되었습니다.'},
+            status=200
+        )

@@ -609,6 +609,30 @@ paths:
                     type: string
                     description: Cancel confirmation message.
                     example: "결제가 취소되었습니다."
+  /v1/payment/point/fail/{order_id}:
+    get:
+      tags:
+        - Payment
+      summary: 카카오페이 결제 실패
+      description: 유저가 구매를 실패하는 경우.
+      parameters:
+        - name: order_id
+          in: path
+          description: ID of the order to be approved
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    description: Fail confirmation message.
+                    example: "결제가 실패되었습니다."
   /v1/banner:
     get:
       tags:
