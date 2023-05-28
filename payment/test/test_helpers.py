@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, MagicMock, PropertyMock
 
 from payment.helpers import KakaoPay, KakaoPayPointHandler
 
@@ -8,16 +8,16 @@ class KakaoPayPointHandlerTestCase(TestCase):
     def setUp(self):
         pass
 
-    @patch('payment.helpers.KakaoPayPointHandler.approval_url', new_callable=Mock)
-    @patch('payment.helpers.KakaoPayPointHandler.cancel_url', new_callable=Mock)
-    @patch('payment.helpers.KakaoPayPointHandler.fail_url', new_callable=Mock)
+    @patch('payment.helpers.KakaoPayPointHandler.approval_url', new_callable=PropertyMock)
+    @patch('payment.helpers.KakaoPayPointHandler.cancel_url', new_callable=PropertyMock)
+    @patch('payment.helpers.KakaoPayPointHandler.fail_url', new_callable=PropertyMock)
     def test_kakao_pay_point_handler(self, mock_fail_url, mock_cancel_url, mock_approval_url):
         # Given: kakao pay point handler 객체 생성
         order_id = 1
         kakao_pay_point_handler = KakaoPayPointHandler(order_id=order_id)
         # And: mock_approval_url
-        mock_fail_url.return_value = f'http://localhost:9000/v1/payment/test_fail/{order_id}'
-        mock_cancel_url.return_value = f'http://localhost:9000/v1/payment/test_cancle/{order_id}'
+        mock_fail_url.return_value = f'http://localhost:9000/v1/payment/point/fail/{order_id}'
+        mock_cancel_url.return_value = f'http://localhost:9000/v1/payment/point/cancel/{order_id}'
         mock_approval_url.return_value = f'http://localhost:9000/v1/payment/point/approve/{order_id}'
 
         # Expected:
@@ -27,11 +27,11 @@ class KakaoPayPointHandlerTestCase(TestCase):
         )
         self.assertEqual(
             kakao_pay_point_handler.cancel_url,
-            f'http://localhost:9000/v1/payment/test_cancel/{order_id}'
+            f'http://localhost:9000/v1/payment/point/cancel/{order_id}'
         )
         self.assertEqual(
             kakao_pay_point_handler.fail_url,
-            f'http://localhost:9000/v1/payment/test_fail/{order_id}'
+            f'http://localhost:9000/v1/payment/point/fail/{order_id}'
         )
 
 
