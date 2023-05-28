@@ -5,14 +5,16 @@ from payment.views import (
     KakaoPayCancelForBuyPointAPIView,
     KakaoPayFailForBuyPointAPIView,
     KakaoPayReadyForBuyPointAPIView,
+    PointProductListAPIView,
 )
 
 app_name = 'payment'
 
 
 urlpatterns = [
-    path('point/buy', KakaoPayReadyForBuyPointAPIView.as_view(), name='point_buy'),
-    path('point/approve/<int:order_id>', KakaoPayApproveForBuyPointAPIView.as_view(), name='point_approve'),
-    path('point/cancel/<int:order_id>', KakaoPayCancelForBuyPointAPIView.as_view(), name='point_cancel'),
-    path('point/fail/<int:order_id>', KakaoPayFailForBuyPointAPIView.as_view(), name='point_fail'),
+    path('point', PointProductListAPIView.as_view(), name='points'),
+    path('point/buy/kakao', KakaoPayReadyForBuyPointAPIView.as_view(), name='point_buy'),
+    path('point/approve/kakao/<int:order_id>', KakaoPayApproveForBuyPointAPIView.as_view(), name='point_approve'),
+    path('point/cancel/kakao/<int:order_id>', KakaoPayCancelForBuyPointAPIView.as_view(), name='point_cancel'),
+    path('point/fail/kakao/<int:order_id>', KakaoPayFailForBuyPointAPIView.as_view(), name='point_fail'),
 ]
