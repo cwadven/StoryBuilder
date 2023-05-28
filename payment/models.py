@@ -46,6 +46,18 @@ class Order(models.Model):
             success_time=now,
         )
 
+    @transaction.atomic
+    def cancel(self):
+        """
+        결제 취소
+        """
+        self.status = OrderStatus.CANCEL.value
+        self.save(update_fields=['status'])
+
+        self.items.update(
+            status=OrderStatus.CANCEL.value,
+        )
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='주문', on_delete=models.CASCADE, related_name='items')
@@ -201,10 +213,15 @@ class OrderGivePoint(models.Model):
         )
 
     @transaction.atomic
-    def give(self):
+    def give(self) -> None:
         self.status = PointGivenStatus.SUCCESS.value
         self.save(update_fields=['status', 'updated_at'])
         give_point(self.user_id, self.point, '포인트 구매')
+
+    @transaction.atomic
+    def cancel(self) -> None:
+        self.status = PointGivenStatus.CANCEL.value
+        self.save(update_fields=['status', 'updated_at'])
 
 
 # class Product(models.Model):

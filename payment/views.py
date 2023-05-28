@@ -71,3 +71,24 @@ class KakaoPayApproveForBuyPointAPIView(APIView):
             data={'message': '결제가 완료되었습니다.'},
             status=200
         )
+
+
+class KakaoPayCancelForBuyPointAPIView(APIView):
+    def get(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            raise OrderNotExists()
+
+        order.cancel()
+
+        try:
+            order_give_point = OrderGivePoint.objects.get(order_id=order.id)
+            order_give_point.cancel()
+        except OrderGivePoint.DoesNotExist:
+            raise OrderNotExists()
+
+        return Response(
+            data={'message': '결제가 취소되었습니다.'},
+            status=200
+        )

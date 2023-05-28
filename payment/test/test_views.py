@@ -222,3 +222,92 @@ class KakaoPayApproveForBuyPointAPIViewTestCase(LoginMixin, TestCase):
         # Then: Order가 없어서 주문 실패
         self.assertEqual(response.status_code, OrderNotExists.status_code)
         self.assertEqual(content['message'], OrderNotExists.default_detail)
+
+
+@freeze_time('2021-01-01')
+class KakaoPayCancelForBuyPointAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(KakaoPayCancelForBuyPointAPIViewTestCase, self).setUp()
+        self.point_product_1000 = PointProduct.objects.create(
+            title='1000 포인트 상품',
+            description='1000 포인트 상품입니다.',
+            price=1000,
+            point=1000,
+            is_active=True,
+            start_time=datetime(2021, 1, 1),
+            end_time=datetime(2021, 12, 31),
+            quantity=100,
+        )
+
+    def test_kakao_pay_cancel_for_buy_point_api_when_success(self):
+        # Given:
+        self.login()
+        # And: 주문 생성
+        order = Order.objects.create(
+            user_id=self.c.user.id,
+            product_type=ProductType.POINT.value,
+            tid='T469b847306d7b2dc394',
+            total_price=1000,
+            total_product_price=1000,
+            total_user_paid_price=1000,
+            total_discount_price=0,
+            total_product_discount_price=0,
+            status=OrderStatus.READY.value,
+            payment=PaymentType.KAKAOPAY.value,
+        )
+        # And: OrderGivePoint 생성
+        OrderGivePoint.objects.create(
+            order_id=order.id,
+            user_id=self.c.user.id,
+            status=PointGivenStatus.READY.value,
+            point=1000,
+        )
+        # When:
+        response = self.c.get(reverse('payment:point_cancel', args=[order.id]))
+        content = json.loads(response.content)
+
+        # Then: 주문 취소 성공
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content['message'],
+            '결제가 취소되었습니다.'
+        )
+
+    def test_kakao_pay_cancel_for_buy_point_api_when_fail_due_order_give_coupon_not_exists(self):
+        # Given:
+        self.login()
+        # And: OrderGivePoint 제거
+        OrderGivePoint.objects.all().delete()
+        # And: 주문 생성
+        order = Order.objects.create(
+            user_id=self.c.user.id,
+            product_type=ProductType.POINT.value,
+            tid='T469b847306d7b2dc394',
+            total_price=1000,
+            total_product_price=1000,
+            total_user_paid_price=1000,
+            total_discount_price=0,
+            total_product_discount_price=0,
+            status=OrderStatus.READY.value,
+            payment=PaymentType.KAKAOPAY.value,
+        )
+
+        # When:
+        response = self.c.get(reverse('payment:point_cancel', args=[order.id]))
+        content = json.loads(response.content)
+
+        # Then: OrderGivePoint 없어서 주문 취소 실패
+        self.assertEqual(response.status_code, OrderNotExists.status_code)
+        self.assertEqual(content['message'], OrderNotExists.default_detail)
+
+    def test_kakao_pay_cancel_for_buy_point_api_when_fail_due_order_not_exists(self):
+        # Given:
+        self.login()
+
+        # When: 없는 주문 id 로 결제 신청
+        response = self.c.get(reverse('payment:point_cancel', args=[99999]))
+        content = json.loads(response.content)
+
+        # Then: Order가 없어서 주문 취소 실패
+        self.assertEqual(response.status_code, OrderNotExists.status_code)
+        self.assertEqual(content['message'], OrderNotExists.default_detail)
