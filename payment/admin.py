@@ -1,7 +1,16 @@
 from django.contrib import admin
 
 from payment.admin_forms import PointProductAdminForm
-from payment.models import PointProduct, Order
+from payment.models import (
+    AdditionalPointProduct,
+    PointProduct,
+    Order,
+)
+
+
+class AdditionalPointProductAdminInline(admin.TabularInline):
+    model = AdditionalPointProduct
+    extra = 0
 
 
 class PointProductAdmin(admin.ModelAdmin):
@@ -18,6 +27,9 @@ class PointProductAdmin(admin.ModelAdmin):
         'point',
     ]
     form = PointProductAdminForm
+    inlines = [
+        AdditionalPointProductAdminInline,
+    ]
 
 
 class OrderAdmin(admin.ModelAdmin):
