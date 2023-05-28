@@ -4,12 +4,78 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from freezegun import freeze_time
 
 from config.common.exception_codes import PointProductNotExists, OrderNotExists
 from config.test_helper.helper import LoginMixin
 from payment.consts import PaymentType, ProductType, OrderStatus, PointGivenStatus
-from payment.models import PointProduct, OrderGivePoint, Order
+from payment.models import PointProduct, OrderGivePoint, Order, AdditionalPointProduct
+
+
+@freeze_time('2021-01-01')
+class PointProductListAPIViewTestCase(LoginMixin, TestCase):
+    def setUp(self):
+        super(PointProductListAPIViewTestCase, self).setUp()
+        self.active_product = PointProduct.objects.create(
+            title='Active Product',
+            price=1000,
+            start_time=timezone.now() - timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1),
+            quantity=10,
+            point=2000,
+        )
+        self.active_additional_product = AdditionalPointProduct.objects.create(
+            point_product=self.active_product,
+            description='Active Product',
+            price=1000,
+            start_time=timezone.now() - timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1),
+            point=1000,
+        )
+
+    def test_point_product_list_with_additional_product(self):
+        # Given:
+        self.login()
+
+        # When:
+        response = self.c.get(reverse('payment:points'))
+        content = json.loads(response.content)
+
+        # Then: product
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['products'][0]['product_id'], self.active_product.id)
+        self.assertEqual(content['products'][0]['product_type'], ProductType.POINT.value)
+        self.assertEqual(content['products'][0]['title'], self.active_product.title)
+        self.assertEqual(content['products'][0]['description'], self.active_product.description)
+        self.assertEqual(content['products'][0]['image'], self.active_product.image)
+        self.assertEqual(
+            content['products'][0]['total_price'],
+            self.active_product.price + self.active_additional_product.price,
+        )
+        self.assertEqual(content['products'][0]['price'], self.active_product.price)
+        self.assertEqual(
+            content['products'][0]['total_point'],
+            self.active_product.point + + self.active_additional_product.point,
+        )
+        self.assertEqual(content['products'][0]['point'], self.active_product.point)
+        self.assertEqual(content['products'][0]['is_sold_out'], self.active_product.is_sold_out)
+        self.assertEqual(content['products'][0]['bought_count'], self.active_product.bought_count)
+        self.assertEqual(content['products'][0]['review_count'], self.active_product.review_count)
+        self.assertEqual(content['products'][0]['review_rate'], self.active_product.review_rate)
+        # And: additional_product
+        self.assertEquals(
+            content['products'][0]['additional_products'][0]['point'],
+            self.active_additional_product.point,
+        )
+        self.assertEquals(
+            content['products'][0]['additional_products'][0]['price'],
+            self.active_additional_product.price,
+        )
+        self.assertEquals(
+            content['products'][0]['additional_products'][0]['description'],
+            self.active_additional_product.description,
+        )
 
 
 @freeze_time('2021-01-01')

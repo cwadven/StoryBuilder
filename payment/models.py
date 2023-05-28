@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from payment.consts import OrderStatus, ProductType, PaymentType, PointGivenStatus
-from payment.managers import ProductManager
+from payment.managers import ProductQuerySet, AdditionalProductQuerySet
 from point.services import give_point
 
 
@@ -104,7 +104,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
 
-    objects = ProductManager()
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         abstract = True
@@ -205,6 +205,8 @@ class AdditionalPointProduct(models.Model):
     end_time = models.DateTimeField(verbose_name='유효한 끝 시간', null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(verbose_name='생성일', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='수정일', auto_now=True)
+
+    objects = AdditionalProductQuerySet.as_manager()
 
 
 class OrderGivePoint(models.Model):

@@ -4,9 +4,23 @@ from rest_framework.response import Response
 from common_decorator import custom_login_required_for_method
 from config.common.exception_codes import PointProductNotExists, OrderNotExists
 from payment.consts import PaymentType
-from payment.dtos import KakaoPayReadyResponseDTO
+from payment.dtos import KakaoPayReadyResponseDTO, PointProductItemDTO
 from payment.helpers import KakaoPay, KakaoPayPointHandler
 from payment.models import PointProduct, Order, OrderGivePoint
+
+
+class PointProductListAPIView(APIView):
+    def get(self, request):
+        point_products = [
+            PointProductItemDTO.of(point_product).to_dict()
+            for point_product in PointProduct.objects.get_actives()
+        ]
+        return Response(
+            data={
+                'products': point_products,
+            },
+            status=200
+        )
 
 
 class KakaoPayReadyForBuyPointAPIView(APIView):
