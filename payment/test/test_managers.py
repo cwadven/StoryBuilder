@@ -4,7 +4,7 @@ from django.utils import timezone
 from payment.models import PointProduct, AdditionalPointProduct
 
 
-class TestProductManager(TestCase):
+class TestProductQuerySet(TestCase):
     def setUp(self):
         # Set up data for the test
         self.active_product = PointProduct.objects.create(
@@ -90,7 +90,7 @@ class TestProductManager(TestCase):
         self.assertNotIn(self.inactive_product_sold_out, active_products)
 
 
-class TestAdditionalProductManager(TestCase):
+class TestAdditionalProductQuerySet(TestCase):
     def setUp(self):
         # Set up data for the test
         self.active_product = PointProduct.objects.create(

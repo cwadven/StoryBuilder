@@ -1,8 +1,8 @@
-from django.db.models import Manager, Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 
-class ProductManager(Manager):
+class ProductQuerySet(QuerySet):
     def get_actives(self, now=None):
         if now is None:
             now = timezone.now()
@@ -16,7 +16,7 @@ class ProductManager(Manager):
         )
 
 
-class AdditionalProductManager(Manager):
+class AdditionalProductQuerySet(QuerySet):
     def get_actives(self, now=None):
         if now is None:
             now = timezone.now()
