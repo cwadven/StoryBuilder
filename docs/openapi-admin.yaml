@@ -1,0 +1,135 @@
+openapi: 3.0.3
+info:
+  title: StoryBuilder Admin Side 3.0
+  description: |-
+    StoryBuilder 로 만들어진 서비스 Admin
+
+  contact:
+    email: cwadven@naver.com
+  version: 1.0.1
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: Play
+    description: 실행에 필요한 API
+paths:
+  /cms/v1/story:
+    get:
+      tags:
+        - Play
+      summary: 모든 스토리 리스트 조회
+      description: 모든 스토리 리스트 조회
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: search_type
+          in: query
+          description: 필터링 조회 방법
+          required: false
+          schema:
+            type: string
+        - name: search_value
+          in: query
+          description: 필터링 조회 내용
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 페이지
+          required: false
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          description: 페이지 사이즈 (default 20)
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStoryListResponse'
+        '400':
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+
+components:
+  schemas:
+    AdminStoryListResponse:
+      required:
+        - total_count
+        - story_list
+      type: object
+      properties:
+        total_count:
+          type: integer
+          example: 10
+        stories:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminStoryListItemDTO'
+
+    AdminStoryListItemDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        background_image:
+          type: string
+        username:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - image
+        - background_image
+        - username
+        - created_at
+        - updated_at
+
+
+    UserNoAuth:
+      type: object
+      properties:
+        result:
+          type: string
+          example: 권한이 없습니다.
+
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
