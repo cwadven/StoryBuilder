@@ -85,23 +85,57 @@ components:
       properties:
         id:
           type: integer
-          format: int32
+          example: 1
         title:
           type: string
+          example: "오늘의 날씨"
         description:
           type: string
+          example: "오늘의 날씨는 어떨까요?"
         image:
           type: string
+          example: ""
         background_image:
           type: string
-        username:
+          example: ""
+        nickname:
           type: string
+          example: "admin"
+        played_count:
+          type: integer
+          example: 1
+        like_count:
+          type: integer
+          example: 0
+        view_count:
+          type: integer
+          example: 0
+        review_rate:
+          type: number
+          example: 0
+        playing_point:
+          type: integer
+          example: 0
+        level:
+          type: integer
+          example: 0
+        displayable:
+          type: boolean
+          example: true
+        is_deleted:
+          type: boolean
+          example: false
+        is_secret:
+          type: boolean
+          example: false
         created_at:
           type: string
-          example: 2023-10-02T11:36:08.397000
+          format: date-time
+          example: "2022-11-20T14:17:18.590177"
         updated_at:
           type: string
-          example: 2023-10-02T11:36:08.397000
+          format: date-time
+          example: "2023-04-24T00:27:40.551256"
       required:
         - id
         - title
@@ -109,9 +143,17 @@ components:
         - image
         - background_image
         - nickname
+        - played_count
+        - like_count
+        - view_count
+        - review_rate
+        - playing_point
+        - level
+        - displayable
+        - is_deleted
+        - is_secret
         - created_at
         - updated_at
-
 
     UserNoAuth:
       type: object
