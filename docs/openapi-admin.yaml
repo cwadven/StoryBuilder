@@ -44,7 +44,7 @@ paths:
           required: false
           schema:
             type: integer
-        - name: page_size
+        - name: size
           in: query
           description: 페이지 사이즈 (default 20)
           required: false
