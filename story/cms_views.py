@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import pagination
+from config.permissions.cms_permissions import CMSUserPermission
 from story.cmd_dtos import (
     CMSStoryListItemDTO,
     CMSStoryListResponse,
@@ -13,6 +14,8 @@ from story.cms_services import (
 
 
 class CMSStoryListAPIView(APIView):
+    permission_classes = [CMSUserPermission]
+
     @pagination(default_size=20)
     def get(self, request, start_row, end_row):
         search_type = request.GET.get('search_type', '')

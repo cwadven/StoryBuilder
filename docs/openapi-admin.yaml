@@ -51,13 +51,19 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminStoryListResponse'
-        '400':
+        401:
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+        403:
           description: Invalid User
           content:
             application/json:
@@ -158,9 +164,9 @@ components:
     UserNoAuth:
       type: object
       properties:
-        result:
+        message:
           type: string
-          example: 권한이 없습니다.
+          example: No Auth
 
   securitySchemes:
     petstore_auth:
