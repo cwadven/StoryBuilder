@@ -98,17 +98,17 @@ components:
           type: string
         created_at:
           type: string
-          format: date-time
+          example: 2023-10-02T11:36:08.397000
         updated_at:
           type: string
-          format: date-time
+          example: 2023-10-02T11:36:08.397000
       required:
         - id
         - title
         - description
         - image
         - background_image
-        - username
+        - nickname
         - created_at
         - updated_at
 
