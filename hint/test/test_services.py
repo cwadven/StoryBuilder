@@ -195,7 +195,6 @@ class GetAvailableSheetHintsCountTest(TestCase):
             question='test_question',
             image='https://image.test',
             background_image='https://image.test',
-            is_start=True,
             is_final=False,
         )
         self.active_sheet2_deleted_hint = SheetHint.objects.create(
@@ -212,6 +211,14 @@ class GetAvailableSheetHintsCountTest(TestCase):
             image='test_image',
             sequence=2,
             point=11,
+        )
+        self.active_sheet3 = Sheet.objects.create(
+            story=self.story,
+            title='active_sheet3',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_final=False,
         )
 
     def test_get_available_sheet_hints_count(self):
@@ -233,9 +240,11 @@ class GetAvailableSheetHintsCountTest(TestCase):
         # Then: 결과 확인
         self.assertDictEqual(hints_count, {})
 
-    def test_no_matching_sheet_ids(self):
+    def test_no_matching_or_not_exists_sheet_ids(self):
         # When: 동작 실행
-        hints_count = get_available_sheet_hints_count([9999999998, 9999999999])  # Non-existent IDs
+        hints_count = get_available_sheet_hints_count(
+            [9999999998, 9999999999, self.active_sheet3.id]
+        )  # Non-existent IDs
 
         # Then: 결과 확인
-        self.assertDictEqual(hints_count, {9999999998: None, 9999999999: None})
+        self.assertDictEqual(hints_count, {9999999998: 0, 9999999999: 0, self.active_sheet3.id: 0})

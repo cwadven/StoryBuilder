@@ -81,7 +81,7 @@ def get_available_sheet_hints_count(sheet_ids: List[int]) -> Dict[int, Optional[
     if not sheet_ids:
         return {}
 
-    hint_count_by_sheet_id = {sheet_id: None for sheet_id in sheet_ids}
+    hint_count_by_sheet_id = {sheet_id: 0 for sheet_id in sheet_ids}
     hints_from_db = dict(
         SheetHint.objects.filter(
             sheet_id__in=sheet_ids,
