@@ -1,9 +1,21 @@
 from django.db import transaction
+from typing import (
+    Dict,
+    List, Optional,
+)
 
-from config.common.exception_codes import UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists, NotEnoughUserPoints
+from django.db.models import Count
+
+from config.common.exception_codes import (
+    SheetHintDoesNotExists,
+    UserSheetHintHistoryAlreadyExists,
+)
 from hint.consts import GIVE_USER_HINT_POINT
 from hint.dtos import UserSheetHintInfoDTO
-from hint.models import SheetHint, UserSheetHintHistory
+from hint.models import (
+    SheetHint,
+    UserSheetHintHistory,
+)
 from point.services import use_point
 
 
@@ -63,3 +75,26 @@ def get_available_sheet_hint(sheet_hint_id: int) -> SheetHint:
         )
     except SheetHint.DoesNotExist:
         raise SheetHintDoesNotExists
+
+
+def get_available_sheet_hints_count(sheet_ids: List[int]) -> Dict[int, Optional[int]]:
+    if not sheet_ids:
+        return {}
+
+    hint_count_by_sheet_id = {sheet_id: None for sheet_id in sheet_ids}
+    hints_from_db = dict(
+        SheetHint.objects.filter(
+            sheet_id__in=sheet_ids,
+            is_deleted=False,
+        ).values(
+            'sheet_id',
+        ).annotate(
+            hint_count=Count('sheet_id'),
+        ).values_list(
+            'sheet_id',
+            'hint_count',
+        )
+    )
+    hint_count_by_sheet_id.update(hints_from_db)
+
+    return hint_count_by_sheet_id

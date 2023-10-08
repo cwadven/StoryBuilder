@@ -4,7 +4,8 @@ from account.models import User
 from config.common.exception_codes import UserSheetHintHistoryAlreadyExists, SheetHintDoesNotExists, NotEnoughUserPoints
 from config.test_helper.helper import LoginMixin
 from hint.models import SheetHint, UserSheetHintHistory
-from hint.services import get_sheet_hint_infos, give_sheet_hint_information, get_available_sheet_hint
+from hint.services import get_sheet_hint_infos, give_sheet_hint_information, get_available_sheet_hint, \
+    get_available_sheet_hints_count
 from story.models import Story, Sheet
 
 
@@ -151,3 +152,90 @@ class GiveUserHistoryHintTestCase(LoginMixin, TestCase):
 
         # Then: UserSheetHintHistory Transaction 으로 존재하지 않음
         self.assertFalse(UserSheetHintHistory.objects.filter(sheet_hint_id=self.start_sheet_hint.id, user_id=self.c.user.id).exists())
+
+
+class GetAvailableSheetHintsCountTest(TestCase):
+    def setUp(self):
+        # Given: 초기 상태 설정
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.active_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='active_sheet1',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.active_sheet1_deleted_hint = SheetHint.objects.create(
+            sheet=self.active_sheet1,
+            hint='active_sheet1_deleted_hint',
+            image='test_image',
+            sequence=1,
+            point=10,
+            is_deleted=True,
+        )
+        self.active_sheet1_active_hint = SheetHint.objects.create(
+            sheet=self.active_sheet1,
+            hint='active_sheet1_active_hint',
+            image='test_image',
+            sequence=2,
+            point=11,
+        )
+        self.active_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='active_sheet2',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.active_sheet2_deleted_hint = SheetHint.objects.create(
+            sheet=self.active_sheet2,
+            hint='active_sheet2_deleted_hint',
+            image='test_image',
+            sequence=1,
+            point=10,
+            is_deleted=True,
+        )
+        self.active_sheet2_active_hint = SheetHint.objects.create(
+            sheet=self.active_sheet2,
+            hint='active_sheet2_active_hint',
+            image='test_image',
+            sequence=2,
+            point=11,
+        )
+
+    def test_get_available_sheet_hints_count(self):
+        # When: 동작 실행
+        sheet_ids = [self.active_sheet1.id, self.active_sheet2.id]
+        hints_count = get_available_sheet_hints_count(sheet_ids)
+
+        # Then: 각각 1개씩 active 한 것이 존재함
+        expected_count = {
+            self.active_sheet1.id: 1,
+            self.active_sheet2.id: 1,
+        }
+        self.assertDictEqual(hints_count, expected_count)
+
+    def test_empty_sheet_ids(self):
+        # When: 동작 실행
+        hints_count = get_available_sheet_hints_count([])
+
+        # Then: 결과 확인
+        self.assertDictEqual(hints_count, {})
+
+    def test_no_matching_sheet_ids(self):
+        # When: 동작 실행
+        hints_count = get_available_sheet_hints_count([9999999998, 9999999999])  # Non-existent IDs
+
+        # Then: 결과 확인
+        self.assertDictEqual(hints_count, {9999999998: None, 9999999999: None})
