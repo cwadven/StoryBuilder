@@ -1,7 +1,13 @@
-from django.db.models import Q
+from django.db.models import (
+    Q,
+    QuerySet,
+)
 from typing import Any
 
-from story.models import Story
+from story.models import (
+    Sheet,
+    Story,
+)
 
 
 def get_stories_qs():
@@ -16,3 +22,10 @@ def get_story_search_filter(search_type: str, search_value: Any) -> Q:
     elif search_type == 'description':
         return Q(description__icontains=search_value)
     return Q()
+
+
+def get_active_sheets(story_id: int) -> QuerySet[Sheet]:
+    return Sheet.objects.filter(
+        story_id=story_id,
+        is_deleted=False
+    )
