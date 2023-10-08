@@ -3,7 +3,10 @@ from datetime import datetime
 
 from typing import List
 
-from story.models import Story
+from story.models import (
+    Sheet,
+    Story,
+)
 
 
 @attr.s
@@ -56,6 +59,40 @@ class CMSStoryListItemDTO(object):
 class CMSStoryListResponse(object):
     total_count = attr.ib(type=int)
     stories = attr.ib(type=List[CMSStoryListItemDTO])
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class CMSStorySheetMapItemDTO(object):
+    id = attr.ib(type=int)
+    title = attr.ib(type=str)
+    question = attr.ib(type=str)
+    image = attr.ib(type=str)
+    background_image = attr.ib(type=str)
+    hint_count = attr.ib(type=int)
+    answer_ids = attr.ib(type=List[int])
+
+    @classmethod
+    def of(cls, sheet: Sheet, hint_count: int, answer_ids: List[int]):
+        return cls(
+            id=sheet.id,
+            title=sheet.title,
+            question=sheet.question,
+            image=sheet.image,
+            background_image=sheet.background_image,
+            hint_count=hint_count,
+            answer_ids=answer_ids,
+        )
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class CMSStorySheetMapResponse(object):
+    sheets = attr.ib(type=List[CMSStorySheetMapItemDTO])
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)
