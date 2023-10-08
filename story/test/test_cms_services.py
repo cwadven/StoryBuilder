@@ -4,10 +4,14 @@ from django.db.models import Q
 from account.models import User
 from config.test_helper.helper import LoginMixin
 from story.cms_services import (
+    get_active_sheets,
     get_stories_qs,
-    get_story_search_filter, get_active_sheets,
+    get_story_search_filter,
 )
-from story.models import Story, Sheet
+from story.models import (
+    Sheet,
+    Story,
+)
 
 
 class StoryFilterTestCase(TestCase):
