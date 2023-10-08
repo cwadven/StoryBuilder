@@ -70,6 +70,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserNoAuth'
 
+  /cms/v1/story/{story_id}/sheet/map:
+    get:
+      tags:
+        - Play
+      summary: admin 스토리 안에 있는 Sheet 관련 정보 조회
+      description: |
+        admin 스토리 안에 있는 Sheet 관련 정보 조회<br>
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSheetMapResponse'
+        401:
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+        403:
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+
 components:
   schemas:
     AdminStoryListResponse:
@@ -160,6 +200,51 @@ components:
         - is_secret
         - created_at
         - updated_at
+
+    AdminSheetMapResponse:
+      type: object
+      properties:
+        sheets:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminMapSheet'
+
+    AdminMapSheet:
+      type: object
+      required:
+        - id
+        - title
+        - question
+        - hint_count
+      properties:
+        id:
+          type: integer
+          example: 10
+        title:
+          type: string
+          example: "Introduction"
+        question:
+          type: string
+          example: "How am I?"
+        image:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://image.test"
+        background_image:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://image.test"
+        hint_count:
+          type: integer
+          example: 2
+        answer_ids:
+          type: array
+          items:
+            type: integer
+          nullable: true
+          example: [101, 102, 103, 104]
 
     UserNoAuth:
       type: object
