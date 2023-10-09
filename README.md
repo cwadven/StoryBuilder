@@ -265,3 +265,35 @@ python manage.py createrandom 앱명 테이블명 (option -n "생성숫자")
 python manage.py createrandom crud Product -n 7
 ```
 
+<br>
+
+#### 3. flake8 Pre Commit 시 적용
+    
+```shell
+# goto git hooks
+cd .git/hooks
+```
+
+```shell
+# create symbolic link
+for hook_path in ~/Myproject/git-hooks/*
+do
+  if [ "${hook_path##*.}" != "py" ]  # Ignore .py files
+  then
+    ln -s "$hook_path" .
+  fi
+done
+```
+
+```shell
+# Check the symbolic link
+# Window
+ls -al
+# Linux
+ls -alth
+```
+
+```shell
+# Give permission to execute
+chmod +x pre-commit
+```

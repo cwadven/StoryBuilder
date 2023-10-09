@@ -1,8 +1,6 @@
 import attr
 from typing import List
 
-from django.db.models import Sum
-
 from payment.consts import ProductType
 from payment.models import PointProduct
 

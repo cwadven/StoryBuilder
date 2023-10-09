@@ -30,7 +30,7 @@ class SocialLoginTestCase(TestCase):
         wrong_token = 'dkdkdkdkdkkdkdkd'
 
         # When: 카카오톡으로 소셜 로그인을 접근할 경우
-        login_exception = lambda: SocialLoginController(
+        login_exception = lambda: SocialLoginController(  # noqa: E731
             SocialTypeSelector(2).selector()
         ).validate(wrong_token)
 
@@ -43,7 +43,7 @@ class SocialLoginTestCase(TestCase):
         token = '9123912ujdalksjflkasld'
 
         # When: 소셜 로그인을 할 경우
-        platform_exception = lambda: SocialLoginController(
+        platform_exception = lambda: SocialLoginController(  # noqa: E731
             SocialTypeSelector(platform_num).selector()
         ).validate(token)
 
@@ -577,8 +577,8 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
     @patch('account.views.increase_cache_int_value_by_key')
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_validate_should_return_fail_when_email_key_not_exists(self,
-                                                                                  mock_get_cache_value_by_key,
-                                                                                  mock_increase_cache_int_value_by_key):
+                                                                               mock_get_cache_value_by_key,
+                                                                               mock_increase_cache_int_value_by_key):
         # Given: 0 번 메크로를 했을 경우
         mock_increase_cache_int_value_by_key.return_value = 0
         # And: 인증한 이메일이 없는 경우
@@ -598,8 +598,8 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
     @patch('account.views.increase_cache_int_value_by_key')
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_validate_should_return_fail_when_one_time_token_not_exists(self,
-                                                                               mock_get_cache_value_by_key,
-                                                                               mock_increase_cache_int_value_by_key):
+                                                                                    mock_get_cache_value_by_key,
+                                                                                    mock_increase_cache_int_value_by_key):
         # Given: 0 번 메크로를 했을 경우
         mock_increase_cache_int_value_by_key.return_value = 0
         # And: one time token 이 없는 경우
@@ -624,8 +624,8 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
     @patch('account.views.increase_cache_int_value_by_key')
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_validate_should_return_fail_when_one_time_token_is_different(self,
-                                                                                    mock_get_cache_value_by_key,
-                                                                                    mock_increase_cache_int_value_by_key):
+                                                                                      mock_get_cache_value_by_key,
+                                                                                      mock_increase_cache_int_value_by_key):
         # Given: 0 번 메크로를 했을 경우
         mock_increase_cache_int_value_by_key.return_value = 0
         # And: one time token 다르게 설정
@@ -653,8 +653,8 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
     @patch('account.views.increase_cache_int_value_by_key')
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_validate_should_return_fail_when_username_user_already_exists(self,
-                                                                                      mock_get_cache_value_by_key,
-                                                                                      mock_increase_cache_int_value_by_key):
+                                                                                       mock_get_cache_value_by_key,
+                                                                                       mock_increase_cache_int_value_by_key):
         # Given: 0 번 메크로를 했을 경우
         mock_increase_cache_int_value_by_key.return_value = 0
         mock_get_cache_value_by_key.return_value = {
@@ -709,8 +709,8 @@ class SignUpEmailTokenValidationEndViewTestCase(LoginMixin, TestCase):
     @patch('account.views.increase_cache_int_value_by_key')
     @patch('account.views.get_cache_value_by_key')
     def test_email_token_validate_should_return_fail_when_email_user_already_exists(self,
-                                                                                       mock_get_cache_value_by_key,
-                                                                                       mock_increase_cache_int_value_by_key):
+                                                                                    mock_get_cache_value_by_key,
+                                                                                    mock_increase_cache_int_value_by_key):
         # Given: 0 번 메크로를 했을 경우
         mock_increase_cache_int_value_by_key.return_value = 0
         mock_get_cache_value_by_key.return_value = {
@@ -785,7 +785,7 @@ class LoginTestCase(LoginMixin, TestCase):
     def test_login_user_should_fail_when_username_and_password_different(self):
         # Given:
         self.body['password'] = 'wrong_password'
-        
+
         # When:
         response = self.c.post(reverse('account:normal_login'), self.body)
         content = json.loads(response.content)

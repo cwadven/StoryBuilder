@@ -110,7 +110,7 @@ class KakaoPayTestCase(TestCase):
             'approved_at': '2023-05-21T15:25:31'
         }
         mock_kakao_pay_ready.return_value = mock_response
-        
+
         # When: 결제 성공
         response = kakao_pay.approve_payment(tid, pg_token, order_id, user_id)
 

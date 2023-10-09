@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#Run flask8 on all staged .py files
+git diff --cached --name-only --diff-filter=AM | grep '\.py$' | xargs flake8
+
+# If flake8 finds any errors, prevent the commit
+if [ $? -ne 0 ]; then
+    echo "Error: Fix the linting issues before committing."
+    exit 1
+fi

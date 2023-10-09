@@ -36,13 +36,13 @@ def mandatory_key(request, name):
             data = request.POST[name]
         if data in ['', None]:
             raise MissingMandatoryParameterException()
-    except:
+    except Exception:
         try:
             json_body = request.data
             data = json_body[name]
             if data in ['', None]:
                 raise MissingMandatoryParameterException()
-        except:
+        except Exception:
             raise MissingMandatoryParameterException()
 
     return data
@@ -57,13 +57,13 @@ def optional_key(request, name, default_value=''):
             data = request.POST[name]
         if data in ['', None]:
             data = default_value
-    except:
+    except Exception:
         try:
             json_body = request.data
             data = json_body[name]
             if data in ['', None]:
                 data = default_value
-        except:
+        except Exception:
             data = default_value
     return data
 
@@ -116,7 +116,7 @@ def generate_presigned_url(file_name, _type='common', unique=0, expires_in=1000)
             ExpiresIn=expires_in
         )
         return response
-    except ClientError as e:
+    except ClientError:
         return JsonResponse({'result': 'fail'})
 
 
@@ -128,7 +128,7 @@ def upload_file_to_presigned_url(presined_url, presigned_data, file):
             files={'file': file},
         )
         return response.status_code
-    except Exception as e:
+    except Exception:
         return 400
 
 

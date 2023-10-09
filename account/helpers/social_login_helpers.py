@@ -331,7 +331,7 @@ class GoogleSocialType(SocialType):
                 'name': data.get('name') if data.get('name') else None,
                 'nickname': None,
             }
-        except:
+        except Exception:
             return_data = {
                 'id': data.get('sub'),
                 'gender': None,

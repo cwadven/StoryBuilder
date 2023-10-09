@@ -38,7 +38,7 @@ def custom_exception_handler(exc, context):
 
         try:
             del response.data['detail']
-        except:
+        except Exception:
             pass
 
         return response
