@@ -9,8 +9,17 @@ from account.models import User
 from config.common.exception_codes import StoryDoesNotExists
 from config.test_helper.helper import LoginMixin
 from story.constants import StoryLevel
-from story.models import Story, Sheet, SheetAnswer, NextSheetPath, UserStorySolve, UserSheetAnswerSolve, StoryLike, \
-    PopularStory, WrongAnswer, UserSheetAnswerSolveHistory
+from story.models import (
+    PopularStory,
+    NextSheetPath,
+    Story,
+    Sheet,
+    SheetAnswer,
+    StoryLike,
+    UserStorySolve,
+    UserSheetAnswerSolve,
+    WrongAnswer,
+)
 
 
 def _generate_user_sheet_answer_solve_with_next_path(user: User, story: Story, current_sheet: Sheet,
@@ -396,7 +405,7 @@ class SheetPlayAPIViewTestCase(LoginMixin, TestCase):
         self.assertIsNone(content.get('answer'))
         self.assertIsNone(content.get('answer_reply'))
         self.assertFalse(content.get('is_solved'))
-        
+
     def test_get_sheet_play_api_should_create_user_sheet_answer_solve_when_success(self):
         # Given: 현재 sheet를 플레이할 수 있도록 이전 UserSheetAnswerSolve 생성
         _generate_user_sheet_answer_solve_with_next_path(
@@ -592,7 +601,7 @@ class SheetAnswerCheckAPIViewTestCase(LoginMixin, TestCase):
         )
         # And: next_sheet_path 전부 삭제
         self.start_sheet_answer1.next_sheet_paths.all().delete()
-        
+
         # When: submit_answer 요청
         response = self.c.post(reverse('story:submit_answer'), data=self.request_data)
         content = json.loads(response.content)
@@ -1090,7 +1099,7 @@ class StorySheetSolveAPIViewTestCase(LoginMixin, TestCase):
             solved_time=datetime(2022, 1, 1),
         )
         self.c.delete(reverse('story:solve_history', args=[self.story.id]))
-        
+
         # When:
         response = self.c.get(reverse('story:solve_history', args=[self.story.id]))
         content = json.loads(response.content)

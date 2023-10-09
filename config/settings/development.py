@@ -1,5 +1,5 @@
 import datetime
-from .base import *
+from .base import *  # noqa: F403
 
 
 SECRET_KEY = 'development_secret_key'
@@ -28,7 +28,7 @@ PUZZTORY_ALERT_SLACK_URL = 'development_PUZZTORY_ALERT_SLACK_URL'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # noqa: F405
     }
 }
 

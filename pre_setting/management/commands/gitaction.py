@@ -41,21 +41,21 @@ def set_gitaction_settings(path, name, **kwargs):
         with open(path, 'w+') as f:
             f.writelines(f"name: {name}\n\n")
 
-            f.writelines(f"on:\n")
+            f.writelines("on:\n")
             f.writelines(f"  {kwargs.get('status', 'push')}:\n")
             f.writelines(f"    branch: [ {kwargs.get('branch', 'master')} ]\n\n")
 
-            f.writelines(f"jobs:\n")
-            f.writelines(f"  build:\n")
-            f.writelines(f"    runs-on: self-hosted\n\n")
+            f.writelines("jobs:\n")
+            f.writelines("  build:\n")
+            f.writelines("    runs-on: self-hosted\n\n")
 
-            f.writelines(f"    steps:\n")
+            f.writelines("    steps:\n")
 
             if kwargs.get('steps'):
                 for step in kwargs.get('steps'):
-                    f.writelines(f"    - name: {step.get('name', '')}\n")
-                    f.writelines(f"      run: |\n")
-                    f.writelines(f"        {step.get('run', '')}\n\n")
+                    f.writelines("    - name: {step.get('name', '')}\n")
+                    f.writelines("      run: |\n")
+                    f.writelines("        {step.get('run', '')}\n\n")
 
 
 class Command(BaseCommand):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
         parser.add_argument('-n', '--name', type=str, help='yml 안의 이름', default="CI/CD")
         parser.add_argument('-b', '--branch', type=str, help='어느 branch 에 적용할 지', default="master")
         parser.add_argument('-s', '--status', type=str, help='어느 상태에 할지 (ex.push)', default="push")
-        parser.add_argument('-p', '--steps', type=str, help='어느 과정을 걸친 것인지, (ex. "[{"name": "aaa", "run": "bbb"}, {"name": "bbb", "run": "ccc"}]")' , default="[]")
+        parser.add_argument('-p', '--steps', type=str, help='어느 과정을 걸친 것인지, (ex. "[{"name": "aaa", "run": "bbb"}, {"name": "bbb", "run": "ccc"}]")', default="[]")
 
     def handle(self, *args, **kwargs):
         """
@@ -93,9 +93,7 @@ class Command(BaseCommand):
                 steps=steps
             )
             self.stdout.write(self.style.SUCCESS("GitActions Code Set"))
-        except ValueError as e:
+        except ValueError:
             self.stdout.write(self.style.ERROR("""
             steps 설정이 잘못되었습니다. (ex. "[{"name": "aaa", "run": "bbb"}, {"name": "bbb", "run": "ccc"}]")
             """))
-
-

@@ -163,10 +163,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.READY.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
             ).exists()
@@ -211,10 +209,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.SUCCESS.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
                 success_time=datetime(2022, 1, 1),
@@ -269,10 +265,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.READY.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
             ).exists()
@@ -317,10 +311,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.CANCEL.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
                 success_time=None,
@@ -375,10 +367,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.READY.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                            self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
             ).exists()
@@ -423,10 +413,8 @@ class OrderMethodTestCase(TestCase):
                 status=OrderStatus.FAIL.value,
                 payment=PaymentType.KAKAOPAY_CARD.value,
                 total_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_product_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
-                total_user_paid_price=(
-                        self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_product_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
+                total_user_paid_price=(self.point_product_1000.price * quantity + additional_point_product.price * quantity),
                 total_discount_price=0,
                 total_product_discount_price=0,
                 success_time=None,
