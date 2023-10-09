@@ -43,12 +43,6 @@ class UnknownPlatformException(APIException):
     default_code = 'platform-error'
 
 
-class UnknownPlatformException(APIException):
-    status_code = 400
-    default_detail = '알 수 없는 로그인 방식입니다.'
-    default_code = 'platform-error'
-
-
 class MissingMandatoryParameterException(APIException):
     status_code = 400
     default_detail = '입력값을 다시 확인해주세요.'

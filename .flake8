@@ -1,0 +1,5 @@
+[flake8]
+import-order-style=pycharm
+ignore=E501,W503
+max-complexity=75
+exclude=venv

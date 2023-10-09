@@ -59,7 +59,7 @@ class SignUpValidationView(APIView):
             payload_validator.validate()
         except ValidationError as e:
             return Response(e.detail, 400)
-        return Response({'result': f'success'}, 200)
+        return Response({'result': 'success'}, 200)
 
 
 class SignUpEmailTokenValidationEndView(APIView):
@@ -107,7 +107,7 @@ class SignUpEmailTokenValidationEndView(APIView):
         # 캐시 서버 기록 삭제 (메크로 및 정보 보존용)
         delete_cache_value_by_key(value['email'])
         delete_cache_value_by_key(SIGNUP_MACRO_VALIDATION_KEY.format(m['email']))
-        return Response({'message': f'회원가입에 성공했습니다.'}, 200)
+        return Response({'message': '회원가입에 성공했습니다.'}, 200)
 
 
 class LoginView(APIView):
