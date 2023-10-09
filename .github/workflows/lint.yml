@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  pull_request:
+    # needs to create code-review branch
+    branches: [ code-review ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [ 3.7 ]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+      env:
+        # need to set github token at github
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        DJANGO_SETTINGS_MODULE: config.settings.development
+    - name: Lint Check
+      run: |
+        flake8 .

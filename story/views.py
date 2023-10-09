@@ -1,12 +1,24 @@
-from collections import defaultdict
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common_decorator import mandatories, custom_login_required_for_method, pagination
 from story.constants import StoryErrorMessage
-from story.dtos import PlayingSheetInfoDTO, PreviousSheetInfoDTO, StoryListItemDTO, StoryDetailItemDTO, \
-    StoryPopularListItemDTO, GroupedSheetAnswerSolveDTO, UserSheetAnswerSolveHistoryItemDTO
-from story.models import SheetAnswer, UserStorySolve, UserSheetAnswerSolve, NextSheetPath, StoryLike, Story, WrongAnswer
+from story.dtos import (
+    PlayingSheetInfoDTO,
+    PreviousSheetInfoDTO,
+    GroupedSheetAnswerSolveDTO,
+    StoryListItemDTO,
+    StoryDetailItemDTO,
+    StoryPopularListItemDTO,
+)
+from story.models import (
+    NextSheetPath,
+    SheetAnswer,
+    Story,
+    StoryLike,
+    UserSheetAnswerSolve,
+    UserStorySolve,
+)
 from story.services import (
     get_running_start_sheet_by_story,
     get_sheet_answer_with_next_path_responses,
