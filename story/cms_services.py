@@ -49,3 +49,13 @@ def get_sheet_answer_ids_by_sheet_ids(sheet_ids: List[int]) -> Dict[int, List[in
         answer_ids_by_sheet_id[sheet_answer.sheet_id].append(sheet_answer.id)
 
     return answer_ids_by_sheet_id
+
+
+def get_sheet_answers_by_sheet_ids(sheet_ids: List[int]) -> List[SheetAnswer]:
+    if not sheet_ids:
+        return []
+    return list(
+        SheetAnswer.objects.filter(
+            sheet_id__in=sheet_ids,
+        )
+    )
