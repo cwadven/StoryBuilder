@@ -6,6 +6,7 @@ from config.test_helper.helper import LoginMixin
 from story.cms_services import (
     get_active_sheets,
     get_sheet_answer_ids_by_sheet_ids,
+    get_sheet_answers_by_sheet_ids,
     get_stories_qs,
     get_story_search_filter,
 )
@@ -172,3 +173,71 @@ class GetSheetAnswerIdsBySheetIdsTest(TestCase):
 
         # Then: 결과 확인
         self.assertDictEqual(answer_ids_by_sheet, {9999999999998: [], 9999999999999: []})
+
+
+class GetSheetAnswerBySheetIdsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.active_sheet1 = Sheet.objects.create(
+            story=self.story,
+            title='active_sheet1',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.active_sheet2 = Sheet.objects.create(
+            story=self.story,
+            title='active_sheet2',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_final=False,
+        )
+        self.active_sheet1_answer1 = SheetAnswer.objects.create(
+            sheet=self.active_sheet1,
+            answer='test',
+            answer_reply='active_sheet1',
+        )
+        self.active_sheet1_answer2 = SheetAnswer.objects.create(
+            sheet=self.active_sheet1,
+            answer='test2',
+            answer_reply='active_sheet1',
+        )
+        self.active_sheet2_answer1 = SheetAnswer.objects.create(
+            sheet=self.active_sheet2,
+            answer='test',
+            answer_reply='active_sheet2',
+        )
+        self.active_sheet2_answer2 = SheetAnswer.objects.create(
+            sheet=self.active_sheet2,
+            answer='test2',
+            answer_reply='active_sheet2',
+        )
+
+    def test_get_sheet_answers_by_sheet_ids_when_sheet_ids_is_empty(self):
+        # When: 동작 실행
+        sheet_answers = get_sheet_answers_by_sheet_ids([])
+
+        # Then: 결과 확인
+        self.assertEqual(sheet_answers, [])
+
+    def test_get_sheet_answers_by_sheet_ids_when_exists(self):
+        # When: 동작 실행
+        sheet_answers = get_sheet_answers_by_sheet_ids([self.active_sheet1.id, self.active_sheet2.id])
+
+        # Then: 결과 확인
+        sheet_answer_ids = [sheet_answer.id for sheet_answer in sheet_answers]
+        self.assertEqual(len(sheet_answer_ids), 4)
+        self.assertIn(self.active_sheet1_answer1.id, sheet_answer_ids)
+        self.assertIn(self.active_sheet1_answer2.id, sheet_answer_ids)
+        self.assertIn(self.active_sheet2_answer1.id, sheet_answer_ids)
+        self.assertIn(self.active_sheet2_answer2.id, sheet_answer_ids)
