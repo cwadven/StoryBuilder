@@ -295,11 +295,12 @@ def get_sqs_message(queue_url: str):
         return message_body
 
 
-def get_integers_from_string(string_numbers: str) -> List[int]:
+def get_integers_from_string(string_numbers: str, raise_error: bool = False) -> List[int]:
     numbers = []
     for num in string_numbers.split(','):
         try:
             numbers.append(int(num.strip()))
         except ValueError:
-            pass
+            if raise_error:
+                raise ValueError
     return numbers
