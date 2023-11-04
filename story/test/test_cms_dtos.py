@@ -1,10 +1,16 @@
 from django.test import TestCase
 
 from account.models import User
-from story.cmd_dtos import CMSStorySheetMapItemDTO, CMSStorySheetAnswerMapItemDTO
+from story.cmd_dtos import (
+    CMSStorySheetMapItemDTO,
+    CMSStorySheetAnswerMapItemDTO,
+    CMSStoryAnswerNextPathItemDTO,
+    CMSStoryAnswerNextPathMapItemDTO
+)
 from story.models import (
     Sheet,
-    Story, SheetAnswer,
+    SheetAnswer,
+    Story,
 )
 
 
@@ -90,3 +96,40 @@ class CMSStorySheetAnswerMapItemDTOTest(TestCase):
 
         # Then: 결과 확인
         self.assertDictEqual(dto, expected_data)
+
+
+class CMSStoryAnswerNextPathMapResponseTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.next_paths = [CMSStoryAnswerNextPathItemDTO(sheet_id=self.start_sheet_answer1.id, quantity=4)]
+
+    def test_of_method(self):
+        # Given:
+        # When:
+        answer_next_path = CMSStoryAnswerNextPathMapItemDTO.of(self.start_sheet_answer1, self.next_paths)
+
+        # Then:
+        self.assertEqual(answer_next_path.answer_id, self.start_sheet_answer1.id)
+        self.assertEqual(answer_next_path.next_paths[0].sheet_id, self.start_sheet_answer1.id)
+        self.assertEqual(answer_next_path.next_paths[0].quantity, 4)

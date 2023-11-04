@@ -150,6 +150,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserNoAuth'
 
+  /cms/v1/story/{story_id}/next-path/map:
+    get:
+      tags:
+        - Play
+      summary: admin 스토리 안에 있는 Answer 의 다음 경로 관련 정보 조회
+      description: |
+        admin 스토리 안에 있는 Answer 의 다음 경로 관련 정보 조회<br>
+      parameters:
+        - name: Authorization
+          in: header
+          description: 'jwt eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImN3YWR2ZW4iLCJleHAiOjE2NzUxMzkzMDUsImVtYWlsIjoiY3dhZHZlbkBuYXZlci5jb20iLCJvcmlnX2lhdCI6MTY3NDUzNDUwNX0.18P3JH7ylpEdueesp9xr0Cs7rynQ69baxuOGh2t6DSg'
+          required: false
+          schema:
+            type: string
+        - name: story_id
+          in: path
+          description: story id
+          required: true
+          schema:
+            type: integer
+        - name: answer_ids
+          in: query
+          description: 원하는 answer path 만 조회
+          example: '1,2,3,4,5'
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminNextPathMapResponse'
+        401:
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+        403:
+          description: Invalid User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNoAuth'
+
 components:
   schemas:
     AdminStoryListResponse:
@@ -285,7 +331,7 @@ components:
             type: integer
           nullable: true
           example: [101, 102, 103, 104]
-          
+
     AdminAnswerMapResponse:
       type: object
       properties:
@@ -293,6 +339,32 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AdminAnswerMap'
+
+    AdminNextPathMapResponse:
+      type: object
+      properties:
+        answer_next_paths:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminNextPathMap'
+
+    AdminNextPathMap:
+      type: object
+      properties:
+        answer_id:
+          type: integer
+        next_paths:
+          type: array
+          items:
+            type: object
+            required:
+              - sheet_id
+              - quantity
+            properties:
+              sheet_id:
+                type: integer
+              quantity:
+                type: integer
 
     AdminAnswerMap:
       type: object

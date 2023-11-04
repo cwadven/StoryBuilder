@@ -8,11 +8,11 @@ from story.cms_services import (
     get_sheet_answer_ids_by_sheet_ids,
     get_sheet_answers_by_sheet_ids,
     get_stories_qs,
-    get_story_search_filter,
+    get_story_search_filter, get_next_sheet_paths_by_sheet_answer_ids,
 )
 from story.models import (
     Sheet,
-    Story, SheetAnswer,
+    Story, SheetAnswer, NextSheetPath,
 )
 
 
@@ -241,3 +241,86 @@ class GetSheetAnswerBySheetIdsTest(TestCase):
         self.assertIn(self.active_sheet1_answer2.id, sheet_answer_ids)
         self.assertIn(self.active_sheet2_answer1.id, sheet_answer_ids)
         self.assertIn(self.active_sheet2_answer2.id, sheet_answer_ids)
+
+
+class GetNextSheetPathsBySheetAnswerIdsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.all()[0]
+        self.story = Story.objects.create(
+            author=self.user,
+            title='test_story',
+            description='test_description',
+            image='https://image.test',
+            background_image='https://image.test',
+        )
+        self.start_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=True,
+            is_final=False,
+        )
+        self.start_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.start_sheet,
+            answer='test',
+            answer_reply='test_reply',
+        )
+        self.normal_sheet = Sheet.objects.create(
+            story=self.story,
+            title='normal sheet',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=False,
+        )
+        self.normal_sheet_answer1 = SheetAnswer.objects.create(
+            sheet=self.normal_sheet,
+            answer='normal_sheet_test',
+            answer_reply='normal_sheet_test_reply',
+        )
+        self.final_sheet = Sheet.objects.create(
+            story=self.story,
+            title='test_title',
+            question='test_question',
+            image='https://image.test',
+            background_image='https://image.test',
+            is_start=False,
+            is_final=True,
+        )
+        self.start_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.start_sheet_answer1,
+            sheet=self.normal_sheet,
+            quantity=10,
+        )
+        self.normal_sheet_answer_next_sheet_path1 = NextSheetPath.objects.create(
+            answer=self.normal_sheet_answer1,
+            sheet=self.final_sheet,
+            quantity=10,
+        )
+
+    def test_get_next_sheet_paths_by_sheet_answer_ids(self):
+        # Given: 필요한 Answer ID 리스트를 정의합니다.
+        answer_ids = [self.start_sheet_answer1.id, self.normal_sheet_answer1.id]
+
+        # When: 함수를 호출하여 결과를 가져옵니다.
+        result = get_next_sheet_paths_by_sheet_answer_ids(answer_ids)
+
+        # Then: 기대하는 결과를 단언합니다.
+        self.assertIn(self.start_sheet_answer1.id, result)
+        self.assertIn(self.normal_sheet_answer1.id, result)
+        self.assertEqual(result[self.start_sheet_answer1.id], [self.start_sheet_answer_next_sheet_path1])
+        self.assertEqual(result[self.normal_sheet_answer1.id], [self.normal_sheet_answer_next_sheet_path1])
+
+    def test_get_next_sheet_paths_by_sheet_answer_ids_when_answer_not_exists(self):
+        # Given: 없는 Answer ID 리스트를 정의합니다.
+        answer_ids = [0]
+
+        # When: 함수를 호출하여 결과를 가져옵니다.
+        result = get_next_sheet_paths_by_sheet_answer_ids(answer_ids)
+
+        # Then: 기대하는 결과를 단언합니다.
+        self.assertIn(0, result)
+        self.assertEqual(result[0], [])
