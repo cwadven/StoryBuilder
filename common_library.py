@@ -300,7 +300,7 @@ def get_integers_from_string(string_numbers: str, raise_error: bool = False) -> 
     for num in string_numbers.split(','):
         try:
             numbers.append(int(num.strip()))
-        except ValueError as e:
+        except ValueError:
             if raise_error:
-                raise e
+                raise ValueError('Invalid string of number exists.')
     return numbers
