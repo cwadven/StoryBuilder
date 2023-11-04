@@ -298,6 +298,8 @@ def get_sqs_message(queue_url: str):
 def get_integers_from_string(string_numbers: str, raise_error: bool = False) -> List[int]:
     numbers = []
     for num in string_numbers.split(','):
+        if not num:
+            continue
         try:
             numbers.append(int(num.strip()))
         except ValueError:
