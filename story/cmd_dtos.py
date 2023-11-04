@@ -130,3 +130,30 @@ class CMSStorySheetAnswerMapResponse(object):
 
     def to_dict(self):
         return attr.asdict(self, recurse=True)
+
+
+@attr.s
+class CMSStoryAnswerNextPathItemDTO(object):
+    sheet_id = attr.ib(type=int)
+    quantity = attr.ib(type=int)
+
+
+@attr.s
+class CMSStoryAnswerNextPathMapItemDTO(object):
+    answer_id = attr.ib(type=int)
+    next_paths = attr.ib(type=List[CMSStoryAnswerNextPathItemDTO])
+
+    @classmethod
+    def of(cls, sheet_answer: SheetAnswer, next_paths: List[CMSStoryAnswerNextPathItemDTO]):
+        return cls(
+            answer_id=sheet_answer.id,
+            next_paths=next_paths,
+        )
+
+
+@attr.s
+class CMSStoryAnswerNextPathMapResponse(object):
+    answer_next_paths = attr.ib(type=List[CMSStoryAnswerNextPathMapItemDTO])
+
+    def to_dict(self):
+        return attr.asdict(self, recurse=True)

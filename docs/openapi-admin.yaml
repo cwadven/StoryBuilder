@@ -343,7 +343,7 @@ components:
     AdminNextPathMapResponse:
       type: object
       properties:
-        next_paths:
+        answer_next_paths:
           type: array
           items:
             $ref: '#/components/schemas/AdminNextPathMap'
