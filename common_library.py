@@ -17,7 +17,7 @@ from django.utils.html import strip_tags
 
 from rest_framework.exceptions import APIException
 from rest_framework_jwt.settings import api_settings
-from typing import Optional, Any
+from typing import Optional, Any, List
 
 from account.constants import SIGNUP_MACRO_EXPIRE_SECONDS
 from account.models import User
@@ -293,3 +293,13 @@ def get_sqs_message(queue_url: str):
             ReceiptHandle=receipt_handle
         )
         return message_body
+
+
+def get_integers_from_string(string_numbers: str) -> List[int]:
+    numbers = []
+    for num in string_numbers.split(','):
+        try:
+            numbers.append(int(num.strip()))
+        except ValueError:
+            pass
+    return numbers
