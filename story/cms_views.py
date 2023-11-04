@@ -1,19 +1,25 @@
+import itertools
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common_decorator import pagination
+from common_decorator import pagination, optionals
+from common_library import get_integers_from_string
 from config.permissions.cms_permissions import CMSUserPermission
 from hint.services import get_available_sheet_hints_count
 from story.cmd_dtos import (
+    CMSStoryAnswerNextPathMapItemDTO,
+    CMSStoryAnswerNextPathMapResponse,
     CMSStoryListItemDTO,
     CMSStoryListResponse,
     CMSStorySheetAnswerMapItemDTO,
     CMSStorySheetAnswerMapResponse,
     CMSStorySheetMapItemDTO,
-    CMSStorySheetMapResponse,
+    CMSStorySheetMapResponse, CMSStoryAnswerNextPathItemDTO,
 )
 from story.cms_services import (
     get_active_sheets,
+    get_next_sheet_paths_by_sheet_answer_ids,
     get_sheet_answer_ids_by_sheet_ids,
     get_sheet_answers_by_sheet_ids,
     get_stories_qs,
@@ -85,6 +91,41 @@ class CMSStorySheetAnswerMapAPIView(APIView):
                     for sheet_answer in get_sheet_answers_by_sheet_ids(
                         [sheet.id for sheet in get_active_sheets(story_id)]
                     )
+                ],
+            ).to_dict(),
+            status=200,
+        )
+
+
+class CMSStoryAnswerNextPathMapAPIView(APIView):
+    permission_classes = [CMSUserPermission]
+
+    @optionals({'answer_ids': ''})
+    def get(self, request, story_id, o):
+        answer_ids = get_integers_from_string(o['answer_ids'], True)
+        answer_ids_by_sheet_id = get_sheet_answer_ids_by_sheet_ids(
+            [sheet.id for sheet in list(get_active_sheets(story_id))]
+        )
+        answer_ids_for_sheet = list(itertools.chain(*answer_ids_by_sheet_id.values()))
+        if not answer_ids:
+            answer_ids = answer_ids_for_sheet
+        else:
+            answer_ids = set(answer_ids_for_sheet) & set(answer_ids)
+
+        next_sheet_paths_by_sheet_answer_ids = get_next_sheet_paths_by_sheet_answer_ids(answer_ids)
+        return Response(
+            data=CMSStoryAnswerNextPathMapResponse(
+                answer_next_paths=[
+                    CMSStoryAnswerNextPathMapItemDTO(
+                        answer_id=sheet_answer_id,
+                        next_paths=[
+                            CMSStoryAnswerNextPathItemDTO(
+                                sheet_id=next_sheet_path.sheet_id,
+                                quantity=next_sheet_path.quantity,
+                            ) for next_sheet_path in next_sheet_paths
+                        ]
+                    )
+                    for sheet_answer_id, next_sheet_paths in next_sheet_paths_by_sheet_answer_ids.items()
                 ],
             ).to_dict(),
             status=200,
