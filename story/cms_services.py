@@ -11,7 +11,7 @@ from typing import (
 from story.models import (
     Sheet,
     Story,
-    SheetAnswer,
+    SheetAnswer, NextSheetPath,
 )
 
 
@@ -59,3 +59,15 @@ def get_sheet_answers_by_sheet_ids(sheet_ids: List[int]) -> List[SheetAnswer]:
             sheet_id__in=sheet_ids,
         )
     )
+
+
+def get_next_sheet_paths_by_sheet_answer_ids(answer_ids: List[int]) -> Dict[int, List[NextSheetPath]]:
+    if not answer_ids:
+        return {}
+
+    next_sheet_path_by_answer_id = {}
+    for answer_id in answer_ids:
+        next_sheet_path_by_answer_id[answer_id] = []
+    for next_sheet_path in NextSheetPath.objects.filter(answer__in=answer_ids):
+        next_sheet_path_by_answer_id[next_sheet_path.answer_id].append(next_sheet_path)
+    return next_sheet_path_by_answer_id
